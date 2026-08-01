@@ -62,11 +62,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildEventList(),
-                  _buildEventList(),
-                  _buildEventList(),
-                  _buildEventList(),
-                  _buildEventList(),
+                  _buildEventList(null),
+                  _buildEventList('upcoming'),
+                  _buildEventList('ongoing'),
+                  _buildEventList('completed'),
+                  _buildEventList('archived'),
                 ],
               ),
             ),
@@ -91,7 +91,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildEventList() {
+  Widget _buildEventList(String? statusFilter) {
     final eventsAsyncValue = ref.watch(eventsProvider);
 
     return RefreshIndicator(
@@ -110,7 +110,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
           ),
         ),
         data: (events) {
-          if (events.isEmpty) {
+          final filteredEvents = statusFilter == null
+              ? events
+              : events.where((e) => e.status.toLowerCase() == statusFilter.toLowerCase()).toList();
+
+          if (filteredEvents.isEmpty) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
@@ -130,9 +134,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
-            itemCount: events.length,
+            itemCount: filteredEvents.length,
             itemBuilder: (context, index) {
-              final event = events[index];
+              final event = filteredEvents[index];
               return GestureDetector(
                 onTap: () => context.push('/events/${event.id}'),
                 child: BrlGlassCard(

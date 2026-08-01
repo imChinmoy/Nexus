@@ -9,6 +9,8 @@ import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../providers/members_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/network/dio_client.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
   const MembersScreen({super.key});
@@ -77,7 +79,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
             ),
           ],
         ),
-        floatingActionButton: Container(
+        floatingActionButton: ref.watch(currentUserProvider)?.role == UserRole.admin || ref.watch(currentUserProvider)?.role == UserRole.superAdmin ? Container(
           decoration: BoxDecoration(
             gradient: AppGradients.accent,
             shape: BoxShape.circle,
@@ -86,10 +88,138 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
             ],
           ),
           child: FloatingActionButton(
-            onPressed: () {},
+            onPressed: () => _showAddMemberDialog(context),
             backgroundColor: Colors.transparent,
             elevation: 0,
             child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ) : null,
+      ),
+    );
+  }
+
+  void _showAddMemberDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    UserRole selectedRole = UserRole.volunteer;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Add New Member', style: AppTextStyles.headlineSm.copyWith(color: AppColors.moduleMembers)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                style: const TextStyle(color: Colors.white),
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                style: const TextStyle(color: Colors.white),
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<UserRole>(
+                value: selectedRole,
+                dropdownColor: AppColors.surface,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Role',
+                  labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+                ),
+                items: UserRole.values.map((role) {
+                  return DropdownMenuItem(
+                    value: role,
+                    child: Text(role.displayName.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => selectedRole = val);
+                },
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.moduleMembers,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () async {
+                    if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+                      return;
+                    }
+                    try {
+                      final dio = ref.read(dioClientProvider);
+                      await dio.post('/members', data: {
+                        'name': nameController.text,
+                        'email': emailController.text,
+                        'password': passwordController.text,
+                        'role': selectedRole.name,
+                      });
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ref.invalidate(membersProvider);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member added successfully')));
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add member: $e')));
+                      }
+                    }
+                  },
+                  child: const Text('ADD MEMBER', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),

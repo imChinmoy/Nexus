@@ -1,10 +1,11 @@
 const router = require('express').Router();
 const { authenticate } = require('../middlewares/auth.middleware');
-const { authorize } = require('../middlewares/role.middleware');
+const { authorize, requirePermission } = require('../middlewares/role.middleware');
 const asyncHandler = require('../utils/asyncHandler');
 const User = require('../models/User.model');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const { ROLES } = require('../constants/roles');
+const { PERMISSIONS } = require('../constants/permissions');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
 
 router.use(authenticate);
@@ -27,12 +28,12 @@ router.get('/:id', asyncHandler(async (req, res) => {
   sendSuccess(res, 'Member fetched', member);
 }));
 
-router.post('/', authorize(ROLES.COORDINATOR), asyncHandler(async (req, res) => {
+router.post('/', requirePermission(PERMISSIONS.MEMBER_ADD), asyncHandler(async (req, res) => {
   const member = await User.create(req.body);
   sendCreated(res, 'Member created', member);
 }));
 
-router.put('/:id', authorize(ROLES.COORDINATOR), asyncHandler(async (req, res) => {
+router.put('/:id', requirePermission(PERMISSIONS.MEMBER_ADD), asyncHandler(async (req, res) => {
   const member = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!member) return res.status(404).json({ success: false, message: 'Member not found' });
   sendSuccess(res, 'Member updated', member);

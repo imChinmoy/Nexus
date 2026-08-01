@@ -43,6 +43,7 @@ class RouteConstants {
   static const String settings = '/settings';
   static const String profile = '/settings/profile';
   static const String changePassword = '/settings/change-password';
+  static const String rolePermissions = '/settings/role-permissions';
 
   // Notifications
   static const String notifications = '/notifications';

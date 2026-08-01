@@ -21,6 +21,7 @@ import '../../features/reports/presentation/screens/reports_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/change_password_screen.dart';
+import '../../features/settings/presentation/screens/role_permissions_screen.dart';
 import '../../shared/widgets/brl_bottom_nav.dart';
 import '../constants/route_constants.dart';
 
@@ -166,6 +167,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'change-password',
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const ChangePasswordScreen(),
+              ),
+              GoRoute(
+                path: 'role-permissions',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const RolePermissionsScreen(),
               ),
             ],
           ),

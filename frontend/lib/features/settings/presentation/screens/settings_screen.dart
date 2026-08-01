@@ -10,6 +10,7 @@ import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -97,6 +98,17 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
 
+            if (user?.role == UserRole.superAdmin) ...[
+              const SizedBox(height: 24),
+              _buildSectionTitle('Permissions'),
+              _buildSettingsTile(
+                context,
+                icon: Icons.admin_panel_settings_outlined,
+                title: 'Manage Role Permissions',
+                onTap: () => context.push(RouteConstants.rolePermissions),
+              ),
+            ],
+
             const SizedBox(height: 24),
             _buildSectionTitle('Support'),
             _buildSettingsTile(
@@ -133,7 +145,29 @@ class SettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.logout, color: AppColors.error),
                 title: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  ref.read(authNotifierProvider.notifier).logout();
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        backgroundColor: AppColors.surface,
+                        title: const Text('Confirm Logout', style: TextStyle(color: AppColors.onSurface)),
+                        content: const Text('Are you sure you want to log out?', style: TextStyle(color: AppColors.onSurfaceMuted)),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceMuted)),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              ref.read(authNotifierProvider.notifier).logout();
+                            },
+                            child: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
               ),
             ),
