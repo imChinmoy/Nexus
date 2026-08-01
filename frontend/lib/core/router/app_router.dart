@@ -19,6 +19,7 @@ import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/attendance/presentation/screens/qr_scanner_screen.dart';
 import '../../features/attendance/presentation/screens/qr_display_screen.dart';
 import '../../features/attendance/presentation/screens/manual_attendance_screen.dart';
+import '../../features/attendance/presentation/screens/recent_attendance_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
@@ -155,6 +156,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => ManualAttendanceScreen(
                   eventId: state.uri.queryParameters['eventId'] ?? '',
                 ),
+              ),
+              GoRoute(
+                path: 'recent',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const RecentAttendanceScreen(),
               ),
             ],
           ),

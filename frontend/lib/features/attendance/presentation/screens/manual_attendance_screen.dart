@@ -51,6 +51,7 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
         (_) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance marked successfully')));
           ref.invalidate(eventAttendanceProvider(widget.eventId));
+          ref.invalidate(studentsProvider);
         },
       );
     } catch (e) {

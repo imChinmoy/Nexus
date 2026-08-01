@@ -62,6 +62,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
             },
             (_) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Marked $rollNo as PRESENT')));
+              ref.invalidate(eventAttendanceProvider(widget.eventId));
+              ref.invalidate(studentsProvider);
               Navigator.pop(context); // Go back after successful scan
             },
           );

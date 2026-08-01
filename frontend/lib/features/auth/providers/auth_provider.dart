@@ -24,6 +24,9 @@ final authNotifierProvider =
 });
 
 final myPermissionsProvider = FutureProvider<List<String>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return [];
+
   final dio = ref.watch(dioClientProvider);
   final response = await dio.get('/auth/my-permissions');
   if (response.statusCode == 200) {

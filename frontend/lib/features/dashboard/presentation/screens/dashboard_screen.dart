@@ -228,9 +228,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               icon: Icons.event_rounded,
               accentColor: AppColors.moduleEvents,
             ),
-            const BrlStatsCard(
+            BrlStatsCard(
               title: 'ATTENDANCE RATE',
-              value: '-',
+              value: studentsAsync.maybeWhen(
+                data: (students) {
+                  if (students.isEmpty) return '0%';
+                  final presentCount = students.where((s) => s.isPresent).length;
+                  final rate = (presentCount / students.length) * 100;
+                  return '${rate.toStringAsFixed(1)}%';
+                },
+                orElse: () => '-',
+              ),
               icon: Icons.check_circle_outline_rounded,
               accentColor: AppColors.moduleAttendance,
             ),
@@ -312,6 +320,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildRecentAttendance() {
+    final studentsAsync = ref.watch(studentsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,13 +330,47 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           children: [
             Text('RECENT ATTENDANCE', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
             GestureDetector(
-              onTap: () {},
+              onTap: () => context.push(RouteConstants.recentAttendance),
               child: Text('View All', style: AppTextStyles.bodySm.copyWith(color: AppColors.primary)),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        const Center(child: Text('No recent attendance', style: TextStyle(color: AppColors.onSurfaceMuted))),
+        studentsAsync.maybeWhen(
+          data: (students) {
+            final presentStudents = students.where((s) => s.isPresent).toList();
+            presentStudents.sort((a, b) {
+              if (a.updatedAt == null && b.updatedAt == null) return 0;
+              if (a.updatedAt == null) return 1;
+              if (b.updatedAt == null) return -1;
+              return b.updatedAt!.compareTo(a.updatedAt!);
+            });
+            final recent = presentStudents.take(3).toList();
+            
+            if (recent.isEmpty) {
+              return const Center(child: Text('No recent attendance', style: TextStyle(color: AppColors.onSurfaceMuted)));
+            }
+            
+            return Column(
+              children: recent.map((student) {
+                String timeString = '';
+                if (student.updatedAt != null) {
+                  final time = student.updatedAt!;
+                  timeString = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                }
+                
+                return _AttendanceListItem(
+                  name: student.name,
+                  roll: student.rollNumber,
+                  statusLabel: 'PRESENT',
+                  status: NeonBadgeType.success,
+                  time: timeString,
+                );
+              }).toList(),
+            );
+          },
+          orElse: () => const Center(child: Text('No recent attendance', style: TextStyle(color: AppColors.onSurfaceMuted))),
+        ),
       ],
     );
   }
@@ -340,7 +384,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('UPCOMING EVENTS', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
+            Text('UPCOMING & ONGOING', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
             GestureDetector(
               onTap: () => context.push(RouteConstants.events),
               child: Text('View All', style: AppTextStyles.bodySm.copyWith(color: AppColors.primary)),
@@ -352,19 +396,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           height: 120,
           child: eventsAsync.maybeWhen(
             data: (events) {
-              final upcoming = events.where((e) => e.status == 'upcoming').take(5).toList();
-              if (upcoming.isEmpty) {
+              final upcoming = events.where((e) => e.status == 'upcoming' || e.status == 'ongoing').toList();
+              upcoming.sort((a, b) => a.startDate.compareTo(b.startDate));
+              final displayEvents = upcoming.take(5).toList();
+              
+              if (displayEvents.isEmpty) {
                 return const Center(child: Text('No upcoming events', style: TextStyle(color: AppColors.onSurfaceMuted)));
               }
               return ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: upcoming.length,
+                itemCount: displayEvents.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => _EventCard(
-                  title: upcoming[i].title,
-                  date: upcoming[i].startDate.toString().split(' ')[0],
-                  type: upcoming[i].type,
-                  color: [AppColors.secondary, AppColors.primary, AppColors.accentPink][i % 3],
+                itemBuilder: (context, i) => GestureDetector(
+                  onTap: () => context.push('/events/${displayEvents[i].id}'),
+                  child: _EventCard(
+                    title: displayEvents[i].title,
+                    date: displayEvents[i].startDate.toString().split(' ')[0],
+                    type: displayEvents[i].type,
+                    banner: displayEvents[i].banner,
+                    color: [AppColors.secondary, AppColors.primary, AppColors.accentPink][i % 3],
+                  ),
                 ),
               );
             },
@@ -422,8 +473,9 @@ class _AttendanceListItem extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final String title, date, type;
+  final String? banner;
   final Color color;
-  const _EventCard({required this.title, required this.date, required this.type, required this.color});
+  const _EventCard({required this.title, required this.date, required this.type, this.banner, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -432,6 +484,16 @@ class _EventCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceGlass,
+        image: banner != null && banner!.isNotEmpty 
+            ? DecorationImage(
+                image: NetworkImage(banner!),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.6),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.3)),
         boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 12)],

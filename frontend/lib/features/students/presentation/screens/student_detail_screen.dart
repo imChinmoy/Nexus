@@ -10,6 +10,7 @@ import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../../shared/widgets/brl_stats_card.dart';
 import '../../providers/student_provider.dart';
+import '../../domain/entities/student_entity.dart';
 
 class StudentDetailScreen extends ConsumerStatefulWidget {
   final String studentId;
@@ -25,7 +26,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -62,7 +63,6 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   unselectedLabelColor: AppColors.onSurfaceMuted,
                   tabs: const [
                     Tab(text: 'OVERVIEW'),
-                    Tab(text: 'ATTENDANCE'),
                     Tab(text: 'QR CARD'),
                   ],
                 ),
@@ -71,7 +71,6 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                     controller: _tabController,
                     children: [
                       _buildOverviewTab(student),
-                      _buildAttendanceTab(student),
                       _buildQrCardTab(student.rollNumber),
                     ],
                   ),
@@ -117,20 +116,70 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     );
   }
 
-  Widget _buildOverviewTab(dynamic student) {
+  Widget _buildOverviewTab(StudentEntity student) {
     return _buildTabContainer(
-      child: BrlGlassCard(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildMinimalRow(Icons.email_outlined, 'Email', student.email),
-            const Divider(color: AppColors.glassStroke, height: 24),
-            _buildMinimalRow(Icons.account_balance_outlined, 'Branch', student.branch),
-            const Divider(color: AppColors.glassStroke, height: 24),
-            _buildMinimalRow(Icons.school_outlined, 'Year', '${student.year} Year'),
-          ],
-        ),
+      child: Column(
+        children: [
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMinimalRow(Icons.email_outlined, 'Email', student.email),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.phone_outlined, 'Phone', student.phone ?? 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.account_balance_outlined, 'Branch', student.branch),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.school_outlined, 'Year', '${student.year} Year'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.domain_outlined, 'Domain', student.domain ?? 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.person_outline, 'Gender', student.gender ?? 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.hotel_outlined, 'Hosteller', student.hosteller == true ? 'Yes' : (student.hosteller == false ? 'No' : 'N/A')),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Coding Profiles', style: AppTextStyles.labelLg.copyWith(color: AppColors.primary)),
+                const SizedBox(height: 16),
+                _buildMinimalRow(Icons.code_outlined, 'GitHub', student.github ?? 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.emoji_events_outlined, 'Unstop', student.unstop ?? 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.terminal_outlined, 'HackerRank', student.hackerrank ?? 'N/A'),
+                if (student.codingProfiles != null && student.codingProfiles!.isNotEmpty) ...[
+                  for (var profile in student.codingProfiles!) ...[
+                    const Divider(color: AppColors.glassStroke, height: 16),
+                    _buildMinimalRow(Icons.laptop_chromebook_outlined, profile.platform, profile.username),
+                  ]
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Record Information', style: AppTextStyles.labelLg.copyWith(color: AppColors.primary)),
+                const SizedBox(height: 16),
+                _buildMinimalRow(Icons.calendar_today_outlined, 'Joined', student.createdAt != null ? '${student.createdAt!.toLocal()}'.split(' ')[0] : 'N/A'),
+                const Divider(color: AppColors.glassStroke, height: 16),
+                _buildMinimalRow(Icons.update_outlined, 'Last Updated', student.updatedAt != null ? '${student.updatedAt!.toLocal()}'.split(' ')[0] : 'N/A'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -144,70 +193,6 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
         const Spacer(),
         Text(value, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500)),
       ],
-    );
-  }
-
-  Widget _buildAttendanceTab(dynamic student) {
-    double attendanceVal = double.tryParse(student.attendance.toString()) ?? 0.0;
-    Color attendanceColor = attendanceVal >= 75 ? AppColors.success : (attendanceVal >= 60 ? AppColors.warning : AppColors.error);
-    
-    return _buildTabContainer(
-      child: BrlGlassCard(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 120,
-              height: 120,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: attendanceVal / 100,
-                    strokeWidth: 8,
-                    backgroundColor: AppColors.surfaceDark,
-                    valueColor: AlwaysStoppedAnimation<Color>(attendanceColor),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${student.attendance}%', style: AppTextStyles.headlineMd.copyWith(color: attendanceColor, fontWeight: FontWeight.bold)),
-                      Text('Overall', style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceMuted)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: student.isPresent ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: student.isPresent ? AppColors.success.withOpacity(0.3) : AppColors.error.withOpacity(0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    student.isPresent ? Icons.check_circle_outline : Icons.cancel_outlined,
-                    color: student.isPresent ? AppColors.success : AppColors.error,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    student.isPresent ? 'Present Today' : 'Absent Today',
-                    style: AppTextStyles.labelMd.copyWith(
-                      color: student.isPresent ? AppColors.success : AppColors.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

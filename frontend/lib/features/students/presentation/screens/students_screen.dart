@@ -70,6 +70,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 ),
               ),
             _buildFilterChips(),
+            const _BranchAnalyticsWidget(),
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.primary,
@@ -284,7 +285,7 @@ class _StudentListItem extends StatelessWidget {
   const _StudentListItem({required this.student, required this.onTap});
 
   Color get _attendanceColor {
-    final percentage = student.isPresent ? 100 : 0;
+    final percentage = student.attendance;
     if (percentage >= 80) return AppColors.accentGreen;
     if (percentage >= 60) return AppColors.accentAmber;
     return AppColors.error;
@@ -299,27 +300,45 @@ class _StudentListItem extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Container(
-              width: 48, height: 48,
-              decoration: BoxDecoration(
-                gradient: AppGradients.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+            Stack(
+              children: [
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  student.name.isNotEmpty
-                      ? student.name.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
-                      : '?',
-                  style: AppTextStyles.labelLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                  child: Center(
+                    child: Text(
+                      student.name.isNotEmpty
+                          ? student.name.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+                          : '?',
+                      style: AppTextStyles.labelLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
+                if (student.isPresent)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentGreen,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.surface, width: 2),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -370,30 +389,10 @@ class _StudentListItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${student.isPresent ? 100 : 0}%',
+                    '${student.attendance}%',
                     style: AppTextStyles.labelMd.copyWith(
                       color: _attendanceColor,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: 64,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: student.isPresent ? 1.0 : 0.0),
-                      duration: const Duration(milliseconds: 1000),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, value, _) {
-                        return LinearProgressIndicator(
-                          value: value,
-                          backgroundColor: AppColors.surfaceGlass,
-                          valueColor: AlwaysStoppedAnimation(_attendanceColor),
-                          minHeight: 4,
-                        );
-                      },
                     ),
                   ),
                 ),
@@ -403,6 +402,122 @@ class _StudentListItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BranchAnalyticsWidget extends ConsumerWidget {
+  const _BranchAnalyticsWidget();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final studentsAsyncValue = ref.watch(studentsProvider);
+    
+    return studentsAsyncValue.when(
+      data: (students) {
+        if (students.isEmpty) return const SizedBox.shrink();
+
+        final stats = <String, List<int>>{};
+        for (final s in students) {
+          if (!stats.containsKey(s.branch)) {
+            stats[s.branch] = [0, 0];
+          }
+          stats[s.branch]![0] += 1;
+          stats[s.branch]![1] += s.attendance;
+        }
+
+        final sortedBranches = stats.keys.toList()..sort();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              child: Text(
+                'Domain Analytics',
+                style: AppTextStyles.labelMd.copyWith(
+                  color: AppColors.onSurfaceMuted,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 90,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                scrollDirection: Axis.horizontal,
+                itemCount: sortedBranches.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final branch = sortedBranches[index];
+                  final total = stats[branch]![0];
+                  final present = stats[branch]![1];
+                  final averageAttendance = total == 0 ? 0.0 : (present / total);
+                  final percentage = averageAttendance / 100.0;
+
+                  Color progressColor = AppColors.error;
+                  if (percentage >= 0.8) progressColor = AppColors.accentGreen;
+                  else if (percentage >= 0.6) progressColor = AppColors.accentAmber;
+
+                  return Container(
+                    width: 140,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceGlass,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.glassStroke),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              branch,
+                              style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface),
+                            ),
+                            Text(
+                              '${(percentage * 100).toStringAsFixed(0)}%',
+                              style: AppTextStyles.labelSm.copyWith(color: progressColor, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0, end: percentage),
+                            duration: const Duration(milliseconds: 1000),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, _) {
+                              return LinearProgressIndicator(
+                                value: value,
+                                backgroundColor: AppColors.surface.withOpacity(0.5),
+                                valueColor: AlwaysStoppedAnimation(progressColor),
+                                minHeight: 6,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$total Students',
+                          style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceMuted, fontSize: 10),
+                        )
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

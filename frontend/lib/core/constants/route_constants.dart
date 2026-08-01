@@ -35,6 +35,7 @@ class RouteConstants {
   static const String qrScanner = '/attendance/qr-scan';
   static const String qrDisplay = '/attendance/qr-display';
   static const String manualAttendance = '/attendance/manual';
+  static const String recentAttendance = '/attendance/recent';
 
   // Reports
   static const String reports = '/reports';

@@ -1,5 +1,6 @@
 const Registration = require('../models/Registration.model');
 const Student = require('../models/Student.model');
+const Attendance = require('../models/Attendance.model');
 const studentRepository = require('../repositories/student.repository');
 const { getPagination, buildPaginationMeta, buildSortOptions } = require('../utils/pagination');
 
@@ -36,14 +37,34 @@ class StudentService {
     const rollNumbers = data.map(r => r.rollNo);
     const students = await Student.find({ rollNo: { $in: rollNumbers } }).lean();
     
+    const attendanceStats = await Attendance.aggregate([
+      { $match: { student: { $in: students.map(s => s._id) } } },
+      {
+        $group: {
+          _id: '$student',
+          total: { $sum: 1 },
+          present: {
+            $sum: { $cond: [{ $in: ['$status', ['present', 'late']] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+    
+    const attendanceMap = attendanceStats.reduce((acc, stat) => {
+      acc[stat._id.toString()] = stat.total > 0 ? Math.round((stat.present / stat.total) * 100) : 0;
+      return acc;
+    }, {});
+
     const studentMap = students.reduce((acc, s) => {
-      acc[s.rollNo] = s.isPresent;
+      acc[s.rollNo] = s;
       return acc;
     }, {});
 
     const enrichedData = data.map(d => {
       const doc = d.toObject();
-      doc.isPresent = studentMap[doc.rollNo] || false;
+      const student = studentMap[doc.rollNo];
+      doc.isPresent = student ? student.isPresent : false;
+      doc.attendance = student ? (attendanceMap[student._id.toString()] || 0) : 0;
       return doc;
     });
 
