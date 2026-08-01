@@ -12,6 +12,8 @@ import '../../features/students/presentation/screens/add_student_screen.dart';
 import '../../features/members/presentation/screens/members_screen.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
+import '../../features/events/presentation/screens/edit_event_screen.dart';
+import '../../features/events/domain/entities/event_entity.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/attendance/presentation/screens/qr_scanner_screen.dart';
@@ -111,6 +113,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'create',
                 parentNavigatorKey: _rootNavigatorKey,
                 builder: (context, state) => const CreateEventScreen(),
+              ),
+              GoRoute(
+                path: ':eventId/edit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final event = state.extra as EventEntity;
+                  return EditEventScreen(event: event);
+                },
               ),
               GoRoute(
                 path: ':eventId',

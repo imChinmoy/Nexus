@@ -259,10 +259,15 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
                         CircleAvatar(
                           radius: 24,
                           backgroundColor: AppColors.moduleMembers.withOpacity(0.2),
-                          child: Text(
-                            member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
-                            style: const TextStyle(color: AppColors.moduleMembers),
-                          ),
+                          backgroundImage: member.avatar != null && member.avatar!.isNotEmpty
+                              ? NetworkImage(member.avatar!)
+                              : null,
+                          child: member.avatar == null || member.avatar!.isEmpty
+                              ? Text(
+                                  member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
+                                  style: const TextStyle(color: AppColors.moduleMembers),
+                                )
+                              : null,
                         ),
                         const SizedBox(width: 16),
                         Expanded(

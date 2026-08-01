@@ -121,54 +121,89 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
   }
 
   Widget _buildDetailsCard() {
-    return BrlGlassCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfoRow(Icons.email_outlined, 'Email', _member.email),
-          if (_member.phone?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(Icons.phone_outlined, 'Phone', _member.phone!),
-          ],
-          if (_member.domain?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(Icons.work_outline, 'Domain', _member.domain!),
-          ],
-          if (_member.year?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(Icons.school_outlined, 'Year', _member.year!),
-          ],
-          if (_member.github?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(Icons.code, 'GitHub', _member.github!),
-          ],
-          if (_member.linkedin?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            _buildInfoRow(Icons.link, 'LinkedIn', _member.linkedin!),
-          ],
-          if (_member.bio?.isNotEmpty == true) ...[
-            const Divider(color: Colors.white12, height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_member.bio?.isNotEmpty == true) ...[
+          _buildSectionHeader(Icons.person_outline, 'About Me'),
+          const SizedBox(height: 12),
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              _member.bio!,
+              style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        _buildSectionHeader(Icons.contact_mail_outlined, 'Contact Information'),
+        const SizedBox(height: 12),
+        BrlGlassCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              _buildInfoRow(Icons.email_outlined, 'Email', _member.email),
+              if (_member.phone?.isNotEmpty == true) ...[
+                const Divider(color: Colors.white12, height: 24),
+                _buildInfoRow(Icons.phone_outlined, 'Phone', _member.phone!),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        if (_member.domain?.isNotEmpty == true || _member.year?.isNotEmpty == true) ...[
+          _buildSectionHeader(Icons.school_outlined, 'Academic Details'),
+          const SizedBox(height: 12),
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
               children: [
-                const Icon(Icons.person_outline, color: AppColors.moduleMembers, size: 20),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Bio', style: TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text(_member.bio!, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                    ],
-                  ),
-                ),
+                if (_member.domain?.isNotEmpty == true)
+                  _buildInfoRow(Icons.work_outline, 'Domain', _member.domain!),
+                if (_member.domain?.isNotEmpty == true && _member.year?.isNotEmpty == true)
+                  const Divider(color: Colors.white12, height: 24),
+                if (_member.year?.isNotEmpty == true)
+                  _buildInfoRow(Icons.timeline, 'Year', _member.year!),
               ],
             ),
-          ],
+          ),
+          const SizedBox(height: 24),
         ],
-      ),
+        if (_member.github?.isNotEmpty == true || _member.linkedin?.isNotEmpty == true) ...[
+          _buildSectionHeader(Icons.link, 'Social Profiles'),
+          const SizedBox(height: 12),
+          BrlGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                if (_member.github?.isNotEmpty == true)
+                  _buildInfoRow(Icons.code, 'GitHub', _member.github!),
+                if (_member.github?.isNotEmpty == true && _member.linkedin?.isNotEmpty == true)
+                  const Divider(color: Colors.white12, height: 24),
+                if (_member.linkedin?.isNotEmpty == true)
+                  _buildInfoRow(Icons.open_in_new, 'LinkedIn', _member.linkedin!),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.moduleMembers, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title.toUpperCase(),
+          style: AppTextStyles.labelLg.copyWith(
+            color: AppColors.moduleMembers,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -286,14 +321,14 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                     try {
                       final dio = ref.read(dioClientProvider);
                       final response = await dio.put('/members/${_member.id}', data: {
-                        'name': nameController.text,
-                        'email': emailController.text,
-                        'phone': phoneController.text,
-                        'domain': domainController.text,
-                        'year': yearController.text,
-                        'github': githubController.text,
-                        'linkedin': linkedinController.text,
-                        'bio': bioController.text,
+                        'name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
+                        'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
+                        'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+                        'domain': domainController.text.trim().isEmpty ? null : domainController.text.trim(),
+                        'year': yearController.text.trim().isEmpty ? null : yearController.text.trim(),
+                        'github': githubController.text.trim().isEmpty ? null : githubController.text.trim(),
+                        'linkedin': linkedinController.text.trim().isEmpty ? null : linkedinController.text.trim(),
+                        'bio': bioController.text.trim().isEmpty ? null : bioController.text.trim(),
                         'role': selectedRole.name,
                       });
                       if (context.mounted) {

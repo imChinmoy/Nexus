@@ -51,4 +51,36 @@ class EventRepositoryImpl implements EventRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, EventEntity>> updateEvent(
+    String id, {
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? type,
+    int? capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
+  }) async {
+    try {
+      final model = await _remote.updateEvent(
+        id,
+        title: title,
+        startDate: startDate,
+        endDate: endDate,
+        type: type,
+        capacity: capacity,
+        description: description,
+        venue: venue,
+        bannerPath: bannerPath,
+      );
+      return Right(model.toEntity());
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
 }

@@ -8,6 +8,9 @@ import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../providers/event_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/route_constants.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
@@ -16,6 +19,11 @@ class EventDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(eventsProvider);
+    final user = ref.watch(currentUserProvider);
+    final isSuperAdmin = user?.isSuperAdmin ?? false;
+    final permissionsAsync = ref.watch(myPermissionsProvider);
+    final permissions = permissionsAsync.value ?? [];
+    final hasEventEdit = isSuperAdmin || permissions.contains('event:edit') || permissions.contains('all');
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -36,6 +44,15 @@ class EventDetailScreen extends ConsumerWidget {
                   pinned: true,
                   backgroundColor: AppColors.background.withOpacity(0.9),
                   iconTheme: const IconThemeData(color: Colors.white),
+                  actions: [
+                    if (hasEventEdit)
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: AppColors.moduleEvents),
+                        onPressed: () {
+                          context.push('${RouteConstants.events}/${event.id}/edit', extra: event);
+                        },
+                      ),
+                  ],
                   flexibleSpace: FlexibleSpaceBar(
                     background: Stack(
                       fit: StackFit.expand,

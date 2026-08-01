@@ -159,14 +159,33 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
                   padding: EdgeInsets.zero,
                   child: Row(
                     children: [
-                      Container(
-                        width: 6,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: AppColors.accentPink,
+                      if (event.banner != null && event.banner!.isNotEmpty)
+                        ClipRRect(
                           borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                          child: Image.network(
+                            event.banner!,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              width: 6,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: AppColors.accentPink,
+                                borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 6,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: AppColors.accentPink,
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                          ),
                         ),
-                      ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(16),

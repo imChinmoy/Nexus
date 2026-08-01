@@ -15,6 +15,17 @@ abstract interface class EventRemoteSource {
     String? venue,
     String? bannerPath,
   });
+  Future<EventModel> updateEvent(
+    String id, {
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? type,
+    int? capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
+  });
 }
 
 class EventRemoteSourceImpl implements EventRemoteSource {
@@ -80,6 +91,51 @@ class EventRemoteSourceImpl implements EventRemoteSource {
       rethrow;
     } catch (e) {
       throw ServerException('Failed to create event: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<EventModel> updateEvent(
+    String id, {
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? type,
+    int? capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
+  }) async {
+    try {
+      final mapData = <String, dynamic>{};
+      if (title != null) mapData['title'] = title;
+      if (startDate != null) mapData['startDate'] = startDate.toUtc().toIso8601String();
+      if (endDate != null) mapData['endDate'] = endDate.toUtc().toIso8601String();
+      if (type != null) mapData['type'] = type;
+      if (capacity != null) mapData['capacity'] = capacity;
+      if (description != null) mapData['description'] = description;
+      if (venue != null) mapData['venue'] = venue;
+      
+      final formData = FormData.fromMap(mapData);
+
+      if (bannerPath != null && bannerPath.isNotEmpty) {
+        formData.files.add(
+          MapEntry('banner', await MultipartFile.fromFile(bannerPath)),
+        );
+      }
+
+      final response = await _dio.put(
+        '${ApiConstants.events}/$id',
+        data: formData,
+      );
+      return EventModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to update event: ${e.message}');
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Failed to update event: ${e.toString()}');
     }
   }
 }

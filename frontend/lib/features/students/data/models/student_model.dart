@@ -29,7 +29,7 @@ class StudentModel {
         rollNumber: json['rollNo'] as String? ?? json['rollNumber'] as String? ?? '',
         studentNo: json['studentNo'] as String? ?? '',
         branch: json['branch'] as String? ?? '',
-        year: json['year'] as int? ?? 1,
+        year: json['year'] as int? ?? 2,
         email: json['email'] as String? ?? '',
         attendance: json['attendance'] as int? ?? 0,
         isPresent: json['isPresent'] as bool? ?? false,

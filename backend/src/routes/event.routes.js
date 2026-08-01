@@ -12,11 +12,11 @@ router.use(authenticate);
 
 router.get('/', eventController.getAll);
 router.get('/:id', eventController.getById);
-router.post('/', authorize(ROLES.SUPER_ADMIN), eventUpload.single('banner'), createEventValidator, validate, eventController.create);
-router.put('/:id', authorize(ROLES.SUPER_ADMIN), eventUpload.single('banner'), updateEventValidator, validate, eventController.update);
-router.delete('/:id', authorize(ROLES.SUPER_ADMIN), eventController.delete);
-router.post('/:id/qr', authorize(ROLES.SUPER_ADMIN), eventController.generateQR);
-router.patch('/:id/attendance-toggle', authorize(ROLES.SUPER_ADMIN), eventController.toggleAttendance);
-router.patch('/:id/archive', authorize(ROLES.SUPER_ADMIN), eventController.archive);
+router.post('/', requirePermission(PERMISSIONS.EVENT_ADD), eventUpload.single('banner'), createEventValidator, validate, eventController.create);
+router.put('/:id', requirePermission(PERMISSIONS.EVENT_EDIT), eventUpload.single('banner'), updateEventValidator, validate, eventController.update);
+router.delete('/:id', requirePermission(PERMISSIONS.EVENT_EDIT), eventController.delete);
+router.post('/:id/qr', requirePermission(PERMISSIONS.EVENT_EDIT), eventController.generateQR);
+router.patch('/:id/attendance-toggle', requirePermission(PERMISSIONS.EVENT_EDIT), eventController.toggleAttendance);
+router.patch('/:id/archive', requirePermission(PERMISSIONS.EVENT_EDIT), eventController.archive);
 
 module.exports = router;

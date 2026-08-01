@@ -14,4 +14,15 @@ abstract interface class EventRepository {
     String? venue,
     String? bannerPath,
   });
+  Future<Either<Failure, EventEntity>> updateEvent(
+    String id, {
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? type,
+    int? capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
+  });
 }
