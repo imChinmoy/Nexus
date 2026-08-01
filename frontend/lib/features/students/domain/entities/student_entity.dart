@@ -2,6 +2,7 @@ class StudentEntity {
   final String id;
   final String name;
   final String rollNumber;
+  final String studentNo;
   final String branch;
   final int year;
   final String email;
@@ -11,6 +12,7 @@ class StudentEntity {
     required this.id,
     required this.name,
     required this.rollNumber,
+    required this.studentNo,
     required this.branch,
     required this.year,
     required this.email,

@@ -118,10 +118,18 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
   }
 
   Widget _buildOverviewTab(dynamic student) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        BrlGlassCard(
+    return RefreshIndicator(
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      onRefresh: () async {
+        ref.invalidate(studentsProvider);
+        await Future.delayed(const Duration(seconds: 1));
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          BrlGlassCard(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
@@ -136,6 +144,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
           ),
         ),
       ],
+    ),
     );
   }
 
@@ -153,35 +162,63 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
   }
 
   Widget _buildAttendanceTab() {
-    return const Center(child: Text('No attendance records', style: TextStyle(color: AppColors.onSurfaceMuted)));
+    return RefreshIndicator(
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      onRefresh: () async {
+        ref.invalidate(studentsProvider);
+        await Future.delayed(const Duration(seconds: 1));
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: 300,
+          child: const Center(child: Text('No attendance records', style: TextStyle(color: AppColors.onSurfaceMuted))),
+        ),
+      ),
+    );
   }
 
   Widget _buildQrCardTab(String data) {
-    return Center(
-      child: BrlGlassCard(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primary, width: 2),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 20),
+    return RefreshIndicator(
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      onRefresh: () async {
+        ref.invalidate(studentsProvider);
+        await Future.delayed(const Duration(seconds: 1));
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: 400,
+          child: Center(
+            child: BrlGlassCard(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.primary, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 20),
+                      ],
+                      color: Colors.white,
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: QrImageView(
+                      data: data,
+                      version: QrVersions.auto,
+                      size: 200.0,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text('SCAN FOR ATTENDANCE', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
                 ],
-                color: Colors.white,
-              ),
-              padding: const EdgeInsets.all(16),
-              child: QrImageView(
-                data: data,
-                version: QrVersions.auto,
-                size: 200.0,
               ),
             ),
-            const SizedBox(height: 24),
-            Text('SCAN FOR ATTENDANCE', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
-          ],
+          ),
         ),
       ),
     );

@@ -94,75 +94,92 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
   Widget _buildEventList() {
     final eventsAsyncValue = ref.watch(eventsProvider);
 
-    return eventsAsyncValue.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents)),
-      error: (error, _) => Center(
-        child: Text(
-          'Error loading events: $error',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.error),
+    return RefreshIndicator(
+      color: AppColors.moduleEvents,
+      backgroundColor: AppColors.surface,
+      onRefresh: () async {
+        ref.invalidate(eventsProvider);
+        await Future.delayed(const Duration(seconds: 1));
+      },
+      child: eventsAsyncValue.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents)),
+        error: (error, _) => Center(
+          child: Text(
+            'Error loading events: $error',
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.error),
+          ),
         ),
-      ),
-      data: (events) {
-        if (events.isEmpty) {
-          return const Center(
-            child: Text(
-              'No Events Found',
-              style: TextStyle(color: AppColors.onSurfaceMuted),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: events.length,
-          itemBuilder: (context, index) {
-            final event = events[index];
-            return GestureDetector(
-              onTap: () => context.push('/events/${event.id}'),
-              child: BrlGlassCard(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: EdgeInsets.zero,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: AppColors.accentPink,
-                        borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-                      ),
+        data: (events) {
+          if (events.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: const Center(
+                    child: Text(
+                      'No Events Found',
+                      style: TextStyle(color: AppColors.onSurfaceMuted),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(event.title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                ),
-                                const SizedBox(width: 8),
-                                NeonBadge(label: event.status.toUpperCase(), type: NeonBadgeType.info),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text('${event.startDate.toString().split(' ')[0]} - ${event.endDate.toString().split(' ')[0]}', style: AppTextStyles.bodySm),
-                            const SizedBox(height: 4),
-                            Text(event.type.toUpperCase(), style: AppTextStyles.bodySm),
-                          ],
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final event = events[index];
+              return GestureDetector(
+                onTap: () => context.push('/events/${event.id}'),
+                child: BrlGlassCard(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: EdgeInsets.zero,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentPink,
+                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
                         ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(event.title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  NeonBadge(label: event.status.toUpperCase(), type: NeonBadgeType.info),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text('${event.startDate.toString().split(' ')[0]} - ${event.endDate.toString().split(' ')[0]}', style: AppTextStyles.bodySm),
+                              const SizedBox(height: 4),
+                              Text(event.type.toUpperCase(), style: AppTextStyles.bodySm),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

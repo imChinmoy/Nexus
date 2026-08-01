@@ -4,7 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../models/student_model.dart';
 
 abstract interface class StudentRemoteSource {
-  Future<List<StudentModel>> getStudents();
+  Future<List<StudentModel>> getStudents({String? search});
   Future<StudentModel> createStudent({
     required String name,
     required String rollNumber,
@@ -21,9 +21,16 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
   StudentRemoteSourceImpl(this._dio);
 
   @override
-  Future<List<StudentModel>> getStudents() async {
+  Future<List<StudentModel>> getStudents({String? search}) async {
     try {
-      final response = await _dio.get(ApiConstants.students);
+      final Map<String, dynamic> queryParams = {'limit': 1000};
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+      final response = await _dio.get(
+        ApiConstants.students,
+        queryParameters: queryParams,
+      );
       if (response.data['data'] == null) return [];
       return (response.data['data'] as List)
           .map((json) => StudentModel.fromJson(json))

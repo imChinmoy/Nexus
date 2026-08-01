@@ -3,7 +3,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/student_entity.dart';
 
 abstract interface class StudentRepository {
-  Future<Either<Failure, List<StudentEntity>>> getStudents();
+  Future<Either<Failure, List<StudentEntity>>> getStudents({String? search});
   Future<Either<Failure, StudentEntity>> createStudent({
     required String name,
     required String rollNumber,

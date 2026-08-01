@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -9,6 +7,8 @@ import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../providers/members_provider.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
   const MembersScreen({super.key});
@@ -57,14 +57,22 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
               ],
             ),
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildMembersList(),
-                  _buildMembersList(),
-                  _buildMembersList(),
-                  _buildMembersList(),
-                ],
+              child: ref.watch(membersProvider).when(
+                data: (members) {
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildMembersList(members),
+                      _buildMembersList(members.where((m) => m.role == UserRole.superAdmin || m.role == UserRole.admin).toList()),
+                      _buildMembersList(members.where((m) => m.role == UserRole.coordinator).toList()),
+                      _buildMembersList(members.where((m) => m.role == UserRole.volunteer).toList()),
+                    ],
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleMembers)),
+                error: (error, stack) => Center(
+                  child: Text('Error: $error', style: const TextStyle(color: Colors.white)),
+                ),
               ),
             ),
           ],
@@ -88,37 +96,51 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
     );
   }
 
-  Widget _buildMembersList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return BrlGlassCard(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.moduleMembers.withOpacity(0.2),
-                child: const Text('M', style: TextStyle(color: AppColors.moduleMembers)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Member Name', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    const NeonBadge(label: 'CORE TEAM', type: NeonBadgeType.info),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: AppColors.onSurfaceMuted),
-            ],
-          ),
-        );
+  Widget _buildMembersList(List<UserEntity> members) {
+    return RefreshIndicator(
+      color: AppColors.moduleMembers,
+      backgroundColor: AppColors.surface,
+      onRefresh: () async {
+        ref.invalidate(membersProvider);
       },
+      child: members.isEmpty
+          ? const Center(child: Text('No members found', style: TextStyle(color: AppColors.onSurfaceMuted)))
+          : ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: members.length,
+              itemBuilder: (context, index) {
+                final member = members[index];
+                return BrlGlassCard(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppColors.moduleMembers.withOpacity(0.2),
+                        child: Text(
+                          member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
+                          style: const TextStyle(color: AppColors.moduleMembers),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            NeonBadge(label: member.role.displayName.toUpperCase(), type: NeonBadgeType.info),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: AppColors.onSurfaceMuted),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }

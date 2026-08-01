@@ -51,27 +51,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader()),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                sliver: SliverToBoxAdapter(child: _buildStatsGrid()),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                sliver: SliverToBoxAdapter(child: _buildQuickActions(context)),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                sliver: SliverToBoxAdapter(child: _buildRecentAttendance()),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-                sliver: SliverToBoxAdapter(child: _buildUpcomingEvents()),
-              ),
-            ],
+          child: RefreshIndicator(
+            color: AppColors.primary,
+            backgroundColor: AppColors.surface,
+            onRefresh: () async {
+              ref.invalidate(studentsProvider);
+              ref.invalidate(eventsProvider);
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader()),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  sliver: SliverToBoxAdapter(child: _buildStatsGrid()),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  sliver: SliverToBoxAdapter(child: _buildQuickActions(context)),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  sliver: SliverToBoxAdapter(child: _buildRecentAttendance()),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                  sliver: SliverToBoxAdapter(child: _buildUpcomingEvents()),
+                ),
+              ],
+            ),
           ),
         ),
       ),

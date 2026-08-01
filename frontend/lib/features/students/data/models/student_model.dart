@@ -4,6 +4,7 @@ class StudentModel {
   final String id;
   final String name;
   final String rollNumber;
+  final String studentNo;
   final String branch;
   final int year;
   final String email;
@@ -13,6 +14,7 @@ class StudentModel {
     required this.id,
     required this.name,
     required this.rollNumber,
+    required this.studentNo,
     required this.branch,
     required this.year,
     required this.email,
@@ -22,7 +24,8 @@ class StudentModel {
   factory StudentModel.fromJson(Map<String, dynamic> json) => StudentModel(
         id: json['_id'] as String? ?? json['id'] as String? ?? '',
         name: json['name'] as String? ?? '',
-        rollNumber: json['rollNumber'] as String? ?? '',
+        rollNumber: json['rollNo'] as String? ?? json['rollNumber'] as String? ?? '',
+        studentNo: json['studentNo'] as String? ?? '',
         branch: json['branch'] as String? ?? '',
         year: json['year'] as int? ?? 1,
         email: json['email'] as String? ?? '',
@@ -33,6 +36,7 @@ class StudentModel {
         id: id,
         name: name,
         rollNumber: rollNumber,
+        studentNo: studentNo,
         branch: branch,
         year: year,
         email: email,

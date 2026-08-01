@@ -16,7 +16,8 @@ class StudentService {
         $or: [
           { name: { $regex: query.search, $options: 'i' } },
           { rollNo: { $regex: query.search, $options: 'i' } },
-          { email: { $regex: query.search, $options: 'i' } }
+          { email: { $regex: query.search, $options: 'i' } },
+          { studentNo: { $regex: query.search, $options: 'i' } }
         ]
       };
       const [data, total] = await Promise.all([

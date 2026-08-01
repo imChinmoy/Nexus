@@ -11,9 +11,9 @@ class StudentRepositoryImpl implements StudentRepository {
   StudentRepositoryImpl(this._remote);
 
   @override
-  Future<Either<Failure, List<StudentEntity>>> getStudents() async {
+  Future<Either<Failure, List<StudentEntity>>> getStudents({String? search}) async {
     try {
-      final models = await _remote.getStudents();
+      final models = await _remote.getStudents(search: search);
       return Right(models.map((m) => m.toEntity()).toList());
     } on AppException catch (e) {
       return Left(ServerFailure(e.message));

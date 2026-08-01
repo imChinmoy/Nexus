@@ -119,7 +119,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'qr-scan',
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => const QrScannerScreen(),
+                builder: (context, state) => QrScannerScreen(
+                  eventId: state.uri.queryParameters['eventId'] ?? '',
+                ),
               ),
               GoRoute(
                 path: 'qr-display',

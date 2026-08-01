@@ -74,7 +74,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               child: RefreshIndicator(
                 color: AppColors.primary,
                 backgroundColor: AppColors.surface,
-                onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+                onRefresh: () async {
+                  ref.invalidate(studentsProvider);
+                  await Future.delayed(const Duration(seconds: 1));
+                },
                 child: _buildStudentList(),
               ),
             ),

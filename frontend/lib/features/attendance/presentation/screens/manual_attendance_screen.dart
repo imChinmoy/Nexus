@@ -4,9 +4,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
-import '../../../../shared/widgets/brl_button.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
+import '../../providers/attendance_provider.dart';
+import '../../../students/providers/student_provider.dart';
 
 class ManualAttendanceScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -17,8 +18,52 @@ class ManualAttendanceScreen extends ConsumerStatefulWidget {
 }
 
 class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final Map<String, String> _attendanceStatus = {}; // studentId -> status
+  bool _isMarking = false;
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _markAttendance(String studentId, String status) async {
+    setState(() {
+      _isMarking = true;
+      _attendanceStatus[studentId] = status;
+    });
+
+    try {
+      final attendanceRepo = ref.read(attendanceRepositoryProvider);
+      final result = await attendanceRepo.markManual(
+        eventId: widget.eventId,
+        studentId: studentId,
+        status: status,
+      );
+
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: ${failure.message}')));
+          setState(() => _attendanceStatus.remove(studentId)); // revert on fail
+        },
+        (_) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance marked successfully')));
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      setState(() => _attendanceStatus.remove(studentId)); // revert on fail
+    } finally {
+      setState(() => _isMarking = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(studentsProvider);
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -27,34 +72,121 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
           accentColor: AppColors.moduleAttendance,
           showBack: true,
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
+        body: Column(
           children: [
-            BrlTextField(label: 'Search Student Roll No...'),
-            const SizedBox(height: 24),
-            BrlGlassCard(
+            Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Mark Status', style: AppTextStyles.bodyLg),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ActionChip(label: const Text('PRESENT'), backgroundColor: AppColors.accentGreen.withOpacity(0.2), onPressed: (){}),
-                      ActionChip(label: const Text('ABSENT'), backgroundColor: AppColors.error.withOpacity(0.2), onPressed: (){}),
-                      ActionChip(label: const Text('LATE'), backgroundColor: AppColors.accentAmber.withOpacity(0.2), onPressed: (){}),
-                      ActionChip(label: const Text('EXCUSED'), backgroundColor: AppColors.moduleMembers.withOpacity(0.2), onPressed: (){}),
-                    ],
-                  ),
-                ],
+              child: BrlTextField(
+                controller: _searchController,
+                label: 'Search Name, Roll No, Student No...',
+                prefix: const Icon(Icons.search, color: AppColors.onSurfaceSubtle, size: 18),
+                onChanged: (val) => setState(() => _searchQuery = val),
               ),
             ),
-            const SizedBox(height: 24),
-            BrlButton(
-              label: 'SUBMIT',
-              onPressed: () => Navigator.pop(context),
+            if (_isMarking)
+              const LinearProgressIndicator(color: AppColors.moduleAttendance),
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.moduleAttendance,
+                backgroundColor: AppColors.surface,
+                onRefresh: () async {
+                  ref.invalidate(studentsProvider);
+                  await Future.delayed(const Duration(seconds: 1));
+                },
+                child: studentsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleAttendance)),
+                  error: (error, _) => Center(
+                    child: Text('Error loading students: $error', style: AppTextStyles.bodyMd.copyWith(color: AppColors.error)),
+                  ),
+                  data: (students) {
+                    final filtered = students.where((s) {
+                      final query = _searchQuery.toLowerCase();
+                      return s.name.toLowerCase().contains(query) ||
+                             s.rollNumber.toLowerCase().contains(query) ||
+                             s.studentNo.toLowerCase().contains(query);
+                    }).toList();
+
+                    if (filtered.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: const Center(
+                              child: Text('No students found', style: TextStyle(color: AppColors.onSurfaceMuted)),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final student = filtered[index];
+                        final currentStatus = _attendanceStatus[student.id] ?? 'ABSENT';
+
+                        return BrlGlassCard(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: AppColors.moduleAttendance.withOpacity(0.2),
+                                child: Text(
+                                  student.name.isNotEmpty ? student.name.substring(0, 1).toUpperCase() : 'U',
+                                  style: const TextStyle(color: AppColors.moduleAttendance, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(student.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    const SizedBox(height: 2),
+                                    Text('${student.rollNumber} • ${student.studentNo}', style: AppTextStyles.labelSm, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceGlass,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.glassStroke),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: currentStatus,
+                                    dropdownColor: AppColors.surface,
+                                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.onSurface),
+                                    style: AppTextStyles.bodySm,
+                                    items: const [
+                                      DropdownMenuItem(value: 'ABSENT', child: Text('Absent', style: TextStyle(color: AppColors.error))),
+                                      DropdownMenuItem(value: 'PRESENT', child: Text('Present', style: TextStyle(color: AppColors.accentGreen))),
+                                      DropdownMenuItem(value: 'LATE', child: Text('Late', style: TextStyle(color: AppColors.accentAmber))),
+                                    ],
+                                    onChanged: (value) {
+                                      if (value != null && value != currentStatus) {
+                                        _markAttendance(student.id, value);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),

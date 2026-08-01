@@ -12,9 +12,10 @@ router.use(authenticate, authorize(ROLES.ADMIN));
 
 router.get('/', asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
+  const query = { _id: { $ne: req.user._id } };
   const [data, total] = await Promise.all([
-    User.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
-    User.countDocuments(),
+    User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    User.countDocuments(query),
   ]);
   sendSuccess(res, 'Users fetched', data, buildPaginationMeta(total, page, limit));
 }));
