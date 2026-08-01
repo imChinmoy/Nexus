@@ -11,6 +11,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../../providers/members_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/network/dio_client.dart';
+import 'member_details_screen.dart';
 
 class MembersScreen extends ConsumerStatefulWidget {
   const MembersScreen({super.key});
@@ -91,7 +92,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
             onPressed: () => _showAddMemberDialog(context),
             backgroundColor: Colors.transparent,
             elevation: 0,
-            child: const Icon(Icons.add, color: Colors.white),
+            child: const Icon(Icons.person_add, color: Colors.white),
           ),
         ) : null,
       ),
@@ -241,32 +242,42 @@ class _MembersScreenState extends ConsumerState<MembersScreen> with SingleTicker
               itemCount: members.length,
               itemBuilder: (context, index) {
                 final member = members[index];
-                return BrlGlassCard(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: AppColors.moduleMembers.withOpacity(0.2),
-                        child: Text(
-                          member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
-                          style: const TextStyle(color: AppColors.moduleMembers),
-                        ),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MemberDetailsScreen(member: member),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 4),
-                            NeonBadge(label: member.role.displayName.toUpperCase(), type: NeonBadgeType.info),
-                          ],
+                    );
+                  },
+                  child: BrlGlassCard(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppColors.moduleMembers.withOpacity(0.2),
+                          child: Text(
+                            member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
+                            style: const TextStyle(color: AppColors.moduleMembers),
+                          ),
                         ),
-                      ),
-                      const Icon(Icons.chevron_right, color: AppColors.onSurfaceMuted),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 4),
+                              NeonBadge(label: member.role.displayName.toUpperCase(), type: NeonBadgeType.info),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: AppColors.onSurfaceMuted),
+                      ],
+                    ),
                   ),
                 );
               },

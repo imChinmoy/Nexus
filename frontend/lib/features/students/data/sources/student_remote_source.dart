@@ -35,6 +35,9 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
       return (response.data['data'] as List)
           .map((json) => StudentModel.fromJson(json))
           .toList();
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to fetch students: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -64,6 +67,9 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
         },
       );
       return StudentModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to create student: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {

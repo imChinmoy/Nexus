@@ -12,7 +12,7 @@ router.use(authenticate);
 
 router.get('/', asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
-  const query = { _id: { $ne: req.user._id } };
+  const query = {};
   const [data, total] = await Promise.all([
     User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
     User.countDocuments(query),

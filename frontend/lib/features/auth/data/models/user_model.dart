@@ -6,6 +6,12 @@ class UserModel {
   final String email;
   final String role;
   final String? avatar;
+  final String? year;
+  final String? domain;
+  final String? phone;
+  final String? bio;
+  final String? github;
+  final String? linkedin;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +22,12 @@ class UserModel {
     required this.email,
     required this.role,
     this.avatar,
+    this.year,
+    this.domain,
+    this.phone,
+    this.bio,
+    this.github,
+    this.linkedin,
     this.isActive = true,
     required this.createdAt,
     required this.updatedAt,
@@ -27,6 +39,12 @@ class UserModel {
         email: json['email'] as String? ?? '',
         role: json['role'] as String? ?? 'viewer',
         avatar: json['avatar'] as String?,
+        year: json['year'] as String?,
+        domain: json['domain'] as String?,
+        phone: json['phone'] as String?,
+        bio: json['bio'] as String?,
+        github: json['github'] as String?,
+        linkedin: json['linkedin'] as String?,
         isActive: json['isActive'] as bool? ?? true,
         createdAt: json['createdAt'] != null
             ? DateTime.parse(json['createdAt'] as String)
@@ -42,6 +60,12 @@ class UserModel {
         'email': email,
         'role': role,
         'avatar': avatar,
+        'year': year,
+        'domain': domain,
+        'phone': phone,
+        'bio': bio,
+        'github': github,
+        'linkedin': linkedin,
         'isActive': isActive,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
@@ -53,6 +77,12 @@ class UserModel {
         email: email,
         role: UserRole.fromString(role),
         avatar: avatar,
+        year: year,
+        domain: domain,
+        phone: phone,
+        bio: bio,
+        github: github,
+        linkedin: linkedin,
         isActive: isActive,
         createdAt: createdAt,
         updatedAt: updatedAt,

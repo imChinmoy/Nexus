@@ -31,6 +31,9 @@ class AttendanceRemoteSourceImpl implements AttendanceRemoteSource {
           'status': status,
         },
       );
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to mark attendance: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -44,6 +47,9 @@ class AttendanceRemoteSourceImpl implements AttendanceRemoteSource {
       final response = await _dio.get(ApiConstants.attendanceByEvent(eventId));
       if (response.data['data'] == null) return [];
       return List<Map<String, dynamic>>.from(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to fetch event attendance: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {

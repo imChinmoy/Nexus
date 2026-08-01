@@ -33,6 +33,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         data: {'email': email, 'password': password},
       );
       return AuthResponseModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Login failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -47,6 +50,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         ApiConstants.logout,
         data: refreshToken != null ? {'refreshToken': refreshToken} : null,
       );
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Logout failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -59,6 +65,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     try {
       final response = await _dio.get(ApiConstants.me);
       return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to get user: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -74,6 +83,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         data: {'refreshToken': token},
       );
       return response.data['data']['accessToken'] as String;
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Token refresh failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -85,6 +97,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<void> forgotPassword(String email) async {
     try {
       await _dio.post(ApiConstants.forgotPassword, data: {'email': email});
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -102,6 +117,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         ApiConstants.resetPassword,
         data: {'token': token, 'password': newPassword},
       );
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Reset failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -119,6 +137,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         ApiConstants.changePassword,
         data: {'currentPassword': currentPassword, 'newPassword': newPassword},
       );
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Change password failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -136,6 +157,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         },
       );
       return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Update profile failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -156,6 +180,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         data: formData,
       );
       return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Update avatar failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {

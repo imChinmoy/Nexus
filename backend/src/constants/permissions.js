@@ -5,6 +5,7 @@ const PERMISSIONS = Object.freeze({
   EVENT_ADD: 'event:add',
   EVENT_EDIT: 'event:edit',
   MEMBER_ADD: 'member:add',
+  MEMBER_EDIT: 'member:edit',
 });
 
 module.exports = { PERMISSIONS };

@@ -6,6 +6,12 @@ class UserEntity extends Equatable {
   final String email;
   final UserRole role;
   final String? avatar;
+  final String? year;
+  final String? domain;
+  final String? phone;
+  final String? bio;
+  final String? github;
+  final String? linkedin;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +22,12 @@ class UserEntity extends Equatable {
     required this.email,
     required this.role,
     this.avatar,
+    this.year,
+    this.domain,
+    this.phone,
+    this.bio,
+    this.github,
+    this.linkedin,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -28,8 +40,22 @@ class UserEntity extends Equatable {
   bool get canWrite => role != UserRole.viewer;
 
   @override
-  List<Object?> get props =>
-      [id, name, email, role, avatar, isActive, createdAt, updatedAt];
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        role,
+        avatar,
+        year,
+        domain,
+        phone,
+        bio,
+        github,
+        linkedin,
+        isActive,
+        createdAt,
+        updatedAt
+      ];
 }
 
 enum UserRole {

@@ -83,7 +83,6 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             ),
           ],
         ),
-        floatingActionButton: _buildFab(context),
       ),
     );
   }
@@ -170,44 +169,46 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     );
   }
 
-  Widget _buildFab(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push(RouteConstants.addStudent),
-      child: Container(
-        width: 56, height: 56,
-        decoration: BoxDecoration(
-          gradient: AppGradients.accent,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(color: AppColors.accentPink.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 24),
-      ),
-    );
-  }
-
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) {
           return Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF151929),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              color: const Color(0xFF151929).withOpacity(0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
               border: Border.all(color: AppColors.glassStroke, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.onSurfaceMuted.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Filter by Year', style: AppTextStyles.headlineMd),
+                    Text('Filter Students', style: AppTextStyles.headlineMd),
                     IconButton(
                       icon: const Icon(Icons.close_rounded, color: AppColors.onSurfaceSubtle),
                       onPressed: () => Navigator.pop(context),
@@ -215,6 +216,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
+                Text('Year', style: AppTextStyles.labelLg.copyWith(color: AppColors.onSurfaceMuted)),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
@@ -227,22 +230,23 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         decoration: BoxDecoration(
                           gradient: isSelected ? AppGradients.accent : null,
                           color: isSelected ? null : AppColors.surfaceGlass,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected ? Colors.transparent : AppColors.glassStroke,
                           ),
                           boxShadow: isSelected ? [
-                            BoxShadow(color: AppColors.accentPink.withOpacity(0.3), blurRadius: 8),
+                            BoxShadow(color: AppColors.accentPink.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
                           ] : null,
                         ),
                         child: Text(
                           year == 'All' ? 'All Years' : 'Year $year',
                           style: AppTextStyles.labelMd.copyWith(
                             color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceMuted,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -252,16 +256,19 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 56,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      foregroundColor: AppColors.onPrimary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     onPressed: () => Navigator.pop(context),
-                    child: Text('Apply Filter', style: AppTextStyles.buttonLg),
+                    child: Text('Apply Filter', style: AppTextStyles.buttonLg.copyWith(fontWeight: FontWeight.bold)),
                   ),
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           );
@@ -277,8 +284,9 @@ class _StudentListItem extends StatelessWidget {
   const _StudentListItem({required this.student, required this.onTap});
 
   Color get _attendanceColor {
-    if (student.attendance >= 80) return AppColors.accentGreen;
-    if (student.attendance >= 60) return AppColors.accentAmber;
+    final percentage = student.isPresent ? 100 : 0;
+    if (percentage >= 80) return AppColors.accentGreen;
+    if (percentage >= 60) return AppColors.accentAmber;
     return AppColors.error;
   }
 
@@ -287,45 +295,64 @@ class _StudentListItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: BrlGlassCard(
-        borderColor: AppColors.moduleStudents.withOpacity(0.15),
-        padding: const EdgeInsets.all(14),
+        borderColor: AppColors.glassStroke,
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              width: 44, height: 44,
+              width: 48, height: 48,
               decoration: BoxDecoration(
                 gradient: AppGradients.primary,
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Center(
                 child: Text(
                   student.name.isNotEmpty
                       ? student.name.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
                       : '?',
-                  style: AppTextStyles.labelLg.copyWith(color: Colors.white),
+                  style: AppTextStyles.labelLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(student.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
+                  Text(student.name, style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(student.rollNumber, style: AppTextStyles.monoCode.copyWith(fontSize: 10)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceGlass,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.glassStroke),
+                        ),
+                        child: Text(
+                          student.rollNumber,
+                          style: AppTextStyles.monoCode.copyWith(fontSize: 10, color: AppColors.onSurfaceMuted),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.moduleStudents.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.moduleStudents.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.moduleStudents.withOpacity(0.2)),
                         ),
                         child: Text(
                           '${student.branch} Y${student.year}',
-                          style: AppTextStyles.labelSm.copyWith(color: AppColors.moduleStudents),
+                          style: AppTextStyles.labelSm.copyWith(color: AppColors.moduleStudents, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
@@ -336,17 +363,27 @@ class _StudentListItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  '${student.attendance}%',
-                  style: AppTextStyles.labelLg.copyWith(color: _attendanceColor),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _attendanceColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${student.isPresent ? 100 : 0}%',
+                    style: AppTextStyles.labelMd.copyWith(
+                      color: _attendanceColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 SizedBox(
-                  width: 60,
+                  width: 64,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: student.attendance / 100),
+                      tween: Tween<double>(begin: 0, end: student.isPresent ? 1.0 : 0.0),
                       duration: const Duration(milliseconds: 1000),
                       curve: Curves.easeOutCubic,
                       builder: (context, value, _) {
@@ -363,7 +400,6 @@ class _StudentListItem extends StatelessWidget {
               ],
             ),
             const SizedBox(width: 8),
-            Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceSubtle, size: 20),
           ],
         ),
       ),

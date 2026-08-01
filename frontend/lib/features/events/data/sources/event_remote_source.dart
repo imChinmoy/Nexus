@@ -30,6 +30,9 @@ class EventRemoteSourceImpl implements EventRemoteSource {
       return (response.data['data'] as List)
           .map((json) => EventModel.fromJson(json))
           .toList();
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to fetch events: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
@@ -70,6 +73,9 @@ class EventRemoteSourceImpl implements EventRemoteSource {
         data: formData,
       );
       return EventModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to create event: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {

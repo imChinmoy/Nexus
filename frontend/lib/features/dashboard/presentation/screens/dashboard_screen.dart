@@ -15,7 +15,7 @@ import '../../../../shared/widgets/neon_badge.dart';
 import '../../../students/providers/student_provider.dart';
 import '../../../events/providers/event_provider.dart';
 import '../../../members/providers/members_provider.dart';
-
+import '../../../auth/providers/auth_provider.dart';
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -241,13 +241,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider);
+    final isSuperAdmin = currentUser?.isSuperAdmin ?? false;
+
+    final permissionsAsync = ref.watch(myPermissionsProvider);
+    final permissions = permissionsAsync.value ?? [];
+    
+    final hasEventAdd = isSuperAdmin || permissions.contains('event:add') || permissions.contains('all');
+    final hasAttendanceMark = isSuperAdmin || permissions.contains('attendance:mark') || permissions.contains('all');
+    final hasMemberAdd = isSuperAdmin || permissions.contains('member:add') || permissions.contains('all');
+
     const hardcodedEventId = '6a6dc76d77dff0bef5d29082';
-    final actions = [
-      _QuickAction('QR SCAN', Icons.qr_code_scanner_rounded, AppColors.accentGreen, '${RouteConstants.attendance}/qr-scan?eventId=$hardcodedEventId'),
-      _QuickAction('MANUAL', Icons.edit_note_rounded, AppColors.primary, '${RouteConstants.attendance}/manual?eventId=$hardcodedEventId'),
-      _QuickAction('NEW EVENT', Icons.add_circle_outline_rounded, AppColors.accentPink, RouteConstants.createEvent),
-      _QuickAction('ADD STUDENT', Icons.person_add_rounded, AppColors.secondary, RouteConstants.addStudent),
-    ];
+    final actions = <_QuickAction>[];
+
+    if (hasAttendanceMark) {
+      actions.add(_QuickAction('QR SCAN', Icons.qr_code_scanner_rounded, AppColors.accentGreen, '${RouteConstants.attendance}/qr-scan?eventId=$hardcodedEventId'));
+      actions.add(_QuickAction('MANUAL', Icons.edit_note_rounded, AppColors.primary, '${RouteConstants.attendance}/manual?eventId=$hardcodedEventId'));
+    }
+    
+    if (hasEventAdd) {
+      actions.add(_QuickAction('NEW EVENT', Icons.add_circle_outline_rounded, AppColors.accentPink, RouteConstants.createEvent));
+    }
+    
+    if (hasMemberAdd) {
+      actions.add(_QuickAction('ADD STUDENT', Icons.person_add_rounded, AppColors.secondary, RouteConstants.addStudent));
+    }
+
+    if (actions.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
