@@ -2,21 +2,23 @@ const studentRepository = require('../repositories/student.repository');
 const attendanceRepository = require('../repositories/attendance.repository');
 const eventRepository = require('../repositories/event.repository');
 const Attendance = require('../models/Attendance.model');
+const Registration = require('../models/Registration.model');
+const User = require('../models/User.model');
+const Student = require('../models/Student.model');
 const Event = require('../models/Event.model');
 const mongoose = require('mongoose');
 
 class AnalyticsService {
   async getOverview() {
-    const [totalStudents, totalEvents, recentAttendance] = await Promise.all([
-      studentRepository.findAll({ filter: { isActive: true } }).then(r => r.total),
+    const [totalStudents, activeMembers, totalEvents, recentAttendance] = await Promise.all([
+      Registration.countDocuments(),
+      User.countDocuments({ isActive: true }),
       eventRepository.count(),
-      Attendance.countDocuments({
-        markedAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
-      }),
+      Student.find({ isPresent: true }).sort({ lastMarkedAt: -1 }).limit(10),
     ]);
 
     const attendanceRate = await this._getOverallAttendanceRate();
-    return { totalStudents, totalEvents, recentAttendance, attendanceRate };
+    return { totalStudents, activeMembers, totalEvents, recentAttendance, attendanceRate };
   }
 
   async _getOverallAttendanceRate() {

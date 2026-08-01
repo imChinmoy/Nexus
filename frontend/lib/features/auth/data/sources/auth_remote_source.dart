@@ -6,7 +6,7 @@ import '../models/user_model.dart';
 
 abstract interface class AuthRemoteSource {
   Future<AuthResponseModel> login({required String email, required String password});
-  Future<void> logout();
+  Future<void> logout(String? refreshToken);
   Future<UserModel> getCurrentUser();
   Future<String> refreshToken(String token);
   Future<void> forgotPassword(String email);
@@ -38,9 +38,12 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout(String? refreshToken) async {
     try {
-      await _dio.post(ApiConstants.logout);
+      await _dio.post(
+        ApiConstants.logout,
+        data: refreshToken != null ? {'refreshToken': refreshToken} : null,
+      );
     } on AppException {
       rethrow;
     } catch (e) {

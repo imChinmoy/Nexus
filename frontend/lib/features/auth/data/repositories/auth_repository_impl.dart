@@ -45,7 +45,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await _remote.logout();
+      final refreshToken = await _local.getRefreshToken();
+      await _remote.logout(refreshToken);
       await _local.clearAuth();
       return const Right(null);
     } catch (_) {

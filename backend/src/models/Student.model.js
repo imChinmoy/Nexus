@@ -2,19 +2,22 @@ const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true, maxlength: 100 },
-    rollNumber: { type: String, required: true, unique: true, trim: true, uppercase: true },
-    email: { type: String, lowercase: true, trim: true },
-    phone: { type: String, trim: true },
+    name: { type: String, required: true, trim: true },
+    rollNo: { type: String, required: true, unique: true, trim: true },
+    studentNo: { type: String, required: true, unique: true, trim: true },
+    phone: { type: String, required: true, trim: true },
+    domain: { type: String, required: true, trim: true },
+    github: { type: String, trim: true },
+    unstopProfile: { type: String, trim: true },
+    codingProfiles: [{ type: String }],
+    hackerrank: { type: String, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    gender: { type: String, required: true, enum: ['Male', 'Female', 'Other'] },
     branch: { type: String, required: true, trim: true },
-    year: { type: Number, required: true, min: 1, max: 5 },
-    section: { type: String, trim: true },
-    avatar: { type: String, default: null },
-    gender: { type: String, enum: ['male', 'female', 'other', 'prefer_not_to_say'] },
-    address: { type: String, trim: true },
+    hosteller: { type: Boolean, default: false },
+    isPresent: { type: Boolean, default: false },
+    lastMarkedAt: { type: Date },
     isActive: { type: Boolean, default: true },
-    qrCode: { type: String },
-    meta: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   {
     timestamps: true,
@@ -22,8 +25,10 @@ const studentSchema = new mongoose.Schema(
   },
 );
 
-studentSchema.index({ name: 'text', rollNumber: 'text', email: 'text' });
-studentSchema.index({ branch: 1, year: 1 });
+studentSchema.index({ name: 'text', rollNo: 'text', email: 'text' });
+studentSchema.index({ domain: 1 });
+studentSchema.index({ branch: 1 });
 studentSchema.index({ isActive: 1 });
+studentSchema.index({ lastMarkedAt: -1 });
 
 module.exports = mongoose.model('Student', studentSchema);

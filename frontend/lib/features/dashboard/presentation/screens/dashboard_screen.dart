@@ -12,6 +12,8 @@ import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_stats_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
+import '../../../students/providers/student_provider.dart';
+import '../../../events/providers/event_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -174,6 +176,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildStatsGrid() {
+    final studentsAsync = ref.watch(studentsProvider);
+    final eventsAsync = ref.watch(eventsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -186,33 +191,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           childAspectRatio: 1.4,
-          children: const [
+          children: [
             BrlStatsCard(
               title: 'TOTAL STUDENTS',
-              value: '342',
+              value: studentsAsync.maybeWhen(data: (s) => s.length.toString(), orElse: () => '-'),
               icon: Icons.school_rounded,
               accentColor: AppColors.moduleStudents,
-              changePercent: 8.2,
             ),
-            BrlStatsCard(
+            const BrlStatsCard(
               title: 'ACTIVE MEMBERS',
-              value: '28',
+              value: '-',
               icon: Icons.group_rounded,
               accentColor: AppColors.moduleMembers,
-              changePercent: 2.1,
             ),
             BrlStatsCard(
               title: 'EVENTS TODAY',
-              value: '3',
+              value: eventsAsync.maybeWhen(
+                data: (e) => e.where((ev) => ev.startDate.year == DateTime.now().year && ev.startDate.month == DateTime.now().month && ev.startDate.day == DateTime.now().day).length.toString(),
+                orElse: () => '-',
+              ),
               icon: Icons.event_rounded,
               accentColor: AppColors.moduleEvents,
             ),
-            BrlStatsCard(
+            const BrlStatsCard(
               title: 'ATTENDANCE RATE',
-              value: '87%',
+              value: '-',
               icon: Icons.check_circle_outline_rounded,
               accentColor: AppColors.moduleAttendance,
-              changePercent: 4.5,
             ),
           ],
         ),
@@ -285,23 +290,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           ],
         ),
         const SizedBox(height: 12),
-        BrlGlassCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: List.generate(4, (i) => _AttendanceListItem(
-              name: ['Arjun Kumar', 'Priya Singh', 'Rahul Dev', 'Meena Nair'][i],
-              roll: ['21CS001', '21CS042', '21EC018', '22ME007'][i],
-              status: [NeonBadgeType.success, NeonBadgeType.error, NeonBadgeType.warning, NeonBadgeType.success][i],
-              statusLabel: ['PRESENT', 'ABSENT', 'LATE', 'PRESENT'][i],
-              time: ['2m ago', '5m ago', '12m ago', '18m ago'][i],
-            )),
-          ),
-        ),
+        const Center(child: Text('No recent attendance', style: TextStyle(color: AppColors.onSurfaceMuted))),
       ],
     );
   }
 
   Widget _buildUpcomingEvents() {
+    final eventsAsync = ref.watch(eventsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -310,7 +306,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           children: [
             Text('UPCOMING EVENTS', style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, letterSpacing: 2)),
             GestureDetector(
-              onTap: () {},
+              onTap: () => context.push(RouteConstants.events),
               child: Text('View All', style: AppTextStyles.bodySm.copyWith(color: AppColors.primary)),
             ),
           ],
@@ -318,16 +314,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         const SizedBox(height: 12),
         SizedBox(
           height: 120,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => _EventCard(
-              title: ['Blockchain Workshop', 'AI Seminar', 'Recruitment Drive'][i],
-              date: ['Aug 5, 2026', 'Aug 8, 2026', 'Aug 15, 2026'][i],
-              type: ['Workshop', 'Seminar', 'Recruitment'][i],
-              color: [AppColors.secondary, AppColors.primary, AppColors.accentPink][i],
-            ),
+          child: eventsAsync.maybeWhen(
+            data: (events) {
+              final upcoming = events.where((e) => e.status == 'upcoming').take(5).toList();
+              if (upcoming.isEmpty) {
+                return const Center(child: Text('No upcoming events', style: TextStyle(color: AppColors.onSurfaceMuted)));
+              }
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: upcoming.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, i) => _EventCard(
+                  title: upcoming[i].title,
+                  date: upcoming[i].startDate.toString().split(' ')[0],
+                  type: upcoming[i].type,
+                  color: [AppColors.secondary, AppColors.primary, AppColors.accentPink][i % 3],
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents)),
+            orElse: () => const Center(child: Text('Failed to load events')),
           ),
         ),
       ],

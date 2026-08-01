@@ -27,13 +27,15 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authNotifierProvider);
+  final listenable = RouterNotifier(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: RouteConstants.dashboard,
     debugLogDiagnostics: true,
+    refreshListenable: listenable,
     redirect: (context, state) {
+      final authState = ref.read(authNotifierProvider);
       final isAuthRoute = state.matchedLocation == RouteConstants.login ||
           state.matchedLocation == RouteConstants.forgotPassword;
 
@@ -189,4 +191,12 @@ CustomTransitionPage<void> _buildPage(
     },
     transitionDuration: const Duration(milliseconds: 250),
   );
+}
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authNotifierProvider, (_, __) => notifyListeners());
+  }
 }

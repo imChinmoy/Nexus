@@ -7,12 +7,15 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -26,9 +29,11 @@ class SettingsScreen extends ConsumerWidget {
             BrlGlassCard(
               padding: const EdgeInsets.all(16),
               child: ListTile(
-                leading: const CircleAvatar(child: Text('AD')),
-                title: Text('Admin User', style: AppTextStyles.bodyLg),
-                subtitle: Text('admin@brl.edu', style: AppTextStyles.bodySm),
+                leading: CircleAvatar(
+                  child: Text(user?.name.isNotEmpty == true ? user!.name.substring(0, 2).toUpperCase() : 'U'),
+                ),
+                title: Text(user?.name ?? 'Unknown User', style: AppTextStyles.bodyLg),
+                subtitle: Text(user?.email ?? 'No email provided', style: AppTextStyles.bodySm),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit, color: AppColors.primary),
                   onPressed: () => context.push(RouteConstants.profile),
@@ -44,7 +49,10 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               title: const Text('Logout', style: TextStyle(color: AppColors.error)),
               trailing: const Icon(Icons.logout, color: AppColors.error),
-              onTap: () {},
+              onTap: () {
+                ref.read(authNotifierProvider.notifier).logout();
+                context.go(RouteConstants.login);
+              },
             ),
           ],
         ),

@@ -12,6 +12,8 @@ import '../../../../shared/widgets/brl_text_field.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
+import '../../domain/entities/student_entity.dart';
+import '../../providers/student_provider.dart';
 
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
@@ -26,16 +28,6 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   bool _searchVisible = false;
 
   final _filters = ['All', 'CSE', 'ECE', 'ME', 'EEE', 'Year 1', 'Year 2', 'Year 3', 'Year 4'];
-
-  final _demoStudents = List.generate(12, (i) => _StudentData(
-    name: ['Arjun Kumar', 'Priya Singh', 'Rahul Dev', 'Meena Nair', 'Vikram Patel', 'Sneha Rao',
-           'Karthik M', 'Anitha S', 'Deepak J', 'Lakshmi P', 'Suresh K', 'Divya T'][i],
-    roll: ['21CS001', '21CS042', '21EC018', '22ME007', '21CS099', '22CS034',
-           '21EC077', '22CS011', '21ME045', '21CS067', '22EC009', '21CS088'][i],
-    branch: ['CSE', 'CSE', 'ECE', 'ME', 'CSE', 'CSE', 'ECE', 'CSE', 'ME', 'CSE', 'ECE', 'CSE'][i],
-    year: [3, 3, 3, 2, 3, 2, 3, 2, 3, 3, 2, 3][i],
-    attendance: [92, 87, 65, 100, 78, 95, 43, 88, 71, 90, 56, 82][i],
-  ));
 
   @override
   void dispose() {
@@ -133,32 +125,45 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 
   Widget _buildStudentList() {
-    final filtered = _demoStudents.where((s) {
-      final matchesSearch = _searchController.text.isEmpty ||
-          s.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-          s.roll.toLowerCase().contains(_searchController.text.toLowerCase());
-      final matchesFilter = _selectedFilter == 'All' || s.branch == _selectedFilter ||
-          _selectedFilter == 'Year ${s.year}';
-      return matchesSearch && matchesFilter;
-    }).toList();
+    final studentsAsyncValue = ref.watch(studentsProvider);
 
-    if (filtered.isEmpty) {
-      return const EmptyStateWidget(
-        icon: Icons.school_outlined,
-        title: 'No Students Found',
-        message: 'Try adjusting your search or filter criteria.',
-        iconColor: AppColors.moduleStudents,
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-      itemCount: filtered.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, i) => _StudentListItem(
-        student: filtered[i],
-        onTap: () => context.push('/students/${filtered[i].roll}'),
+    return studentsAsyncValue.when(
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      error: (error, _) => Center(
+        child: Text(
+          'Error loading students: $error',
+          style: AppTextStyles.bodyMd.copyWith(color: AppColors.error),
+        ),
       ),
+      data: (students) {
+        final filtered = students.where((s) {
+          final matchesSearch = _searchController.text.isEmpty ||
+              s.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+              s.rollNumber.toLowerCase().contains(_searchController.text.toLowerCase());
+          final matchesFilter = _selectedFilter == 'All' || s.branch == _selectedFilter ||
+              _selectedFilter == 'Year ${s.year}';
+          return matchesSearch && matchesFilter;
+        }).toList();
+
+        if (filtered.isEmpty) {
+          return const EmptyStateWidget(
+            icon: Icons.school_outlined,
+            title: 'No Students Found',
+            message: 'Try adjusting your search or filter criteria.',
+            iconColor: AppColors.moduleStudents,
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+          itemCount: filtered.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, i) => _StudentListItem(
+            student: filtered[i],
+            onTap: () => context.push('/students/${filtered[i].rollNumber}'),
+          ),
+        );
+      },
     );
   }
 
@@ -180,14 +185,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 }
 
-class _StudentData {
-  final String name, roll, branch;
-  final int year, attendance;
-  const _StudentData({required this.name, required this.roll, required this.branch, required this.year, required this.attendance});
-}
-
 class _StudentListItem extends StatelessWidget {
-  final _StudentData student;
+  final StudentEntity student;
   final VoidCallback onTap;
   const _StudentListItem({required this.student, required this.onTap});
 
@@ -214,7 +213,9 @@ class _StudentListItem extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  student.name.split(' ').map((w) => w[0]).take(2).join(),
+                  student.name.isNotEmpty
+                      ? student.name.split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+                      : '?',
                   style: AppTextStyles.labelLg.copyWith(color: Colors.white),
                 ),
               ),
@@ -228,7 +229,7 @@ class _StudentListItem extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Text(student.roll, style: AppTextStyles.monoCode.copyWith(fontSize: 10)),
+                      Text(student.rollNumber, style: AppTextStyles.monoCode.copyWith(fontSize: 10)),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

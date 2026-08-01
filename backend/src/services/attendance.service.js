@@ -1,11 +1,44 @@
 const attendanceRepository = require('../repositories/attendance.repository');
 const eventRepository = require('../repositories/event.repository');
-const studentRepository = require('../repositories/student.repository');
+const Registration = require('../models/Registration.model');
+const Student = require('../models/Student.model');
 const { verifyQRToken } = require('../utils/generateQR');
 const { ATTENDANCE_STATUS, ATTENDANCE_METHOD } = require('../constants/attendanceStatus');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
 
 class AttendanceService {
+  async _syncToStudentModel(registrationId, status) {
+    const reg = await Registration.findById(registrationId);
+    if (!reg) return null;
+
+    const studentData = {
+      name: reg.name,
+      rollNo: reg.rollNo,
+      studentNo: reg.studentNo,
+      phone: reg.phone,
+      domain: reg.domain,
+      github: reg.github,
+      unstopProfile: reg.unstopProfile,
+      codingProfiles: reg.codingProfiles,
+      hackerrank: reg.hackerrank,
+      email: reg.email,
+      gender: reg.gender,
+      branch: reg.branch,
+      hosteller: reg.hosteller,
+      isPresent: status === ATTENDANCE_STATUS.PRESENT,
+      lastMarkedAt: new Date(),
+    };
+
+    let student = await Student.findOne({ rollNo: reg.rollNo });
+    if (student) {
+      Object.assign(student, studentData);
+      await student.save();
+    } else {
+      student = await Student.create(studentData);
+    }
+    return student;
+  }
+
   async markViaQR(qrToken, studentId, userId) {
     let payload;
     try {
@@ -21,15 +54,15 @@ class AttendanceService {
     if (!event.isAttendanceOpen) throw { status: 400, message: 'Attendance window is closed' };
     if (event.qrSessionId !== sessionId) throw { status: 400, message: 'QR code is outdated' };
 
-    const existing = await attendanceRepository.findOne({ event: eventId, student: studentId });
-    if (existing) throw { status: 409, message: 'Attendance already recorded for this student' };
+    const student = await this._syncToStudentModel(studentId, ATTENDANCE_STATUS.PRESENT);
+    if (!student) throw { status: 404, message: 'Registered user not found' };
 
-    const student = await studentRepository.findById(studentId);
-    if (!student) throw { status: 404, message: 'Student not found' };
+    const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
+    if (existing) throw { status: 409, message: 'Attendance already recorded for this student' };
 
     return attendanceRepository.create({
       event: eventId,
-      student: studentId,
+      student: student._id,
       status: ATTENDANCE_STATUS.PRESENT,
       method: ATTENDANCE_METHOD.QR,
       markedBy: userId,
@@ -38,20 +71,18 @@ class AttendanceService {
   }
 
   async markManual(eventId, studentId, status, userId, note) {
-    const [event, student] = await Promise.all([
-      eventRepository.findById(eventId),
-      studentRepository.findById(studentId),
-    ]);
-
+    const event = await eventRepository.findById(eventId);
     if (!event) throw { status: 404, message: 'Event not found' };
-    if (!student) throw { status: 404, message: 'Student not found' };
 
-    const existing = await attendanceRepository.findOne({ event: eventId, student: studentId });
+    const student = await this._syncToStudentModel(studentId, status);
+    if (!student) throw { status: 404, message: 'Registered user not found' };
+
+    const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
 
     if (existing) {
       await attendanceRepository.createLog({
         event: eventId,
-        student: studentId,
+        student: student._id,
         action: 'update',
         previousStatus: existing.status,
         newStatus: status,
@@ -62,7 +93,7 @@ class AttendanceService {
 
     await attendanceRepository.createLog({
       event: eventId,
-      student: studentId,
+      student: student._id,
       action: 'mark',
       newStatus: status,
       performedBy: userId,
@@ -70,7 +101,7 @@ class AttendanceService {
 
     return attendanceRepository.create({
       event: eventId,
-      student: studentId,
+      student: student._id,
       status,
       method: ATTENDANCE_METHOD.MANUAL,
       markedBy: userId,

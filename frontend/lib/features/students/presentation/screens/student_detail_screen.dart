@@ -8,6 +8,7 @@ import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
+import '../../providers/student_provider.dart';
 
 class StudentDetailScreen extends ConsumerStatefulWidget {
   final String studentId;
@@ -34,6 +35,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
 
   @override
   Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(studentsProvider);
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -42,37 +45,47 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
           accentColor: AppColors.moduleStudents,
           showBack: true,
         ),
-        body: Column(
-          children: [
-            _buildHero(),
-            TabBar(
-              controller: _tabController,
-              indicatorColor: AppColors.primary,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.onSurfaceMuted,
-              tabs: const [
-                Tab(text: 'OVERVIEW'),
-                Tab(text: 'ATTENDANCE'),
-                Tab(text: 'QR CARD'),
+        body: studentsAsync.maybeWhen(
+          data: (students) {
+            final student = students.firstWhere(
+              (s) => s.rollNumber == widget.studentId || s.id == widget.studentId,
+              orElse: () => throw Exception('Student not found'),
+            );
+            return Column(
+              children: [
+                _buildHero(student.name, student.rollNumber),
+                TabBar(
+                  controller: _tabController,
+                  indicatorColor: AppColors.primary,
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.onSurfaceMuted,
+                  tabs: const [
+                    Tab(text: 'OVERVIEW'),
+                    Tab(text: 'ATTENDANCE'),
+                    Tab(text: 'QR CARD'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOverviewTab(student),
+                      _buildAttendanceTab(),
+                      _buildQrCardTab(student.rollNumber),
+                    ],
+                  ),
+                ),
               ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildOverviewTab(),
-                  _buildAttendanceTab(),
-                  _buildQrCardTab(),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          orElse: () => const Center(child: Text('Failed to load student')),
         ),
       ),
     );
   }
 
-  Widget _buildHero() {
+  Widget _buildHero(String name, String rollNumber) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -90,21 +103,21 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
               ),
               child: Center(
                 child: Text(
-                  'AK',
+                  name.isNotEmpty ? name.substring(0, 2).toUpperCase() : 'U',
                   style: AppTextStyles.headlineLg.copyWith(color: Colors.white),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Arjun Kumar', style: AppTextStyles.headlineMd),
-          Text(widget.studentId, style: AppTextStyles.monoCode),
+          Text(name, style: AppTextStyles.headlineMd),
+          Text(rollNumber, style: AppTextStyles.monoCode),
         ],
       ),
     );
   }
 
-  Widget _buildOverviewTab() {
+  Widget _buildOverviewTab(dynamic student) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -112,13 +125,13 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildInfoRow('Branch', 'Computer Science (CSE)'),
+              _buildInfoRow('Branch', student.branch),
               const Divider(color: AppColors.glassStroke),
-              _buildInfoRow('Year', '3rd Year'),
+              _buildInfoRow('Year', '${student.year} Year'),
               const Divider(color: AppColors.glassStroke),
-              _buildInfoRow('Email', 'arjun.k@college.edu'),
+              _buildInfoRow('Email', student.email),
               const Divider(color: AppColors.glassStroke),
-              _buildInfoRow('Phone', '+91 9876543210'),
+              _buildInfoRow('Attendance', '${student.attendance}%'),
             ],
           ),
         ),
@@ -140,32 +153,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
   }
 
   Widget _buildAttendanceTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return BrlGlassCard(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Blockchain Workshop', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
-                  Text('Aug 1, 2026', style: AppTextStyles.bodySm),
-                ],
-              ),
-              const NeonBadge(label: 'PRESENT', type: NeonBadgeType.success),
-            ],
-          ),
-        );
-      },
-    );
+    return const Center(child: Text('No attendance records', style: TextStyle(color: AppColors.onSurfaceMuted)));
   }
 
-  Widget _buildQrCardTab() {
+  Widget _buildQrCardTab(String data) {
     return Center(
       child: BrlGlassCard(
         padding: const EdgeInsets.all(24),
@@ -183,7 +174,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
               ),
               padding: const EdgeInsets.all(16),
               child: QrImageView(
-                data: widget.studentId,
+                data: data,
                 version: QrVersions.auto,
                 size: 200.0,
               ),

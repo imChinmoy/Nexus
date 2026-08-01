@@ -1,12 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
   ApiConstants._();
 
-  static const String _dev = 'http://10.0.2.2:5000/api';
-  static const String _prod = 'https://api.brlnexus.com/api';
-
-  static const bool isProduction = false;
-
-  static String get baseUrl => isProduction ? _prod : _dev;
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:5000/api';
 
   // Auth
   static const String login = '/auth/login';
