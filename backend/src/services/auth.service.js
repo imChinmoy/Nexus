@@ -26,6 +26,7 @@ class AuthService {
     const user = await userRepository.findByEmail(email, true);
     if (!user) throw { status: 401, message: 'Invalid email or password' };
     if (!user.isActive) throw { status: 401, message: 'Your account has been deactivated' };
+    if (!user.accessAllowed) throw { status: 403, message: 'Access denied: You do not have permission to log in' };
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) throw { status: 401, message: 'Invalid email or password' };

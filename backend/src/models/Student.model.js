@@ -22,7 +22,6 @@ const studentSchema = new mongoose.Schema(
   },
 );
 
-studentSchema.index({ rollNumber: 1 }, { unique: true });
 studentSchema.index({ name: 'text', rollNumber: 'text', email: 'text' });
 studentSchema.index({ branch: 1, year: 1 });
 studentSchema.index({ isActive: 1 });

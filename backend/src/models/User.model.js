@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     avatar: { type: String, default: null },
     isActive: { type: Boolean, default: true },
+    accessAllowed: { type: Boolean, default: true },
     lastLogin: { type: Date, default: null },
     refreshTokens: [{
       token: { type: String, required: true },
@@ -47,7 +48,6 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 
