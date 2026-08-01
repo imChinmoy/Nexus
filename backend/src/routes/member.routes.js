@@ -28,18 +28,18 @@ router.get('/:id', asyncHandler(async (req, res) => {
   sendSuccess(res, 'Member fetched', member);
 }));
 
-router.post('/', requirePermission(PERMISSIONS.MEMBER_ADD), asyncHandler(async (req, res) => {
+router.post('/', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => {
   const member = await User.create(req.body);
   sendCreated(res, 'Member created', member);
 }));
 
-router.put('/:id', requirePermission(PERMISSIONS.MEMBER_ADD), asyncHandler(async (req, res) => {
+router.put('/:id', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => {
   const member = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!member) return res.status(404).json({ success: false, message: 'Member not found' });
   sendSuccess(res, 'Member updated', member);
 }));
 
-router.delete('/:id', authorize(ROLES.ADMIN), asyncHandler(async (req, res) => {
+router.delete('/:id', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
   sendSuccess(res, 'Member deleted');
 }));

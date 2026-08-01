@@ -75,6 +75,7 @@ dev_dependencies:
   riverpod_generator: ^2.6.4
   custom_lint: ^0.7.0
   riverpod_lint: ^2.6.4
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -84,3 +85,9 @@ flutter:
     - assets/icons/
     - assets/animations/
 
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/logo.png"
+  remove_alpha_ios: true

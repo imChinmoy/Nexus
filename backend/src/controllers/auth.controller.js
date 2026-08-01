@@ -28,8 +28,21 @@ exports.logout = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Logged out successfully');
 });
 
+const { getRolePermissions } = require('../middlewares/role.middleware');
+const { ROLES } = require('../constants/roles');
+const { PERMISSIONS } = require('../constants/permissions');
+
 exports.me = asyncHandler(async (req, res) => {
   sendSuccess(res, 'User profile fetched', req.user);
+});
+
+exports.myPermissions = asyncHandler(async (req, res) => {
+  const permissionsMap = await getRolePermissions();
+  let permissions = permissionsMap[req.user.role] || [];
+  if (req.user.role === ROLES.SUPER_ADMIN || permissions.includes(PERMISSIONS.ALL)) {
+     permissions = Object.values(PERMISSIONS);
+  }
+  sendSuccess(res, 'Permissions fetched', permissions);
 });
 
 exports.forgotPassword = asyncHandler(async (req, res) => {

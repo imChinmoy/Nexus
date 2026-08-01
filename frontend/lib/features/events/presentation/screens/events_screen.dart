@@ -10,6 +10,7 @@ import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../providers/event_provider.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({super.key});
@@ -72,20 +73,34 @@ class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerPr
             ),
           ],
         ),
-        floatingActionButton: Container(
-          decoration: BoxDecoration(
-            gradient: AppGradients.accent,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(color: AppColors.accentPink.withOpacity(0.4), blurRadius: 16),
-            ],
-          ),
-          child: FloatingActionButton(
-            onPressed: () => context.push(RouteConstants.createEvent),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
+        floatingActionButton: Consumer(
+          builder: (context, ref, child) {
+            final permissionsAsync = ref.watch(myPermissionsProvider);
+            return permissionsAsync.when(
+              data: (permissions) {
+                if (!permissions.contains('event:add') && !permissions.contains('all')) {
+                  return const SizedBox.shrink();
+                }
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.accent,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: AppColors.accentPink.withValues(alpha: 0.4), blurRadius: 16),
+                    ],
+                  ),
+                  child: FloatingActionButton(
+                    onPressed: () => context.push(RouteConstants.createEvent),
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            );
+          },
         ),
       ),
     );

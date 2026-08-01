@@ -23,6 +23,16 @@ final authNotifierProvider =
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
 
+final myPermissionsProvider = FutureProvider<List<String>>((ref) async {
+  final dio = ref.watch(dioClientProvider);
+  final response = await dio.get('/auth/my-permissions');
+  if (response.statusCode == 200) {
+    final data = response.data['data'] as List;
+    return data.map((e) => e.toString()).toList();
+  }
+  return [];
+});
+
 final currentUserProvider = Provider<UserEntity?>((ref) {
   final authState = ref.watch(authNotifierProvider);
   return authState.whenOrNull(authenticated: (user) => user);

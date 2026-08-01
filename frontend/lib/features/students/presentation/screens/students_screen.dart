@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +8,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
-import '../../../../shared/widgets/neon_badge.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../domain/entities/student_entity.dart';
@@ -24,10 +22,12 @@ class StudentsScreen extends ConsumerStatefulWidget {
 
 class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   final _searchController = TextEditingController();
-  String _selectedFilter = 'All';
+  String _selectedBranch = 'All';
+  String _selectedYear = 'All';
   bool _searchVisible = false;
 
-  final _filters = ['All', 'CSE', 'ECE', 'ME', 'EEE', 'Year 1', 'Year 2', 'Year 3', 'Year 4'];
+  final _branchFilters = ['All', 'CSE', 'CSE(DS)', 'CSE(AIML)', 'CSIT', 'ECE', 'CS(H)', 'ME', 'AIML', 'CE', 'IT', 'EN', 'CS'];
+  final _yearFilters = ['All', '1', '2', '3', '4'];
 
   @override
   void dispose() {
@@ -53,7 +53,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.tune_rounded, color: AppColors.primary),
-              onPressed: () {},
+              onPressed: _showFilterSheet,
             ),
           ],
         ),
@@ -94,12 +94,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: _filters.length,
+        itemCount: _branchFilters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
-          final isSelected = _filters[i] == _selectedFilter;
+          final isSelected = _branchFilters[i] == _selectedBranch;
           return GestureDetector(
-            onTap: () => setState(() => _selectedFilter = _filters[i]),
+            onTap: () => setState(() => _selectedBranch = _branchFilters[i]),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -115,7 +115,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 ] : null,
               ),
               child: Text(
-                _filters[i],
+                _branchFilters[i],
                 style: AppTextStyles.labelMd.copyWith(
                   color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceMuted,
                 ),
@@ -143,9 +143,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           final matchesSearch = _searchController.text.isEmpty ||
               s.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
               s.rollNumber.toLowerCase().contains(_searchController.text.toLowerCase());
-          final matchesFilter = _selectedFilter == 'All' || s.branch == _selectedFilter ||
-              _selectedFilter == 'Year ${s.year}';
-          return matchesSearch && matchesFilter;
+          final matchesBranch = _selectedBranch == 'All' || s.branch == _selectedBranch;
+          final matchesYear = _selectedYear == 'All' || s.year.toString() == _selectedYear;
+          return matchesSearch && matchesBranch && matchesYear;
         }).toList();
 
         if (filtered.isEmpty) {
@@ -183,6 +183,89 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           ],
         ),
         child: const Icon(Icons.person_add_rounded, color: Colors.white, size: 24),
+      ),
+    );
+  }
+
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151929),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: AppColors.glassStroke, width: 1),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Filter by Year', style: AppTextStyles.headlineMd),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: AppColors.onSurfaceSubtle),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: _yearFilters.map((year) {
+                    final isSelected = _selectedYear == year;
+                    return GestureDetector(
+                      onTap: () {
+                        setSheetState(() => _selectedYear = year);
+                        setState(() {});
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: isSelected ? AppGradients.accent : null,
+                          color: isSelected ? null : AppColors.surfaceGlass,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? Colors.transparent : AppColors.glassStroke,
+                          ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(color: AppColors.accentPink.withOpacity(0.3), blurRadius: 8),
+                          ] : null,
+                        ),
+                        child: Text(
+                          year == 'All' ? 'All Years' : 'Year $year',
+                          style: AppTextStyles.labelMd.copyWith(
+                            color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceMuted,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Apply Filter', style: AppTextStyles.buttonLg),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -262,11 +345,18 @@ class _StudentListItem extends StatelessWidget {
                   width: 60,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: student.attendance / 100,
-                      backgroundColor: AppColors.surfaceGlass,
-                      valueColor: AlwaysStoppedAnimation(_attendanceColor),
-                      minHeight: 4,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: student.attendance / 100),
+                      duration: const Duration(milliseconds: 1000),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, _) {
+                        return LinearProgressIndicator(
+                          value: value,
+                          backgroundColor: AppColors.surfaceGlass,
+                          valueColor: AlwaysStoppedAnimation(_attendanceColor),
+                          minHeight: 4,
+                        );
+                      },
                     ),
                   ),
                 ),

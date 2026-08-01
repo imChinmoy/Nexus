@@ -16,6 +16,7 @@ router.post('/login', authLimiter, loginValidator, validate, authController.logi
 router.post('/refresh', authController.refresh);
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.me);
+router.get('/my-permissions', authenticate, authController.myPermissions);
 router.put('/me', authenticate, updateProfileValidator, validate, authController.updateMe);
 router.put('/me/avatar', authenticate, upload.single('avatar'), authController.updateAvatar);
 router.post('/forgot-password', authLimiter, forgotPasswordValidator, validate, authController.forgotPassword);

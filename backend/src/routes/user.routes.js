@@ -8,7 +8,7 @@ const { ROLES } = require('../constants/roles');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
 const bcrypt = require('bcryptjs');
 
-router.use(authenticate, authorize(ROLES.ADMIN));
+router.use(authenticate);
 
 router.get('/', asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
@@ -25,7 +25,7 @@ router.post('/', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => 
   sendCreated(res, 'User created', user);
 }));
 
-router.put('/:id', asyncHandler(async (req, res) => {
+router.put('/:id', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => {
   const { password, ...data } = req.body;
   const user = await User.findByIdAndUpdate(req.params.id, data, { new: true });
   if (!user) return res.status(404).json({ success: false, message: 'User not found' });
