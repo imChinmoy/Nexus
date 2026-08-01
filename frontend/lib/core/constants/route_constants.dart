@@ -2,6 +2,7 @@ class RouteConstants {
   RouteConstants._();
 
   // Auth
+  static const String splash = '/splash';
   static const String login = '/login';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';

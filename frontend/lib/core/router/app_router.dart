@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -31,23 +32,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: RouteConstants.dashboard,
+    initialLocation: RouteConstants.splash,
     debugLogDiagnostics: true,
     refreshListenable: listenable,
     redirect: (context, state) {
       final authState = ref.read(authNotifierProvider);
       final isAuthRoute = state.matchedLocation == RouteConstants.login ||
           state.matchedLocation == RouteConstants.forgotPassword;
+      final isSplashRoute = state.matchedLocation == RouteConstants.splash;
 
       return authState.when(
-        initial: () => null,
-        loading: () => null,
-        authenticated: (_) => isAuthRoute ? RouteConstants.dashboard : null,
+        initial: () => isSplashRoute ? null : RouteConstants.splash,
+        loading: () => isSplashRoute ? null : RouteConstants.splash,
+        authenticated: (_) => isAuthRoute || isSplashRoute ? RouteConstants.dashboard : null,
         unauthenticated: () => isAuthRoute ? null : RouteConstants.login,
         error: (_) => isAuthRoute ? null : RouteConstants.login,
       );
     },
     routes: [
+      // Splash route
+      GoRoute(
+        path: RouteConstants.splash,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SplashScreen(),
+      ),
       // Auth routes
       GoRoute(
         path: RouteConstants.login,

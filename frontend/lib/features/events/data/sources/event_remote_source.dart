@@ -11,6 +11,9 @@ abstract interface class EventRemoteSource {
     required DateTime endDate,
     required String type,
     required int capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
   });
 }
 
@@ -41,17 +44,30 @@ class EventRemoteSourceImpl implements EventRemoteSource {
     required DateTime endDate,
     required String type,
     required int capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
   }) async {
     try {
+      final formData = FormData.fromMap({
+        'title': title,
+        'startDate': startDate.toUtc().toIso8601String(),
+        'endDate': endDate.toUtc().toIso8601String(),
+        'type': type,
+        'capacity': capacity,
+        if (description != null) 'description': description,
+        if (venue != null) 'venue': venue,
+      });
+
+      if (bannerPath != null) {
+        formData.files.add(
+          MapEntry('banner', await MultipartFile.fromFile(bannerPath)),
+        );
+      }
+
       final response = await _dio.post(
         ApiConstants.events,
-        data: {
-          'title': title,
-          'startDate': startDate.toIso8601String(),
-          'endDate': endDate.toIso8601String(),
-          'type': type,
-          'capacity': capacity,
-        },
+        data: formData,
       );
       return EventModel.fromJson(response.data['data']);
     } on AppException {

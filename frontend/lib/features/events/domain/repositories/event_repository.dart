@@ -10,5 +10,8 @@ abstract interface class EventRepository {
     required DateTime endDate,
     required String type,
     required int capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
   });
 }

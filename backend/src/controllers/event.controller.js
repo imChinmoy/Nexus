@@ -13,12 +13,20 @@ exports.getById = asyncHandler(async (req, res) => {
 });
 
 exports.create = asyncHandler(async (req, res) => {
-  const event = await eventService.create(req.body, req.user._id);
+  const eventData = { ...req.body };
+  if (req.file) {
+    eventData.banner = req.file.path;
+  }
+  const event = await eventService.create(eventData, req.user._id);
   sendCreated(res, 'Event created successfully', event);
 });
 
 exports.update = asyncHandler(async (req, res) => {
-  const event = await eventService.update(req.params.id, req.body);
+  const eventData = { ...req.body };
+  if (req.file) {
+    eventData.banner = req.file.path;
+  }
+  const event = await eventService.update(req.params.id, eventData);
   sendSuccess(res, 'Event updated successfully', event);
 });
 

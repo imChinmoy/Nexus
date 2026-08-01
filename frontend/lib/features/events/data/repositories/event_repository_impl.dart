@@ -29,6 +29,9 @@ class EventRepositoryImpl implements EventRepository {
     required DateTime endDate,
     required String type,
     required int capacity,
+    String? description,
+    String? venue,
+    String? bannerPath,
   }) async {
     try {
       final model = await _remote.createEvent(
@@ -37,6 +40,9 @@ class EventRepositoryImpl implements EventRepository {
         endDate: endDate,
         type: type,
         capacity: capacity,
+        description: description,
+        venue: venue,
+        bannerPath: bannerPath,
       );
       return Right(model.toEntity());
     } on AppException catch (e) {

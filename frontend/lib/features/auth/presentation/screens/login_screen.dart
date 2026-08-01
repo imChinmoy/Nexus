@@ -60,11 +60,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Future<void> _handleLogin() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final success = await ref.read(authNotifierProvider.notifier).login(
+    await ref.read(authNotifierProvider.notifier).login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
-    if (success && mounted) context.go(RouteConstants.dashboard);
   }
 
   @override
