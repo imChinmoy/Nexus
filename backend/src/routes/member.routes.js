@@ -34,7 +34,7 @@ router.post('/', authorize(ROLES.SUPER_ADMIN), asyncHandler(async (req, res) => 
 }));
 
 router.put('/:id', requirePermission(PERMISSIONS.MEMBER_EDIT), asyncHandler(async (req, res) => {
-  const member = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const member = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!member) return res.status(404).json({ success: false, message: 'Member not found' });
   sendSuccess(res, 'Member updated', member);
 }));

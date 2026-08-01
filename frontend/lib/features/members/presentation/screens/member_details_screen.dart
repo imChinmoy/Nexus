@@ -230,7 +230,11 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final nameController = TextEditingController(text: _member.name);
     final emailController = TextEditingController(text: _member.email);
     final phoneController = TextEditingController(text: _member.phone ?? '');
-    final domainController = TextEditingController(text: _member.domain ?? '');
+    String? selectedDomain = _member.domain?.isNotEmpty == true ? _member.domain : null;
+    final List<String> domainOptions = ['App Development', 'Frontend', 'Backend', 'Design', 'ML'];
+    if (selectedDomain != null && !domainOptions.contains(selectedDomain)) {
+      domainOptions.add(selectedDomain);
+    }
     final yearController = TextEditingController(text: _member.year ?? '');
     final bioController = TextEditingController(text: _member.bio ?? '');
     final githubController = TextEditingController(text: _member.github ?? '');
@@ -270,7 +274,32 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                     const SizedBox(height: 16),
                     _buildTextField('Phone', phoneController, keyboardType: TextInputType.phone),
                     const SizedBox(height: 16),
-                    _buildTextField('Domain', domainController),
+                    DropdownButtonFormField<String>(
+                      value: selectedDomain,
+                      dropdownColor: AppColors.surface,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Domain',
+                        labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
+                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                        focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('None', style: TextStyle(color: Colors.white54)),
+                        ),
+                        ...domainOptions.map((domain) {
+                          return DropdownMenuItem<String>(
+                            value: domain,
+                            child: Text(domain),
+                          );
+                        }),
+                      ],
+                      onChanged: (val) {
+                        setState(() => selectedDomain = val);
+                      },
+                    ),
                     const SizedBox(height: 16),
                     _buildTextField('Year', yearController),
                     const SizedBox(height: 16),
@@ -324,12 +353,12 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                         'name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
                         'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
                         'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
-                        'domain': domainController.text.trim().isEmpty ? null : domainController.text.trim(),
+                        'domain': selectedDomain,
                         'year': yearController.text.trim().isEmpty ? null : yearController.text.trim(),
                         'github': githubController.text.trim().isEmpty ? null : githubController.text.trim(),
                         'linkedin': linkedinController.text.trim().isEmpty ? null : linkedinController.text.trim(),
                         'bio': bioController.text.trim().isEmpty ? null : bioController.text.trim(),
-                        'role': selectedRole.name,
+                        'role': selectedRole.backendValue,
                       });
                       if (context.mounted) {
                         Navigator.pop(context);

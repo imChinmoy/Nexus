@@ -95,4 +95,19 @@ enum UserRole {
         return UserRole.viewer;
     }
   }
+
+  String get backendValue {
+    switch (this) {
+      case UserRole.superAdmin:
+        return 'super_admin';
+      case UserRole.admin:
+        return 'admin';
+      case UserRole.coordinator:
+        return 'coordinator';
+      case UserRole.volunteer:
+        return 'volunteer';
+      case UserRole.viewer:
+        return 'viewer';
+    }
+  }
 }

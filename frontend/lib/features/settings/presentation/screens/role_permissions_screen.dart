@@ -18,14 +18,15 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
   Map<String, dynamic> _rolePermissions = {};
   bool _isLoading = true;
 
-  final List<String> availablePermissions = [
-    'all',
-    'attendance:mark',
-    'attendance:edit',
-    'event:add',
-    'event:edit',
-    'member:add',
-  ];
+  final Map<String, List<String>> _permissionCategories = {
+    'Attendance': ['attendance:mark', 'attendance:edit'],
+    'Events': ['event:add', 'event:edit', 'event:delete'],
+    'Members': ['member:add', 'member:edit', 'member:delete'],
+  };
+
+  List<String> get _allPermissions {
+    return _permissionCategories.values.expand((e) => e).toList();
+  }
 
   @override
   void initState() {
@@ -65,6 +66,124 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
     }
   }
 
+  Widget _buildRoleCard(String role, List<String> permissions) {
+    bool isAllSelected = permissions.contains('all') || _allPermissions.every((p) => permissions.contains(p));
+
+    return BrlGlassCard(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                role.replaceAll('_', ' ').toUpperCase(),
+                style: AppTextStyles.headlineSm.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Select All',
+                    style: TextStyle(
+                      color: isAllSelected ? AppColors.primary : Colors.white54,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Switch(
+                    value: isAllSelected,
+                    activeColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+                    inactiveThumbColor: Colors.white54,
+                    inactiveTrackColor: Colors.white12,
+                    onChanged: (val) {
+                      setState(() {
+                        if (val) {
+                          _rolePermissions[role] = ['all', ..._allPermissions];
+                        } else {
+                          _rolePermissions[role] = <String>[];
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const Divider(color: Colors.white12, height: 32),
+          ..._permissionCategories.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.key.toUpperCase(),
+                    style: AppTextStyles.labelLg.copyWith(
+                      color: Colors.white70,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: entry.value.map((permission) {
+                      final hasPermission = isAllSelected || permissions.contains(permission);
+                      return FilterChip(
+                        label: Text(permission.split(':').last.toUpperCase()),
+                        labelStyle: TextStyle(
+                          color: hasPermission ? Colors.white : Colors.white54,
+                          fontWeight: hasPermission ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 12,
+                        ),
+                        selected: hasPermission,
+                        selectedColor: AppColors.primary.withValues(alpha: 0.3),
+                        checkmarkColor: Colors.white,
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        side: BorderSide(
+                          color: hasPermission ? AppColors.primary : Colors.white12,
+                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        onSelected: (selected) {
+                          setState(() {
+                            List<String> currentPerms = List<String>.from(permissions);
+                            if (currentPerms.contains('all')) {
+                              // If 'all' was selected, expand it to individual permissions so we can unselect one
+                              currentPerms = List<String>.from(_allPermissions);
+                            }
+                            
+                            if (selected) {
+                              currentPerms.add(permission);
+                              if (_allPermissions.every((p) => currentPerms.contains(p))) {
+                                currentPerms.add('all');
+                              }
+                            } else {
+                              currentPerms.remove(permission);
+                              currentPerms.remove('all');
+                            }
+                            _rolePermissions[role] = currentPerms.toSet().toList();
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedGradientBg(
@@ -77,57 +196,22 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
         body: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
             : ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 itemCount: _rolePermissions.keys.length,
                 itemBuilder: (context, index) {
                   final role = _rolePermissions.keys.elementAt(index);
-                  final permissions = List<String>.from(_rolePermissions[role] ?? []);
-                  
                   if (role == 'super_admin') return const SizedBox.shrink();
 
-                  return BrlGlassCard(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          role.toUpperCase(),
-                          style: AppTextStyles.headlineSm.copyWith(color: AppColors.primary),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: availablePermissions.map((permission) {
-                            final hasPermission = permissions.contains(permission);
-                            return FilterChip(
-                              label: Text(permission),
-                              selected: hasPermission,
-                              selectedColor: AppColors.primary.withValues(alpha: 0.3),
-                              checkmarkColor: AppColors.primary,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    permissions.add(permission);
-                                  } else {
-                                    permissions.remove(permission);
-                                  }
-                                  _rolePermissions[role] = permissions;
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  );
+                  final permissions = List<String>.from(_rolePermissions[role] ?? []);
+                  return _buildRoleCard(role, permissions);
                 },
               ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.extended(
           onPressed: _isLoading ? null : _savePermissions,
           backgroundColor: AppColors.primary,
-          child: const Icon(Icons.save, color: Colors.white),
+          elevation: 8,
+          icon: const Icon(Icons.save, color: Colors.white),
+          label: const Text('SAVE PERMISSIONS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
     );
