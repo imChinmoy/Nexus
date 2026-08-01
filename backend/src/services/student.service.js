@@ -1,4 +1,5 @@
 const Registration = require('../models/Registration.model');
+const Student = require('../models/Student.model');
 const studentRepository = require('../repositories/student.repository');
 const { getPagination, buildPaginationMeta, buildSortOptions } = require('../utils/pagination');
 
@@ -10,6 +11,7 @@ class StudentService {
     const sort = buildSortOptions(query.sort, SORTABLE_FIELDS);
     const filter = this._buildFilter(query);
 
+    let data, total;
     if (query.search) {
       const searchFilter = {
         ...filter,
@@ -20,18 +22,32 @@ class StudentService {
           { studentNo: { $regex: query.search, $options: 'i' } }
         ]
       };
-      const [data, total] = await Promise.all([
+      [data, total] = await Promise.all([
         Registration.find(searchFilter).sort(sort).skip(skip).limit(limit),
         Registration.countDocuments(searchFilter),
       ]);
-      return { data, total, meta: buildPaginationMeta(total, page, limit) };
+    } else {
+      [data, total] = await Promise.all([
+        Registration.find(filter).sort(sort).skip(skip).limit(limit),
+        Registration.countDocuments(filter),
+      ]);
     }
 
-    const [data, total] = await Promise.all([
-      Registration.find(filter).sort(sort).skip(skip).limit(limit),
-      Registration.countDocuments(filter),
-    ]);
-    return { data, meta: buildPaginationMeta(total, page, limit) };
+    const rollNumbers = data.map(r => r.rollNo);
+    const students = await Student.find({ rollNo: { $in: rollNumbers } }).lean();
+    
+    const studentMap = students.reduce((acc, s) => {
+      acc[s.rollNo] = s.isPresent;
+      return acc;
+    }, {});
+
+    const enrichedData = data.map(d => {
+      const doc = d.toObject();
+      doc.isPresent = studentMap[doc.rollNo] || false;
+      return doc;
+    });
+
+    return { data: enrichedData, total, meta: buildPaginationMeta(total, page, limit) };
   }
 
   _buildFilter(query) {

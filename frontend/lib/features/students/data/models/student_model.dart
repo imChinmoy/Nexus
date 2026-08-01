@@ -9,6 +9,7 @@ class StudentModel {
   final int year;
   final String email;
   final int attendance;
+  final bool isPresent;
 
   const StudentModel({
     required this.id,
@@ -19,6 +20,7 @@ class StudentModel {
     required this.year,
     required this.email,
     this.attendance = 0,
+    this.isPresent = false,
   });
 
   factory StudentModel.fromJson(Map<String, dynamic> json) => StudentModel(
@@ -30,6 +32,7 @@ class StudentModel {
         year: json['year'] as int? ?? 1,
         email: json['email'] as String? ?? '',
         attendance: json['attendance'] as int? ?? 0,
+        isPresent: json['isPresent'] as bool? ?? false,
       );
 
   StudentEntity toEntity() => StudentEntity(
@@ -41,5 +44,6 @@ class StudentModel {
         year: year,
         email: email,
         attendance: attendance,
+        isPresent: isPresent,
       );
 }

@@ -146,7 +146,7 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
                             final student = filtered[index];
-                            final currentStatus = _attendanceStatus[student.id] ?? remoteAttendanceMap[student.rollNumber] ?? 'absent';
+                            final currentStatus = _attendanceStatus[student.id] ?? remoteAttendanceMap[student.rollNumber] ?? (student.isPresent ? 'present' : 'absent');
 
                             return BrlGlassCard(
                               margin: const EdgeInsets.only(bottom: 12),

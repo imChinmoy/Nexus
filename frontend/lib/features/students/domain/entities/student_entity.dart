@@ -7,6 +7,7 @@ class StudentEntity {
   final int year;
   final String email;
   final int attendance;
+  final bool isPresent;
 
   const StudentEntity({
     required this.id,
@@ -17,5 +18,6 @@ class StudentEntity {
     required this.year,
     required this.email,
     this.attendance = 0,
+    this.isPresent = false,
   });
 }
