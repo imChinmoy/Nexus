@@ -10,7 +10,7 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
   return StudentRepositoryImpl(StudentRemoteSourceImpl(dio));
 });
 
-final studentsProvider = FutureProvider<List<StudentEntity>>((ref) async {
+final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) async {
   final repository = ref.watch(studentRepositoryProvider);
   final result = await repository.getStudents();
   return result.fold(

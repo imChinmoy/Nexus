@@ -28,4 +28,16 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       return Left(UnknownFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAttendanceByEvent(String eventId) async {
+    try {
+      final result = await _remote.getAttendanceByEvent(eventId);
+      return Right(result);
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
 }

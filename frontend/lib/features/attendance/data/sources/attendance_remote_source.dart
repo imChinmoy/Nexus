@@ -8,6 +8,8 @@ abstract interface class AttendanceRemoteSource {
     required String studentId,
     required String status,
   });
+
+  Future<List<Map<String, dynamic>>> getAttendanceByEvent(String eventId);
 }
 
 class AttendanceRemoteSourceImpl implements AttendanceRemoteSource {
@@ -33,6 +35,19 @@ class AttendanceRemoteSourceImpl implements AttendanceRemoteSource {
       rethrow;
     } catch (e) {
       throw ServerException('Failed to mark attendance: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAttendanceByEvent(String eventId) async {
+    try {
+      final response = await _dio.get(ApiConstants.attendanceByEvent(eventId));
+      if (response.data['data'] == null) return [];
+      return List<Map<String, dynamic>>.from(response.data['data']);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Failed to fetch event attendance: ${e.toString()}');
     }
   }
 }

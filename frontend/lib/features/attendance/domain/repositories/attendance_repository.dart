@@ -7,4 +7,6 @@ abstract interface class AttendanceRepository {
     required String studentId,
     required String status,
   });
+
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAttendanceByEvent(String eventId);
 }

@@ -48,3 +48,16 @@ exports.changePassword = asyncHandler(async (req, res) => {
   await authService.changePassword(req.user._id, currentPassword, newPassword);
   sendSuccess(res, 'Password changed successfully');
 });
+
+exports.updateMe = asyncHandler(async (req, res) => {
+  const user = await authService.updateProfile(req.user._id, req.body);
+  sendSuccess(res, 'Profile updated successfully', user);
+});
+
+exports.updateAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return sendError(res, 'Please upload an image file', 400);
+  }
+  const user = await authService.updateAvatar(req.user._id, req.file.path);
+  sendSuccess(res, 'Avatar updated successfully', user);
+});

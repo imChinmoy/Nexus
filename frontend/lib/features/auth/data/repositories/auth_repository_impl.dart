@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -126,6 +127,36 @@ class AuthRepositoryImpl implements AuthRepository {
         newPassword: newPassword,
       );
       return const Right(null);
+    } on ValidationException catch (e) {
+      return Left(ValidationFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateProfile({String? name}) async {
+    try {
+      final user = await _remote.updateProfile(name: name);
+      await _local.saveUser(user);
+      return Right(user.toEntity());
+    } on ValidationException catch (e) {
+      return Left(ValidationFailure(e.message));
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateAvatar(File imageFile) async {
+    try {
+      final user = await _remote.updateAvatar(imageFile);
+      await _local.saveUser(user);
+      return Right(user.toEntity());
     } on ValidationException catch (e) {
       return Left(ValidationFailure(e.message));
     } on AppException catch (e) {

@@ -52,7 +52,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
           final result = await attendanceRepo.markManual(
             eventId: widget.eventId,
             studentId: studentId,
-            status: 'PRESENT',
+            status: 'present',
           );
 
           result.fold(

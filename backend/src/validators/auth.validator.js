@@ -19,4 +19,8 @@ const changePasswordValidator = [
   body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
 ];
 
-module.exports = { loginValidator, forgotPasswordValidator, resetPasswordValidator, changePasswordValidator };
+const updateProfileValidator = [
+  body('name').optional().isString().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+];
+
+module.exports = { loginValidator, forgotPasswordValidator, resetPasswordValidator, changePasswordValidator, updateProfileValidator };

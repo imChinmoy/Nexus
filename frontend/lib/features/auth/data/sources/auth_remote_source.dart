@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -12,6 +13,8 @@ abstract interface class AuthRemoteSource {
   Future<void> forgotPassword(String email);
   Future<void> resetPassword({required String token, required String newPassword});
   Future<void> changePassword({required String currentPassword, required String newPassword});
+  Future<UserModel> updateProfile({String? name});
+  Future<UserModel> updateAvatar(File imageFile);
 }
 
 class AuthRemoteSourceImpl implements AuthRemoteSource {
@@ -120,6 +123,43 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       rethrow;
     } catch (e) {
       throw ServerException('Change password failed: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<UserModel> updateProfile({String? name}) async {
+    try {
+      final response = await _dio.put(
+        ApiConstants.me,
+        data: {
+          if (name != null) 'name': name,
+        },
+      );
+      return UserModel.fromJson(response.data['data']);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Update profile failed: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<UserModel> updateAvatar(File imageFile) async {
+    try {
+      String fileName = imageFile.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(imageFile.path, filename: fileName),
+      });
+
+      final response = await _dio.put(
+        ApiConstants.updateAvatar,
+        data: formData,
+      );
+      return UserModel.fromJson(response.data['data']);
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Update avatar failed: ${e.toString()}');
     }
   }
 }

@@ -7,22 +7,15 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
-import '../../../events/providers/event_provider.dart';
 
-class AttendanceScreen extends ConsumerStatefulWidget {
+class AttendanceScreen extends ConsumerWidget {
   const AttendanceScreen({super.key});
 
-  @override
-  ConsumerState<AttendanceScreen> createState() => _AttendanceScreenState();
-}
-
-class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
-  String? _selectedEventId;
+  // Hardcoded event ID for Reload 26 Recruitment Drive
+  static const String hardcodedEventId = '6a6dc76d77dff0bef5d29082';
 
   @override
-  Widget build(BuildContext context) {
-    final eventsAsync = ref.watch(eventsProvider);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -35,45 +28,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              eventsAsync.when(
-                data: (events) {
-                  if (events.isEmpty) {
-                    return const Text('No events available', style: TextStyle(color: Colors.white));
-                  }
-                  return BrlGlassCard(
-                    padding: const EdgeInsets.all(16),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        dropdownColor: AppColors.surface,
-                        hint: const Text('Select Event', style: TextStyle(color: Colors.white54)),
-                        value: _selectedEventId,
-                        items: events.map((event) {
-                          return DropdownMenuItem<String>(
-                            value: event.id,
-                            child: Text(event.title, style: const TextStyle(color: Colors.white)),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedEventId = value;
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Text('Error loading events: $err', style: const TextStyle(color: Colors.red)),
-              ),
-              const SizedBox(height: 24),
               GestureDetector(
                 onTap: () {
-                  if (_selectedEventId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an event first')));
-                    return;
-                  }
-                  context.push('${RouteConstants.attendance}/qr-scan?eventId=$_selectedEventId');
+                  context.push('${RouteConstants.attendance}/qr-scan?eventId=$hardcodedEventId');
                 },
                 child: BrlGlassCard(
                   padding: const EdgeInsets.all(24),
@@ -90,11 +47,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () {
-                  if (_selectedEventId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an event first')));
-                    return;
-                  }
-                  context.push('${RouteConstants.attendance}/manual?eventId=$_selectedEventId');
+                  context.push('${RouteConstants.attendance}/manual?eventId=$hardcodedEventId');
                 },
                 child: BrlGlassCard(
                   padding: const EdgeInsets.all(24),

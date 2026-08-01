@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/dio_client.dart';
@@ -70,4 +71,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
         authenticated: (user) => user,
       );
 
+  Future<String?> updateProfile({String? name}) async {
+    final result = await _repo.updateProfile(name: name);
+    return result.fold(
+      (failure) => failure.message,
+      (user) {
+        state = AuthState.authenticated(user);
+        return null;
+      },
+    );
+  }
+
+  Future<String?> updateAvatar(File imageFile) async {
+    final result = await _repo.updateAvatar(imageFile);
+    return result.fold(
+      (failure) => failure.message,
+      (user) {
+        state = AuthState.authenticated(user);
+        return null;
+      },
+    );
+  }
 }

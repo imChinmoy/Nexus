@@ -12,6 +12,7 @@ class ApiConstants {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String me = '/auth/me';
+  static const String updateAvatar = '/auth/me/avatar';
   static const String changePassword = '/auth/change-password';
 
   // Students

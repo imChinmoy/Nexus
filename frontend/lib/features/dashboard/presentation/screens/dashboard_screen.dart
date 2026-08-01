@@ -14,6 +14,7 @@ import '../../../../shared/widgets/brl_stats_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../students/providers/student_provider.dart';
 import '../../../events/providers/event_provider.dart';
+import '../../../members/providers/members_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -57,6 +58,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             onRefresh: () async {
               ref.invalidate(studentsProvider);
               ref.invalidate(eventsProvider);
+              ref.invalidate(membersProvider);
               await Future.delayed(const Duration(seconds: 1));
             },
             child: CustomScrollView(
@@ -187,6 +189,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget _buildStatsGrid() {
     final studentsAsync = ref.watch(studentsProvider);
     final eventsAsync = ref.watch(eventsProvider);
+    final membersAsync = ref.watch(membersProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,9 +210,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               icon: Icons.school_rounded,
               accentColor: AppColors.moduleStudents,
             ),
-            const BrlStatsCard(
+            BrlStatsCard(
               title: 'ACTIVE MEMBERS',
-              value: '-',
+              value: membersAsync.maybeWhen(
+                data: (m) => m.where((member) => member.isActive).length.toString(),
+                orElse: () => '-',
+              ),
               icon: Icons.group_rounded,
               accentColor: AppColors.moduleMembers,
             ),
@@ -235,9 +241,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    const hardcodedEventId = '6a6dc76d77dff0bef5d29082';
     final actions = [
-      _QuickAction('QR SCAN', Icons.qr_code_scanner_rounded, AppColors.accentGreen, RouteConstants.qrScanner),
-      _QuickAction('MANUAL', Icons.edit_note_rounded, AppColors.primary, RouteConstants.manualAttendance),
+      _QuickAction('QR SCAN', Icons.qr_code_scanner_rounded, AppColors.accentGreen, '${RouteConstants.attendance}/qr-scan?eventId=$hardcodedEventId'),
+      _QuickAction('MANUAL', Icons.edit_note_rounded, AppColors.primary, '${RouteConstants.attendance}/manual?eventId=$hardcodedEventId'),
       _QuickAction('NEW EVENT', Icons.add_circle_outline_rounded, AppColors.accentPink, RouteConstants.createEvent),
       _QuickAction('ADD STUDENT', Icons.person_add_rounded, AppColors.secondary, RouteConstants.addStudent),
     ];

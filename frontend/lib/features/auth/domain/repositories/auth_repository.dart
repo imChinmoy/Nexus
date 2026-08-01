@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/user_entity.dart';
@@ -25,6 +26,9 @@ abstract interface class AuthRepository {
     required String currentPassword,
     required String newPassword,
   });
+
+  Future<Either<Failure, UserEntity>> updateProfile({String? name});
+  Future<Either<Failure, UserEntity>> updateAvatar(File imageFile);
 
   Future<bool> isLoggedIn();
   Future<UserEntity?> getCachedUser();

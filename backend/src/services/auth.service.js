@@ -122,6 +122,18 @@ class AuthService {
       throw { status: 401, message: err.message || 'Invalid token' };
     }
   }
+
+  async updateProfile(userId, profileData) {
+    const user = await userRepository.updateById(userId, profileData);
+    if (!user) throw { status: 404, message: 'User not found' };
+    return user;
+  }
+
+  async updateAvatar(userId, avatarUrl) {
+    const user = await userRepository.updateById(userId, { avatar: avatarUrl });
+    if (!user) throw { status: 404, message: 'User not found' };
+    return user;
+  }
 }
 
 module.exports = new AuthService();
