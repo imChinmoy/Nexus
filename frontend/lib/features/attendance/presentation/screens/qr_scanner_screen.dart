@@ -15,14 +15,41 @@ class QrScannerScreen extends ConsumerStatefulWidget {
   ConsumerState<QrScannerScreen> createState() => _QrScannerScreenState();
 }
 
-class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
+class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsBindingObserver {
   bool _isProcessing = false;
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
   );
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _controller.start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        return;
+      case AppLifecycleState.resumed:
+        if (!_controller.value.isInitialized) {
+          _controller.start();
+        }
+        break;
+      case AppLifecycleState.inactive:
+        _controller.stop();
+        break;
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }

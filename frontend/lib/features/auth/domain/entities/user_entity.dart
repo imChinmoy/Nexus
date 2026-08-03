@@ -95,7 +95,7 @@ enum UserRole {
         return UserRole.viewer;
     }
   }
-
+  
   String get backendValue {
     switch (this) {
       case UserRole.superAdmin:
