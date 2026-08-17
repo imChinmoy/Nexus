@@ -3,7 +3,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiConstants {
   ApiConstants._();
 
-  static String get baseUrl => dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:5000/api';
+  static String get baseUrl {
+    if (!dotenv.isInitialized) {
+      return 'http://10.0.2.2:5000/api';
+    }
+
+    return dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:5000/api';
+  }
 
   // Auth
   static const String login = '/auth/login';
