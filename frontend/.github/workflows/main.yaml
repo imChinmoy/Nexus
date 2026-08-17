@@ -1,0 +1,105 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Test and Build Flutter App
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      APP_ENV: ${{ secrets.APP_ENV }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          channel: stable
+          cache: true
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          required_vars=("APP_ENV" "API_BASE_URL")
+
+          for var_name in "${required_vars[@]}"; do
+            value="${!var_name}"
+            if [ -z "$value" ]; then
+              echo "Missing required GitHub secret: $var_name"
+              exit 1
+            fi
+          done
+
+          echo "All required secrets are present."
+
+      - name: Create .env file from secret
+        shell: bash
+        run: |
+          if [ -n "$ENV_FILE" ]; then
+            printf '%s' "$ENV_FILE" > .env
+            echo ".env created from ENV_FILE secret."
+          else
+            echo "ENV_FILE not set; continuing without .env"
+          fi
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+      - name: Build Web release
+        run: flutter build web --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-android-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-web-build
+          path: build/web
