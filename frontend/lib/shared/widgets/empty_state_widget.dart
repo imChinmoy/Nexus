@@ -29,10 +29,11 @@ class EmptyStateWidget extends StatelessWidget {
     final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 68,
@@ -75,6 +76,7 @@ class EmptyStateWidget extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }

@@ -1,8 +1,13 @@
 const studentService = require('../services/student.service');
+const eventStudentsService = require('../services/eventStudents.service');
 const { sendSuccess, sendCreated, sendError } = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
 exports.getAll = asyncHandler(async (req, res) => {
+  if (req.query.eventId) {
+    const result = await eventStudentsService.getStudentsByEvent(req.query.eventId, req.query);
+    return sendSuccess(res, 'Event students fetched successfully', result.data, result.meta, 200, undefined, result.counts);
+  }
   const { data, meta } = await studentService.getAll(req.query);
   sendSuccess(res, 'Students fetched', data, meta);
 });

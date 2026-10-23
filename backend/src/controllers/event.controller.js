@@ -1,4 +1,5 @@
 const eventService = require('../services/event.service');
+const eventStudentsService = require('../services/eventStudents.service');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -10,6 +11,11 @@ exports.getAll = asyncHandler(async (req, res) => {
 exports.getById = asyncHandler(async (req, res) => {
   const event = await eventService.getById(req.params.id);
   sendSuccess(res, 'Event fetched', event);
+});
+
+exports.getEventStudents = asyncHandler(async (req, res) => {
+  const result = await eventStudentsService.getStudentsByEvent(req.params.id, req.query);
+  sendSuccess(res, 'Event students fetched successfully', result.data, result.meta, 200, undefined, result.counts);
 });
 
 exports.create = asyncHandler(async (req, res) => {

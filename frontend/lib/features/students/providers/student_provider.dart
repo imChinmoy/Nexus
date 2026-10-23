@@ -10,7 +10,60 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
   return StudentRepositoryImpl(StudentRemoteSourceImpl(dio));
 });
 
+final selectedEventIdProvider = StateProvider<String?>((ref) => null);
+final studentSearchQueryProvider = StateProvider<String>((ref) => '');
+final studentBranchFilterProvider = StateProvider<String>((ref) => 'All');
+final studentAttendanceFilterProvider = StateProvider<String>((ref) => 'All');
+final studentPageProvider = StateProvider<int>((ref) => 1);
+
+/// Event-scoped students provider with server-side search, filtering, and pagination.
+final eventStudentsProvider = FutureProvider.autoDispose<EventStudentsResultEntity?>((ref) async {
+  final eventId = ref.watch(selectedEventIdProvider);
+  if (eventId == null || eventId.trim().isEmpty) {
+    return null;
+  }
+
+  final repository = ref.watch(studentRepositoryProvider);
+  final search = ref.watch(studentSearchQueryProvider);
+  final branch = ref.watch(studentBranchFilterProvider);
+  final attendanceStatus = ref.watch(studentAttendanceFilterProvider);
+  final page = ref.watch(studentPageProvider);
+
+  String? normalizedStatus;
+  if (attendanceStatus != 'All') {
+    final lower = attendanceStatus.toLowerCase();
+    if (lower == 'not scanned' || lower == 'not marked') {
+      normalizedStatus = 'not_marked';
+    } else {
+      normalizedStatus = lower;
+    }
+  }
+
+  final result = await repository.getStudentsByEvent(
+    eventId,
+    page: page,
+    limit: 20,
+    search: search.trim().isNotEmpty ? search.trim() : null,
+    branch: branch != 'All' ? branch : null,
+    attendanceStatus: normalizedStatus,
+  );
+
+  return result.fold(
+    (failure) => throw failure.message,
+    (res) => res,
+  );
+});
+
+/// Backward-compatible students list provider for detail views and legacy workflows.
 final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) async {
+  final eventId = ref.watch(selectedEventIdProvider);
+  if (eventId != null && eventId.trim().isNotEmpty) {
+    final eventResult = await ref.watch(eventStudentsProvider.future);
+    if (eventResult != null) {
+      return eventResult.students;
+    }
+  }
+
   final repository = ref.watch(studentRepositoryProvider);
   final result = await repository.getStudents();
   return result.fold(
@@ -18,3 +71,15 @@ final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) a
     (students) => students,
   );
 });
+
+/// Family provider for fetching event-scoped student registrations and live counts.
+final eventScopedStudentsFamilyProvider = FutureProvider.autoDispose.family<EventStudentsResultEntity?, String>((ref, eventId) async {
+  if (eventId.trim().isEmpty) return null;
+  final repository = ref.watch(studentRepositoryProvider);
+  final result = await repository.getStudentsByEvent(eventId, limit: 50);
+  return result.fold(
+    (failure) => null,
+    (res) => res,
+  );
+});
+

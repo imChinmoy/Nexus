@@ -5,6 +5,16 @@ import '../models/student_model.dart';
 
 abstract interface class StudentRemoteSource {
   Future<List<StudentModel>> getStudents({String? search});
+
+  Future<EventStudentsResultModel> getStudentsByEvent(
+    String eventId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? branch,
+    String? attendanceStatus,
+  });
+
   Future<StudentModel> createStudent({
     required String name,
     required String rollNumber,
@@ -42,6 +52,47 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
       rethrow;
     } catch (e) {
       throw ServerException('Failed to fetch students: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<EventStudentsResultModel> getStudentsByEvent(
+    String eventId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? branch,
+    String? attendanceStatus,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        'page': page,
+        'limit': limit,
+      };
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+      if (branch != null && branch.trim().isNotEmpty && branch != 'All') {
+        queryParams['branch'] = branch.trim();
+      }
+      if (attendanceStatus != null && attendanceStatus.trim().isNotEmpty && attendanceStatus.toLowerCase() != 'all') {
+        queryParams['attendanceStatus'] = attendanceStatus.trim();
+      }
+
+      final response = await _dio.get(
+        ApiConstants.eventStudents(eventId),
+        queryParameters: queryParams,
+      );
+
+      return EventStudentsResultModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      final serverMessage = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw ServerException(serverMessage ?? 'Failed to fetch event students: ${e.message}');
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Failed to fetch event students: ${e.toString()}');
     }
   }
 

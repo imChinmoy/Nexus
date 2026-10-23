@@ -13,22 +13,10 @@ class BrlBottomNav extends StatelessWidget {
 
   static const _items = [
     _NavItem(
-      label: 'Dashboard',
-      icon: Icons.grid_view_rounded,
-      activeIcon: Icons.grid_view_rounded,
+      label: 'Ops',
+      icon: Icons.space_dashboard_outlined,
+      activeIcon: Icons.space_dashboard_rounded,
       route: RouteConstants.dashboard,
-    ),
-    _NavItem(
-      label: 'Students',
-      icon: Icons.school_outlined,
-      activeIcon: Icons.school_rounded,
-      route: RouteConstants.students,
-    ),
-    _NavItem(
-      label: 'Members',
-      icon: Icons.group_outlined,
-      activeIcon: Icons.group_rounded,
-      route: RouteConstants.members,
     ),
     _NavItem(
       label: 'Events',
@@ -37,9 +25,22 @@ class BrlBottomNav extends StatelessWidget {
       route: RouteConstants.events,
     ),
     _NavItem(
+      label: 'Scan',
+      icon: Icons.qr_code_scanner_rounded,
+      activeIcon: Icons.qr_code_scanner_rounded,
+      route: '${RouteConstants.attendance}/qr-scan',
+      isScanner: true,
+    ),
+    _NavItem(
+      label: 'Students',
+      icon: Icons.school_outlined,
+      activeIcon: Icons.school_rounded,
+      route: RouteConstants.students,
+    ),
+    _NavItem(
       label: 'Settings',
-      icon: Icons.settings_outlined,
-      activeIcon: Icons.settings_rounded,
+      icon: Icons.tune_outlined,
+      activeIcon: Icons.tune_rounded,
       route: RouteConstants.settings,
     ),
   ];
@@ -49,6 +50,8 @@ class BrlBottomNav extends StatelessWidget {
     for (int i = 0; i < _items.length; i++) {
       if (location.startsWith(_items[i].route)) return i;
     }
+    if (location.startsWith(RouteConstants.attendance)) return 2;
+    if (location.startsWith(RouteConstants.members)) return 3;
     return 0;
   }
 
@@ -57,7 +60,7 @@ class BrlBottomNav extends StatelessWidget {
     final selectedIndex = _selectedIndex(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = (isDark ? AppColors.darkSurface : AppColors.lightSurface)
-        .withValues(alpha: isDark ? 0.85 : 0.92);
+        .withValues(alpha: isDark ? 0.90 : 0.95);
     final separatorColor = isDark ? AppColors.darkSeparator : AppColors.lightSeparator;
 
     return PopScope(
@@ -107,7 +110,7 @@ class BrlBottomNav extends StatelessWidget {
         body: child,
         bottomNavigationBar: ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               decoration: BoxDecoration(
                 color: surfaceColor,
@@ -118,16 +121,29 @@ class BrlBottomNav extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 child: SizedBox(
-                  height: 54,
+                  height: 50,
                   child: Row(
                     children: List.generate(_items.length, (i) {
+                      final item = _items[i];
                       final isSelected = i == selectedIndex;
                       return Expanded(
-                        child: _NavItemWidget(
-                          item: _items[i],
-                          isSelected: isSelected,
-                          onTap: () => context.go(_items[i].route),
-                        ),
+                        child: item.isScanner
+                            ? _ScannerShortcutWidget(
+                                item: item,
+                                isSelected: isSelected,
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  context.push(item.route);
+                                },
+                              )
+                            : _NavItemWidget(
+                                item: item,
+                                isSelected: isSelected,
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  context.go(item.route);
+                                },
+                              ),
                       );
                     }),
                   ),
@@ -146,12 +162,14 @@ class _NavItem {
   final IconData icon;
   final IconData activeIcon;
   final String route;
+  final bool isScanner;
 
   const _NavItem({
     required this.label,
     required this.icon,
     required this.activeIcon,
     required this.route,
+    this.isScanner = false,
   });
 }
 
@@ -180,27 +198,100 @@ class _NavItemWidget extends StatelessWidget {
         onTap: onTap,
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? item.activeIcon : item.icon,
-              color: isSelected ? activeColor : inactiveColor,
-              size: 22,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: AppTextStyles.labelSm.copyWith(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? activeColor : inactiveColor,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.08 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(
+                  isSelected ? item.activeIcon : item.icon,
+                  color: isSelected ? activeColor : inactiveColor,
+                  size: 20,
+                ),
               ),
-              maxLines: 1,
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                item.label,
+                style: AppTextStyles.labelSm.copyWith(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? activeColor : inactiveColor,
+                  letterSpacing: -0.1,
+                ),
+                maxLines: 1,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+class _ScannerShortcutWidget extends StatelessWidget {
+  final _NavItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ScannerShortcutWidget({
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+
+    return Semantics(
+      label: 'Scan QR Shortcut',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: accent.withValues(alpha: isDark ? 0.35 : 0.22),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.qr_code_scanner_rounded,
+                  color: accent,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Scan',
+                  style: AppTextStyles.labelSm.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

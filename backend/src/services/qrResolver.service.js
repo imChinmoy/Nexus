@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student.model');
 const Registration = require('../models/Registration.model');
+const registrationSourceService = require('./registrationSource.service');
 const logger = require('../config/logger');
 
 class QrResolverService {
@@ -67,7 +68,6 @@ class QrResolverService {
       }
     }
 
-
     // Strategy 3: Plain text identifier (roll number, student number, or ObjectId)
     return { identifier: trimmed, metadata: { format: 'raw' } };
   }
@@ -76,9 +76,10 @@ class QrResolverService {
    * Resolve a candidate identifier into an active Student document for attendance.
    *
    * @param {string} rawQr - Raw value read from student QR
+   * @param {object|null} event - Optional event object for event-specific registration source resolution
    * @returns {Promise<Student|null>}
    */
-  async resolveStudent(rawQr) {
+  async resolveStudent(rawQr, event = null) {
     const { identifier } = this.parseQrValue(rawQr);
     if (!identifier) return null;
 
@@ -101,10 +102,10 @@ class QrResolverService {
       return student;
     }
 
-    // 2. Query in Registration collection (external student registration portal data)
+    // 2. Query in candidate Registration collection(s)
     const regQuery = [];
     if (isMongoId) {
-      regQuery.push({ _id: identifier });
+      regQuery.push({ _id: new mongoose.Types.ObjectId(identifier) });
     }
     regQuery.push({ rollNo: identifier.toUpperCase() });
     regQuery.push({ rollNo: identifier });
@@ -113,7 +114,36 @@ class QrResolverService {
       regQuery.push({ email: identifier.toLowerCase() });
     }
 
-    const registration = await Registration.findOne({ $or: regQuery }).exec();
+    // If event has a configured registration source, check that source collection
+    if (event) {
+      const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+      if (sourceKey && registrationSourceService.isConfigured(sourceKey)) {
+        try {
+          const { collection } = await registrationSourceService.getCollection(sourceKey);
+          const externalDoc = await collection.findOne({ $or: regQuery });
+          if (externalDoc) {
+            student = await this._getOrCreateStudentFromRegistration(externalDoc);
+            return student;
+          }
+        } catch (err) {
+          logger.warn('Failed querying event registration source in resolveStudent', { error: err.message });
+        }
+      }
+    }
+
+    // Query in local Registration collection (external student registration portal data)
+    const localRegQuery = [];
+    if (isMongoId) {
+      localRegQuery.push({ _id: identifier });
+    }
+    localRegQuery.push({ rollNo: identifier.toUpperCase() });
+    localRegQuery.push({ rollNo: identifier });
+    localRegQuery.push({ studentNo: identifier });
+    if (identifier.includes('@')) {
+      localRegQuery.push({ email: identifier.toLowerCase() });
+    }
+
+    const registration = await Registration.findOne({ $or: localRegQuery }).exec();
     if (registration) {
       student = await this._getOrCreateStudentFromRegistration(registration);
       return student;

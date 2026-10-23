@@ -4,6 +4,16 @@ import '../entities/student_entity.dart';
 
 abstract interface class StudentRepository {
   Future<Either<Failure, List<StudentEntity>>> getStudents({String? search});
+
+  Future<Either<Failure, EventStudentsResultEntity>> getStudentsByEvent(
+    String eventId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? branch,
+    String? attendanceStatus,
+  });
+
   Future<Either<Failure, StudentEntity>> createStudent({
     required String name,
     required String rollNumber,

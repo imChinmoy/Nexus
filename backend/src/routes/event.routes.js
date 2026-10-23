@@ -12,6 +12,7 @@ router.use(authenticate);
 
 router.get('/', eventController.getAll);
 router.get('/:id', eventController.getById);
+router.get('/:id/students', eventController.getEventStudents);
 router.post('/', requirePermission(PERMISSIONS.EVENT_ADD), eventUpload.single('banner'), createEventValidator, validate, eventController.create);
 router.put('/:id', requirePermission(PERMISSIONS.EVENT_EDIT), eventUpload.single('banner'), updateEventValidator, validate, eventController.update);
 router.delete('/:id', requirePermission(PERMISSIONS.EVENT_EDIT), eventController.delete);

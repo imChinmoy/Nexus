@@ -35,6 +35,7 @@ class ApiConstants {
   static const String events = '/events';
   static String eventById(String id) => '/events/$id';
   static String eventAttendance(String id) => '/events/$id/attendance';
+  static String eventStudents(String id) => '/events/$id/students';
 
   // Attendance
   static const String attendance = '/attendance';

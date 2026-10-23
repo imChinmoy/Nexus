@@ -1,8 +1,10 @@
+const mongoose = require('mongoose');
 const attendanceRepository = require('../repositories/attendance.repository');
 const eventRepository = require('../repositories/event.repository');
 const Registration = require('../models/Registration.model');
 const Student = require('../models/Student.model');
 const qrResolverService = require('./qrResolver.service');
+const registrationSourceService = require('./registrationSource.service');
 const { verifyQRToken } = require('../utils/generateQR');
 const { ATTENDANCE_STATUS, ATTENDANCE_METHOD } = require('../constants/attendanceStatus');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
@@ -41,17 +43,43 @@ class AttendanceService {
   }
 
   /**
-   * Resolve student reference for attendance from either Student or Registration ID.
+   * Resolve student reference for attendance from either Student, Registration ID, or event registration source.
    */
-  async _resolveStudentById(studentOrRegId) {
+  async _resolveStudentById(studentOrRegId, event = null) {
     let student = await Student.findById(studentOrRegId).exec();
     if (student) return student;
 
-    // Check if the ID belongs to a Registration document
+    // Check if the ID belongs to a local Registration document
     const reg = await Registration.findById(studentOrRegId).exec();
     if (reg) {
       student = await qrResolverService._getOrCreateStudentFromRegistration(reg);
       return student;
+    }
+
+    // Check event-specific registration source if available
+    if (event) {
+      const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+      if (sourceKey && registrationSourceService.isConfigured(sourceKey)) {
+        try {
+          const { collection } = await registrationSourceService.getCollection(sourceKey);
+          const isMongoId = mongoose.Types.ObjectId.isValid(studentOrRegId);
+          const query = [];
+          if (isMongoId) {
+            query.push({ _id: new mongoose.Types.ObjectId(studentOrRegId) });
+          }
+          query.push({ rollNo: String(studentOrRegId).trim().toUpperCase() });
+          query.push({ rollNo: String(studentOrRegId).trim() });
+          query.push({ studentNo: String(studentOrRegId).trim() });
+
+          const externalDoc = await collection.findOne({ $or: query });
+          if (externalDoc) {
+            student = await qrResolverService._getOrCreateStudentFromRegistration(externalDoc);
+            return student;
+          }
+        } catch (err) {
+          logger.warn('Failed querying event registration source in _resolveStudentById', { error: err.message });
+        }
+      }
     }
 
     return null;
@@ -72,7 +100,7 @@ class AttendanceService {
 
     // Step 2: Student resolution from external QR
     const resolveStart = Date.now();
-    const student = await qrResolverService.resolveStudent(qrValue);
+    const student = await qrResolverService.resolveStudent(qrValue, event);
     if (!student) {
       throw {
         status: 404,
@@ -166,7 +194,7 @@ class AttendanceService {
     const event = await eventRepository.findById(eventId);
     this._validateEventForAttendance(event);
 
-    const student = await this._resolveStudentById(studentId);
+    const student = await this._resolveStudentById(studentId, event);
     if (!student) throw { status: 404, code: 'STUDENT_NOT_FOUND', message: 'Registered student not found' };
 
     const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
@@ -250,7 +278,7 @@ class AttendanceService {
       throw { status: 400, code: 'QR_OUTDATED', message: 'QR code is outdated' };
     }
 
-    const student = await this._resolveStudentById(studentId);
+    const student = await this._resolveStudentById(studentId, event);
     if (!student) throw { status: 404, code: 'STUDENT_NOT_FOUND', message: 'Registered student not found' };
 
     const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });

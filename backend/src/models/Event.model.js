@@ -25,6 +25,7 @@ const eventSchema = new mongoose.Schema(
     qrExpiresAt: { type: Date },
     qrSessionId: { type: String },
     banner: { type: String },
+    registrationSourceKey: { type: String, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     tags: [{ type: String, trim: true, lowercase: true }],
     meta: { type: mongoose.Schema.Types.Mixed, default: {} },

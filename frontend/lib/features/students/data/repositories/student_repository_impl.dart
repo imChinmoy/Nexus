@@ -23,6 +23,32 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
+  Future<Either<Failure, EventStudentsResultEntity>> getStudentsByEvent(
+    String eventId, {
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? branch,
+    String? attendanceStatus,
+  }) async {
+    try {
+      final resultModel = await _remote.getStudentsByEvent(
+        eventId,
+        page: page,
+        limit: limit,
+        search: search,
+        branch: branch,
+        attendanceStatus: attendanceStatus,
+      );
+      return Right(resultModel.toEntity());
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, StudentEntity>> createStudent({
     required String name,
     required String rollNumber,

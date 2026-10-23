@@ -21,6 +21,7 @@ const createEventValidator = [
       }
       return true;
     }),
+  body('registrationSourceKey').optional().trim().isLength({ max: 100 }),
 ];
 
 const updateEventValidator = [
@@ -35,6 +36,7 @@ const updateEventValidator = [
   body('isAttendanceOpen').optional().isBoolean(),
   body('attendanceWindowStart').optional().isISO8601(),
   body('attendanceWindowEnd').optional().isISO8601(),
+  body('registrationSourceKey').optional().trim().isLength({ max: 100 }),
 ];
 
 module.exports = { createEventValidator, updateEventValidator };
