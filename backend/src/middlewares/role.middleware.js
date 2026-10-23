@@ -21,10 +21,11 @@ const getRolePermissions = async () => {
     [ROLES.SUPER_ADMIN]: [PERMISSIONS.ALL],
     [ROLES.ADMIN]: [PERMISSIONS.ALL],
     [ROLES.COORDINATOR]: [PERMISSIONS.ATTENDANCE_MARK, PERMISSIONS.EVENT_ADD],
-    [ROLES.VOLUNTEER]: [],
+    [ROLES.VOLUNTEER]: [PERMISSIONS.ATTENDANCE_MARK],
     [ROLES.VIEWER]: []
   };
 };
+
 
 const clearRolePermissionsCache = () => {
   rolePermissionsCache = null;

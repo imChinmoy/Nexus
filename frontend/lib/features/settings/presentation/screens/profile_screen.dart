@@ -1,12 +1,14 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_button.dart';
+import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
 import '../../../auth/providers/auth_provider.dart';
 
@@ -44,7 +46,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 600,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -56,7 +62,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _isLoading = true);
     final user = ref.read(currentUserProvider);
     final nameChanged = user?.name != _nameController.text.trim();
-    
+
     String? error;
 
     if (nameChanged) {
@@ -70,9 +76,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.errorOf(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.success));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Profile updated successfully'),
+            backgroundColor: AppColors.successOf(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
       }
     }
   }
@@ -80,76 +100,130 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+    final accent = AppColors.accentOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final initials = user?.name.isNotEmpty == true
+        ? user!.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        : 'U';
 
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: const BrlAppBar(
-          title: 'EDIT PROFILE',
+          title: 'Edit Profile',
           showBack: true,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             children: [
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                      backgroundImage: _imageFile != null 
-                          ? FileImage(_imageFile!) as ImageProvider
-                          : (user?.avatar != null && user!.avatar!.isNotEmpty)
-                              ? CachedNetworkImageProvider(user.avatar!)
-                              : null,
-                      child: (_imageFile == null && (user?.avatar == null || user!.avatar!.isEmpty))
-                          ? Text(
-                              user?.name.isNotEmpty == true ? user!.name.substring(0, 2).toUpperCase() : 'U',
-                              style: const TextStyle(color: AppColors.primary, fontSize: 36, fontWeight: FontWeight.bold),
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
+              const SizedBox(height: 12),
+              // Avatar
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
+                          color: accent.withValues(alpha: isDark ? 0.2 : 0.12),
+                          border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        child: ClipOval(
+                          child: _imageFile != null
+                              ? Image.file(_imageFile!, width: 96, height: 96, fit: BoxFit.cover)
+                              : (user?.avatar != null && user!.avatar!.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: user.avatar!,
+                                      width: 96,
+                                      height: 96,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) => Center(
+                                        child: Text(
+                                          initials,
+                                          style: AppTextStyles.headlineLg.copyWith(color: accent, fontSize: 32),
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        initials,
+                                        style: AppTextStyles.headlineLg.copyWith(color: accent, fontSize: 32),
+                                      ),
+                                    ),
+                        ),
                       ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: accent,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.surfaceOf(context), width: 2),
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 15),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Tap to change photo',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Text(
+                  'ACCOUNT DETAILS',
+                  style: AppTextStyles.caption.copyWith(
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textTertiaryOf(context),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              BrlGlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    BrlTextField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      hintText: 'Enter your name',
+                      prefix: Icon(Icons.person_outline, size: 18, color: AppColors.textSecondaryOf(context)),
+                    ),
+                    const SizedBox(height: 14),
+                    BrlTextField(
+                      controller: _emailController,
+                      label: 'Email (Primary Identifier)',
+                      hintText: 'Your registered email',
+                      prefix: Icon(Icons.email_outlined, size: 18, color: AppColors.textSecondaryOf(context)),
+                      enabled: false,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
-              BrlTextField(
-                controller: _nameController,
-                label: 'Name',
-                hint: 'Enter your name',
-                prefix: const Icon(Icons.person_outline, color: Colors.white70),
-              ),
-              const SizedBox(height: 20),
-              BrlTextField(
-                controller: _emailController,
-                label: 'Email (Read Only)',
-                hint: 'Your email',
-                prefix: const Icon(Icons.email_outlined, color: Colors.white70),
-                enabled: false,
-              ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
+
               BrlButton(
                 onPressed: _updateProfile,
                 label: 'Save Changes',
+                icon: Icons.check,
                 isLoading: _isLoading,
-                isFullWidth: true,
               ),
+              const SizedBox(height: 32),
             ],
           ),
         ),

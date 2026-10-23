@@ -1,16 +1,17 @@
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_gradients.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/animated_gradient_bg.dart';
-import '../../../../shared/widgets/brl_glass_card.dart';
-import '../../../../shared/widgets/neon_badge.dart';
-import '../../providers/event_provider.dart';
-import '../../../auth/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/widgets/animated_gradient_bg.dart';
+import '../../../../shared/widgets/brl_button.dart';
+import '../../../../shared/widgets/brl_glass_card.dart';
+import '../../../../shared/widgets/neon_badge.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../providers/event_provider.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
@@ -24,13 +25,27 @@ class EventDetailScreen extends ConsumerWidget {
     final permissionsAsync = ref.watch(myPermissionsProvider);
     final permissions = permissionsAsync.value ?? [];
     final hasEventEdit = isSuperAdmin || permissions.contains('event:edit') || permissions.contains('all');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: eventsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents)),
-          error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: AppColors.error))),
+          loading: () => Center(
+            child: CircularProgressIndicator(color: AppColors.accentOf(context)),
+          ),
+          error: (err, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: AppColors.errorOf(context)),
+                const SizedBox(height: 12),
+                Text('Failed to load event', style: AppTextStyles.headlineSm),
+                const SizedBox(height: 6),
+                Text(err.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context))),
+              ],
+            ),
+          ),
           data: (events) {
             final event = events.firstWhere(
               (e) => e.id == eventId,
@@ -40,17 +55,50 @@ class EventDetailScreen extends ConsumerWidget {
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  expandedHeight: 300,
+                  expandedHeight: 260,
                   pinned: true,
-                  backgroundColor: AppColors.background.withOpacity(0.9),
-                  iconTheme: const IconThemeData(color: Colors.white),
+                  elevation: 0,
+                  backgroundColor: AppColors.surfaceOf(context).withValues(alpha: 0.85),
+                  surfaceTintColor: Colors.transparent,
+                  leading: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.white),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   actions: [
                     if (hasEventEdit)
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: AppColors.moduleEvents),
-                        onPressed: () {
-                          context.push('${RouteConstants.events}/${event.id}/edit', extra: event);
-                        },
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.white),
+                                onPressed: () {
+                                  context.push('${RouteConstants.events}/${event.id}/edit', extra: event);
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                   ],
                   flexibleSpace: FlexibleSpaceBar(
@@ -62,74 +110,179 @@ class EventDetailScreen extends ConsumerWidget {
                             imageUrl: event.banner!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
-                              color: AppColors.surface,
-                              child: const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents)),
+                              color: isDark ? const Color(0xFF1E1E22) : const Color(0xFFE5E5EA),
+                              child: Center(
+                                child: CircularProgressIndicator(color: AppColors.accentOf(context), strokeWidth: 2),
+                              ),
                             ),
-                            errorWidget: (context, url, error) => _buildPlaceholderBanner(),
+                            errorWidget: (context, url, error) => _buildPlaceholderBanner(context),
                           )
                         else
-                          _buildPlaceholderBanner(),
-                        // Gradient Overlay for text readability
+                          _buildPlaceholderBanner(context),
+                        // Gradient Overlay for smooth transition
                         Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
+                                Colors.black.withValues(alpha: 0.35),
                                 Colors.transparent,
-                                AppColors.background.withOpacity(0.8),
-                                AppColors.background,
+                                isDark
+                                    ? const Color(0xFF111114).withValues(alpha: 0.95)
+                                    : const Color(0xFFF5F5F7).withValues(alpha: 0.95),
                               ],
+                              stops: const [0.0, 0.5, 1.0],
                             ),
                           ),
                         ),
                       ],
                     ),
-                    title: Text(
-                      event.title,
-                      style: AppTextStyles.headlineMd.copyWith(fontSize: 20),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Status & Type row
                         Row(
                           children: [
-                            NeonBadge(label: event.status.toUpperCase(), type: _getStatusType(event.status)),
+                            NeonBadge(
+                              label: event.status.toUpperCase(),
+                              type: _getStatusType(event.status),
+                            ),
                             const SizedBox(width: 8),
-                            NeonBadge(label: event.type.toUpperCase(), type: NeonBadgeType.info),
+                            NeonBadge(
+                              label: event.type.toUpperCase(),
+                              type: NeonBadgeType.info,
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: event.isAttendanceOpen
+                                    ? AppColors.successOf(context).withValues(alpha: 0.12)
+                                    : AppColors.textTertiaryOf(context).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: event.isAttendanceOpen
+                                          ? AppColors.successOf(context)
+                                          : AppColors.textTertiaryOf(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    event.isAttendanceOpen ? 'Attendance Open' : 'Attendance Closed',
+                                    style: AppTextStyles.caption.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: event.isAttendanceOpen
+                                          ? AppColors.successOf(context)
+                                          : AppColors.textSecondaryOf(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Event Title
+                        Text(
+                          event.title,
+                          style: AppTextStyles.headlineLg.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Action Buttons: Scan QR and Manual
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: BrlButton(
+                                label: 'Scan QR Attendance',
+                                icon: Icons.qr_code_scanner,
+                                onPressed: () {
+                                  context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: BrlButton(
+                                label: 'Manual',
+                                variant: BrlButtonVariant.secondary,
+                                icon: Icons.edit_note_rounded,
+                                onPressed: () {
+                                  context.push('${RouteConstants.attendance}/manual?eventId=${event.id}');
+                                },
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 24),
+
+                        // Event Meta Group
+                        _buildSectionHeader(context, 'EVENT OVERVIEW'),
+                        const SizedBox(height: 8),
                         BrlGlassCard(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildInfoRow(Icons.calendar_today, 'Dates', '${event.startDate.toString().split(' ')[0]} to ${event.endDate.toString().split(' ')[0]}'),
-                              const Divider(color: Colors.white24, height: 24),
-                              _buildInfoRow(Icons.location_on, 'Venue', event.venue?.isNotEmpty == true ? event.venue! : 'TBA'),
-                              const Divider(color: Colors.white24, height: 24),
-                              _buildInfoRow(Icons.people, 'Capacity', event.capacity > 0 ? event.capacity.toString() : 'Unlimited'),
-                              const Divider(color: Colors.white24, height: 24),
-                              _buildInfoRow(Icons.qr_code_scanner, 'Attendance', event.isAttendanceOpen ? 'Open Now' : 'Closed'),
+                              _buildMetaRow(
+                                context,
+                                icon: Icons.calendar_today_rounded,
+                                label: 'Dates',
+                                value: '${_formatDate(event.startDate)} – ${_formatDate(event.endDate)}',
+                              ),
+                              Divider(color: AppColors.borderOf(context), height: 1),
+                              _buildMetaRow(
+                                context,
+                                icon: Icons.location_on_outlined,
+                                label: 'Venue',
+                                value: event.venue?.isNotEmpty == true ? event.venue! : 'To Be Announced',
+                              ),
+                              Divider(color: AppColors.borderOf(context), height: 1),
+                              _buildMetaRow(
+                                context,
+                                icon: Icons.groups_outlined,
+                                label: 'Capacity',
+                                value: event.capacity > 0 ? '${event.capacity} Attendees' : 'Unlimited Capacity',
+                              ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 24),
-                        Text('About this Event', style: AppTextStyles.headlineMd),
-                        const SizedBox(height: 12),
-                        Text(
-                          event.description?.isNotEmpty == true ? event.description! : 'No description provided for this event.',
-                          style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceMuted, height: 1.5),
+
+                        // Description Section
+                        _buildSectionHeader(context, 'ABOUT THIS EVENT'),
+                        const SizedBox(height: 8),
+                        BrlGlassCard(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            event.description?.isNotEmpty == true
+                                ? event.description!
+                                : 'No description provided for this event.',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              height: 1.6,
+                              color: AppColors.textPrimaryOf(context),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 48), // Bottom padding
                       ],
                     ),
                   ),
@@ -142,42 +295,94 @@ class EventDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPlaceholderBanner() {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: AppTextStyles.caption.copyWith(
+          letterSpacing: 0.8,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textTertiaryOf(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.accentOf(context).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: AppColors.accentOf(context)),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondaryOf(context),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: AppTextStyles.bodyMd.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimaryOf(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.primary),
-      child: const Center(
-        child: Icon(Icons.event, size: 64, color: Colors.white54),
+      color: isDark ? const Color(0xFF1E1E22) : const Color(0xFFE5E5EA),
+      child: Center(
+        child: Icon(
+          Icons.event_outlined,
+          size: 64,
+          color: AppColors.textTertiaryOf(context),
+        ),
       ),
     );
   }
 
   NeonBadgeType _getStatusType(String status) {
     switch (status.toLowerCase()) {
-      case 'upcoming': return NeonBadgeType.warning;
-      case 'ongoing': return NeonBadgeType.success;
-      case 'completed': return NeonBadgeType.info;
-      case 'cancelled': return NeonBadgeType.error;
-      default: return NeonBadgeType.info;
+      case 'upcoming':
+        return NeonBadgeType.warning;
+      case 'ongoing':
+        return NeonBadgeType.success;
+      case 'completed':
+        return NeonBadgeType.info;
+      case 'cancelled':
+        return NeonBadgeType.error;
+      default:
+        return NeonBadgeType.info;
     }
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.moduleEvents, size: 24),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceMuted)),
-              const SizedBox(height: 4),
-              Text(value, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-      ],
-    );
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }

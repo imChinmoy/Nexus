@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
+import '../../../../shared/widgets/brl_app_bar.dart';
+import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../students/providers/student_provider.dart';
 
@@ -13,26 +14,17 @@ class RecentAttendanceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final studentsAsync = ref.watch(studentsProvider);
 
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-            onPressed: () => context.pop(),
-          ),
-          title: Text(
-            'RECENT ATTENDANCE',
-            style: AppTextStyles.labelMd.copyWith(
-              color: AppColors.primary,
-              letterSpacing: 2,
-            ),
-          ),
-          centerTitle: true,
+        appBar: const BrlAppBar(
+          title: 'Recent Attendance',
+          showBack: true,
         ),
         body: studentsAsync.maybeWhen(
           data: (students) {
@@ -46,115 +38,127 @@ class RecentAttendanceScreen extends ConsumerWidget {
 
             if (presentStudents.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.history_rounded, size: 64, color: AppColors.onSurfaceMuted),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No recent attendance',
-                      style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceMuted),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.history_rounded,
+                        size: 54,
+                        color: textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No Recent Attendance',
+                        style: AppTextStyles.headlineSm,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Students marked present at an event gate will appear here in chronological order.',
+                        style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
 
             return RefreshIndicator(
-              color: AppColors.primary,
-              backgroundColor: AppColors.surface,
+              color: accent,
+              backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
               onRefresh: () async {
                 ref.invalidate(studentsProvider);
-                await Future.delayed(const Duration(seconds: 1));
+                await Future.delayed(const Duration(milliseconds: 600));
               },
-              child: ListView.builder(
+              child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 itemCount: presentStudents.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final student = presentStudents[index];
                   String timeString = '';
                   if (student.updatedAt != null) {
                     final time = student.updatedAt!;
-                    timeString = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                    timeString =
+                        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
                   }
 
-                  return GestureDetector(
+                  return BrlGlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     onTap: () => context.push('/students/${student.rollNumber}'),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceGlass,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.glassStroke),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceGlass,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.glassStroke),
-                            ),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              color: AppColors.onSurfaceMuted,
-                              size: 24,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: accent.withValues(alpha: 0.12),
+                          child: Text(
+                            student.name.isNotEmpty
+                                ? student.name.substring(0, 1).toUpperCase()
+                                : 'S',
+                            style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  student.name,
-                                  style: AppTextStyles.bodyMd.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  student.rollNumber,
-                                  style: AppTextStyles.labelSm,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const NeonBadge(
-                                label: 'PRESENT',
-                                type: NeonBadgeType.success,
-                              ),
-                              if (timeString.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  timeString,
-                                  style: AppTextStyles.labelSm,
+                              Text(
+                                student.name,
+                                style: AppTextStyles.bodyMd.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              ]
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${student.rollNumber} • ${student.branch}',
+                                style: AppTextStyles.caption.copyWith(color: textSecondary),
+                              ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const NeonBadge(
+                              label: 'Present',
+                              type: NeonBadgeType.success,
+                            ),
+                            if (timeString.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                timeString,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: textSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
                   );
                 },
               ),
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.moduleAttendance),
-          ),
+          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
           orElse: () => Center(
             child: Text(
               'Failed to load recent attendance',
-              style: AppTextStyles.bodyLg.copyWith(color: AppColors.error),
+              style: AppTextStyles.bodyMd.copyWith(
+                color: isDark ? AppColors.errorDark : AppColors.error,
+              ),
             ),
           ),
         ),

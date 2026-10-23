@@ -25,6 +25,10 @@ const studentSchema = new mongoose.Schema(
   },
 );
 
+studentSchema.virtual('rollNumber').get(function () {
+  return this.rollNo;
+});
+
 studentSchema.index({ name: 'text', rollNo: 'text', email: 'text' });
 studentSchema.index({ domain: 1 });
 studentSchema.index({ branch: 1 });
@@ -32,3 +36,4 @@ studentSchema.index({ isActive: 1 });
 studentSchema.index({ lastMarkedAt: -1 });
 
 module.exports = mongoose.model('Student', studentSchema);
+

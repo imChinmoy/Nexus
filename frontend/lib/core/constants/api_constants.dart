@@ -8,7 +8,7 @@ class ApiConstants {
       return 'http://10.0.2.2:5000/api';
     }
 
-    return dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:5000/api';
+    return dotenv.env['API_BASE_URL'] ?? dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:5000/api';
   }
 
   // Auth
@@ -44,6 +44,8 @@ class ApiConstants {
   static const String attendanceBulk = '/attendance/bulk';
   static String attendanceByStudent(String id) => '/attendance/student/$id';
   static String attendanceByEvent(String id) => '/attendance/event/$id';
+  static String eventScanAttendance(String eventId) => '/attendance/event/$eventId/scan';
+
 
   // Reports
   static const String reports = '/reports';

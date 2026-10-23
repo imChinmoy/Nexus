@@ -20,7 +20,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void dispose() {
@@ -31,45 +31,73 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const BrlAppBar(title: 'Reset Password', showBack: true),
+        appBar: const BrlAppBar(title: 'Set New Password', showBack: true),
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: BrlGlassCard(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text('NEW PASSWORD', style: AppTextStyles.labelLg.copyWith(color: AppColors.primary, letterSpacing: 2), textAlign: TextAlign.center),
-                      const SizedBox(height: 24),
-                      BrlTextField(
-                        label: 'New Password',
-                        controller: _passwordController,
-                        obscureText: true,
-                        validator: Validators.password,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      const SizedBox(height: 16),
-                      BrlTextField(
-                        label: 'Confirm Password',
-                        controller: _confirmController,
-                        obscureText: true,
-                        validator: (v) => Validators.confirmPassword(v, _passwordController.text),
-                        textInputAction: TextInputAction.done,
-                      ),
-                      const SizedBox(height: 24),
-                      BrlButton(
-                        label: 'Reset Password',
-                        isLoading: _isLoading,
-                        isFullWidth: true,
-                        onPressed: _isLoading ? null : () {},
-                      ),
-                    ],
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: BrlGlassCard(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Create New Password',
+                          style: AppTextStyles.headlineSm,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your new password must be at least 6 characters.',
+                          style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        BrlTextField(
+                          label: 'New Password',
+                          controller: _passwordController,
+                          obscureText: true,
+                          validator: Validators.password,
+                          textInputAction: TextInputAction.next,
+                          prefix: Icon(
+                            Icons.lock_outline_rounded,
+                            color: textSecondary,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        BrlTextField(
+                          label: 'Confirm Password',
+                          controller: _confirmController,
+                          obscureText: true,
+                          validator: (v) => Validators.confirmPassword(v, _passwordController.text),
+                          textInputAction: TextInputAction.done,
+                          prefix: Icon(
+                            Icons.lock_outline_rounded,
+                            color: textSecondary,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        BrlButton(
+                          label: 'Update Password',
+                          isLoading: _isLoading,
+                          isFullWidth: true,
+                          height: 48,
+                          onPressed: _isLoading ? null : () {},
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

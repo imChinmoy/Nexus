@@ -25,24 +25,27 @@ class BrlStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     return BrlGlassCard(
-      borderColor: accentColor.withOpacity(0.2),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: accentColor.withOpacity(0.3)),
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: accentColor, size: 20),
+                child: Icon(icon, color: accentColor, size: 18),
               ),
               if (changePercent != null)
                 _ChangeIndicator(
@@ -51,38 +54,44 @@ class BrlStatsCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
-          ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: [accentColor, accentColor.withOpacity(0.7)],
-            ).createShader(bounds),
-            child: Text(
-              value,
-              style: AppTextStyles.headlineLg.copyWith(
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: AppTextStyles.labelMd.copyWith(
-              color: AppColors.onSurfaceMuted,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (subtitle != null) ...
-            [
-              const SizedBox(height: 2),
+          const SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                subtitle!,
-                style: AppTextStyles.labelSm,
+                value,
+                style: AppTextStyles.metricLg.copyWith(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: AppTextStyles.labelSm.copyWith(
+                  color: textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  style: AppTextStyles.caption.copyWith(
+                    color: textSecondary,
+                    fontSize: 10,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
+          ),
         ],
       ),
     );
@@ -97,26 +106,33 @@ class _ChangeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isPositive ? AppColors.accentGreen : AppColors.error;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isPositive
+        ? (isDark ? AppColors.successDark : AppColors.success)
+        : (isDark ? AppColors.errorDark : AppColors.error);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isPositive ? Icons.trending_up : Icons.trending_down,
+            isPositive ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
             color: color,
-            size: 12,
+            size: 10,
           ),
           const SizedBox(width: 2),
           Text(
             '${value.toStringAsFixed(1)}%',
-            style: AppTextStyles.labelSm.copyWith(color: color),
+            style: AppTextStyles.labelSm.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
           ),
         ],
       ),

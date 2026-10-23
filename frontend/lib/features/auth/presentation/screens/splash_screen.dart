@@ -9,6 +9,11 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -16,25 +21,32 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CyberLogo(size: 100),
+              const CyberLogo(size: 88),
               const SizedBox(height: 24),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ).createShader(bounds),
-                child: Text(
-                  'BRL NEXUS',
-                  style: AppTextStyles.displayLg.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 4,
-                  ),
+              Text(
+                'Nexus',
+                style: AppTextStyles.displayLg.copyWith(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.8,
                 ),
               ),
-              const SizedBox(height: 32),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              const SizedBox(height: 6),
+              Text(
+                'Blockchain Research Lab',
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(accent),
+                ),
               ),
             ],
           ),

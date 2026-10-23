@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,8 +10,8 @@ import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_button.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
-import '../../providers/event_provider.dart';
 import '../../domain/entities/event_entity.dart';
+import '../../providers/event_provider.dart';
 
 class EditEventScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -26,7 +27,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   final _descriptionController = TextEditingController();
   final _venueController = TextEditingController();
   final _capacityController = TextEditingController();
-  
+
   late DateTime _startDate;
   late DateTime _endDate;
   late String _type;
@@ -47,7 +48,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
     if (pickedFile != null) {
       setState(() {
         _bannerImage = File(pickedFile.path);
@@ -56,19 +61,25 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
-      firstDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.moduleEvents,
+            colorScheme: ColorScheme(
+              brightness: isDark ? Brightness.dark : Brightness.light,
+              primary: AppColors.accentOf(context),
               onPrimary: Colors.white,
-              surface: AppColors.surface,
-              onSurface: Colors.white,
+              secondary: AppColors.accentOf(context),
+              onSecondary: Colors.white,
+              surface: AppColors.surfaceOf(context),
+              onSurface: AppColors.textPrimaryOf(context),
+              error: AppColors.errorOf(context),
+              onError: Colors.white,
             ),
           ),
           child: child!,
@@ -111,24 +122,41 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         (failure) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failure.message), backgroundColor: AppColors.error),
+            SnackBar(
+              content: Text(failure.message),
+              backgroundColor: AppColors.errorOf(context),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           );
         },
         (event) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event updated successfully!'), backgroundColor: AppColors.success),
+            SnackBar(
+              content: const Text('Event updated successfully'),
+              backgroundColor: AppColors.successOf(context),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           );
           ref.invalidate(eventsProvider);
           Navigator.pop(context);
         },
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.errorOf(context),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -143,152 +171,303 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: const BrlAppBar(
-          title: 'EDIT EVENT',
-          accentColor: AppColors.moduleEvents,
+          title: 'Edit Event',
           showBack: true,
         ),
-        body: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: BrlGlassCard(
-                  padding: const EdgeInsets.all(0),
-                  child: Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: _bannerImage != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.file(_bannerImage!, fit: BoxFit.cover),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.add_photo_alternate, size: 48, color: AppColors.moduleEvents),
-                              const SizedBox(height: 8),
-                              Text('Upload Banner Image', style: AppTextStyles.bodyMd.copyWith(color: AppColors.moduleEvents)),
-                            ],
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              children: [
+                // Banner Card
+                _buildSectionHeader('BANNER IMAGE'),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: BrlGlassCard(
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF161619) : const Color(0xFFF0F0F3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (_bannerImage != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(_bannerImage!, fit: BoxFit.cover),
+                            )
+                          else if (widget.event.banner != null && widget.event.banner!.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.event.banner!,
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, error) => _buildPlaceholder(),
+                              ),
+                            )
+                          else
+                            _buildPlaceholder(),
+                          Positioned(
+                            right: 12,
+                            bottom: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.photo_camera_outlined, size: 14, color: Colors.white),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Change',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              BrlGlassCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BrlTextField(
-                      label: 'Event Title',
-                      controller: _titleController,
-                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    BrlTextField(
-                      label: 'Description',
-                      controller: _descriptionController,
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 12),
-                    BrlTextField(
-                      label: 'Venue',
-                      controller: _venueController,
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: BrlTextField(
-                            label: 'Capacity',
-                            controller: _capacityController,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: _type,
-                            decoration: const InputDecoration(
-                              labelText: 'Type',
-                              labelStyle: TextStyle(color: AppColors.onSurfaceMuted),
-                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.onSurfaceMuted)),
-                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.moduleEvents)),
-                            ),
-                            dropdownColor: AppColors.surface,
-                            items: ['workshop', 'seminar', 'hackathon', 'meeting', 'recruitment', 'social', 'other']
-                                .map((t) => DropdownMenuItem(value: t, child: Text(t.toUpperCase(), style: const TextStyle(color: Colors.white))))
-                                .toList(),
-                            onChanged: (val) => setState(() => _type = val!),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _selectDate(context, true),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              decoration: BoxDecoration(border: Border.all(color: AppColors.moduleEvents), borderRadius: BorderRadius.circular(8)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Start Date', style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceMuted)),
-                                  const SizedBox(height: 4),
-                                  Text(_startDate.toString().split(' ')[0], style: AppTextStyles.bodyMd),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _selectDate(context, false),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              decoration: BoxDecoration(border: Border.all(color: AppColors.moduleEvents), borderRadius: BorderRadius.circular(8)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('End Date', style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceMuted)),
-                                  const SizedBox(height: 4),
-                                  Text(_endDate.toString().split(' ')[0], style: AppTextStyles.bodyMd),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                const SizedBox(height: 20),
+
+                // Event Information Group
+                _buildSectionHeader('EVENT DETAILS'),
+                const SizedBox(height: 8),
+                BrlGlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BrlTextField(
+                        label: 'Event Title',
+                        hintText: 'e.g., Annual Tech Symposium',
+                        controller: _titleController,
+                        validator: (val) => val == null || val.trim().isEmpty ? 'Title is required' : null,
+                      ),
+                      const SizedBox(height: 14),
+                      BrlTextField(
+                        label: 'Description',
+                        hintText: 'Brief summary of agenda, speakers, requirements...',
+                        controller: _descriptionController,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 14),
+                      BrlTextField(
+                        label: 'Venue / Platform',
+                        hintText: 'e.g., Main Auditorium or Google Meet',
+                        controller: _venueController,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.moduleEvents))
-                  : BrlButton(
-                      label: 'UPDATE EVENT',
-                      onPressed: _submit,
-                    ),
-              const SizedBox(height: 32),
-            ],
+                const SizedBox(height: 20),
+
+                // Format & Capacity Group
+                _buildSectionHeader('TYPE & CAPACITY'),
+                const SizedBox(height: 8),
+                BrlGlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: BrlTextField(
+                          label: 'Capacity (0 = unlimited)',
+                          controller: _capacityController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Event Type',
+                              style: AppTextStyles.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondaryOf(context),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceOf(context),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _type,
+                                  isExpanded: true,
+                                  dropdownColor: AppColors.surfaceOf(context),
+                                  icon: Icon(Icons.arrow_drop_down, color: AppColors.textSecondaryOf(context)),
+                                  items: ['workshop', 'seminar', 'hackathon', 'meeting', 'recruitment', 'social', 'other']
+                                      .map((t) => DropdownMenuItem(
+                                            value: t,
+                                            child: Text(
+                                              t[0].toUpperCase() + t.substring(1),
+                                              style: AppTextStyles.bodyMd.copyWith(
+                                                color: AppColors.textPrimaryOf(context),
+                                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                  onChanged: (val) {
+                                    if (val != null) setState(() => _type = val);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Date & Time Group
+                _buildSectionHeader('SCHEDULE'),
+                const SizedBox(height: 8),
+                BrlGlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateTile(
+                          title: 'Start Date',
+                          date: _startDate,
+                          onTap: () => _selectDate(context, true),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildDateTile(
+                          title: 'End Date',
+                          date: _endDate,
+                          onTap: () => _selectDate(context, false),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                BrlButton(
+                  label: 'Save Changes',
+                  isLoading: _isLoading,
+                  onPressed: _submit,
+                  icon: Icons.check,
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildPlaceholder() {
+    final primaryAccent = AppColors.accentOf(context);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.image_outlined, size: 36, color: primaryAccent.withValues(alpha: 0.5)),
+        const SizedBox(height: 8),
+        Text(
+          'No Image Selected',
+          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: AppTextStyles.caption.copyWith(
+          letterSpacing: 0.8,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textTertiaryOf(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateTile({
+    required String title,
+    required DateTime date,
+    required VoidCallback onTap,
+  }) {
+    final formatted = '${_monthName(date.month)} ${date.day}, ${date.year}';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceOf(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.accentOf(context)),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textSecondaryOf(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              formatted,
+              style: AppTextStyles.bodyMd.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimaryOf(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _monthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
   }
 }

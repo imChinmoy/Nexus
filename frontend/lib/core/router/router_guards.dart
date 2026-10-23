@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
-import '../../features/auth/providers/auth_state.dart';
 import '../constants/route_constants.dart';
+
 
 String? authGuard(WidgetRef ref, GoRouterState state) {
   final authState = ref.read(authNotifierProvider);

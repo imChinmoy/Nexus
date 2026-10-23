@@ -5,7 +5,7 @@ class AttendanceRepository {
   async create(data) { return Attendance.create(data); }
 
   async findOne(filter) {
-    return Attendance.findOne(filter).populate('student', 'name rollNumber').exec();
+    return Attendance.findOne(filter).populate('student', 'name rollNo rollNumber studentNo branch').exec();
   }
 
   async findById(id) { return Attendance.findById(id).populate('student event').exec(); }
@@ -13,7 +13,7 @@ class AttendanceRepository {
   async findByEvent(eventId, { skip = 0, limit = 50 } = {}) {
     const [data, total] = await Promise.all([
       Attendance.find({ event: eventId })
-        .populate('student', 'name rollNumber branch year')
+        .populate('student', 'name rollNo rollNumber studentNo branch')
         .populate('markedBy', 'name')
         .sort({ markedAt: -1 })
         .skip(skip)
@@ -22,6 +22,7 @@ class AttendanceRepository {
     ]);
     return { data, total };
   }
+
 
   async findByStudent(studentId, { skip = 0, limit = 20 } = {}) {
     const [data, total] = await Promise.all([

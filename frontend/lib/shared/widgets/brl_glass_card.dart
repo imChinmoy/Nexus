@@ -22,8 +22,8 @@ class BrlGlassCard extends StatelessWidget {
     this.margin,
     this.borderColor,
     this.glowColor,
-    this.borderRadius = 20,
-    this.blurSigma = 20,
+    this.borderRadius = 16,
+    this.blurSigma = 0,
     this.applyGlow = false,
     this.onTap,
     this.width,
@@ -32,54 +32,62 @@ class BrlGlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBorderColor = borderColor ?? AppColors.glassStroke;
-    final effectiveGlowColor = glowColor ?? AppColors.primaryGlow;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final defaultBorder = isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
+    final effectiveBorder = borderColor ?? defaultBorder;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: width,
-        height: height,
-        margin: margin,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(color: effectiveBorderColor, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 32,
-              offset: const Offset(0, 8),
-            ),
-            if (applyGlow)
-              BoxShadow(
-                color: effectiveGlowColor,
-                blurRadius: 20,
-                spreadRadius: -4,
-              ),
-            // Inner top-left light (claymorphism)
-            BoxShadow(
-              color: Colors.white.withOpacity(0.03),
-              blurRadius: 0,
-              spreadRadius: 0,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-            child: Container(
-              padding: padding ?? const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0x0DFFFFFF),
-                borderRadius: BorderRadius.circular(borderRadius),
-              ),
-              child: child,
-            ),
-          ),
-        ),
+    final cardContent = Container(
+      width: width,
+      height: height,
+      padding: padding ?? const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: effectiveBorder, width: 0.5),
+        boxShadow: isDark
+            ? [
+                const BoxShadow(
+                  color: Color(0x26000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ]
+            : [
+                const BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
       ),
+      child: child,
     );
+
+    Widget result = cardContent;
+
+    if (blurSigma > 0) {
+      result = ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+          child: result,
+        ),
+      );
+    }
+
+    if (onTap != null) {
+      result = InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: result,
+      );
+    }
+
+    if (margin != null) {
+      result = Padding(padding: margin!, child: result);
+    }
+
+    return result;
   }
 }

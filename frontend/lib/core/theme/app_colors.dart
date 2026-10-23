@@ -3,69 +3,150 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Base Background
-  static const Color background = Color(0xFF0A0F1E);
-  static const Color surface = Color(0xFF0D1527);
-  static const Color surfaceDark = Color(0xFF080C18);
-  static const Color surfaceGlass = Color(0x0DFFFFFF);
-  static const Color surfaceCard = Color(0x0DFFFFFF);
+  // ---------------------------------------------------------------------------
+  // Dark Palette (Apple Charcoal & Graphite)
+  // ---------------------------------------------------------------------------
+  static const Color darkBackground = Color(0xFF111114);
+  static const Color darkSecondaryBackground = Color(0xFF18181C);
+  static const Color darkSurface = Color(0xFF1C1C1F);
+  static const Color darkElevatedSurface = Color(0xFF242428);
+  static const Color darkTextPrimary = Color(0xFFF5F5F7);
+  static const Color darkTextSecondary = Color(0xFFA1A1A6);
+  static const Color darkTextTertiary = Color(0xFF636366);
+  static const Color darkSeparator = Color(0xFF2C2C30);
+  static const Color darkAccent = Color(0xFF2997FF);
+  static const Color darkAccentMuted = Color(0x262997FF);
 
-  // Primary - Cyan Neon
-  static const Color primary = Color(0xFF00F5FF);
-  static const Color primaryGlow = Color(0x4D00F5FF);
-  static const Color primaryDim = Color(0xFF00C8D4);
-  static const Color onPrimary = Color(0xFF0A0F1E);
+  // ---------------------------------------------------------------------------
+  // Light Palette (Apple Crisp White & Subtle Warm Gray)
+  // ---------------------------------------------------------------------------
+  static const Color lightBackground = Color(0xFFF5F5F7);
+  static const Color lightSecondaryBackground = Color(0xFFEBEBEF);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightElevatedSurface = Color(0xFFFFFFFF);
+  static const Color lightTextPrimary = Color(0xFF1D1D1F);
+  static const Color lightTextSecondary = Color(0xFF6E6E73);
+  static const Color lightTextTertiary = Color(0xFF86868B);
+  static const Color lightSeparator = Color(0xFFE5E5EA);
+  static const Color lightAccent = Color(0xFF0071E3);
+  static const Color lightAccentMuted = Color(0x1A0071E3);
 
-  // Secondary - Purple
-  static const Color secondary = Color(0xFF7C3AED);
-  static const Color secondaryGlow = Color(0x4D7C3AED);
+  // ---------------------------------------------------------------------------
+  // Semantic System Colors (Accessible in both modes)
+  // ---------------------------------------------------------------------------
+  static const Color success = Color(0xFF34C759);
+  static const Color successDark = Color(0xFF30D158);
+  static const Color successSubtle = Color(0x1F34C759);
+
+  static const Color warning = Color(0xFFFF9500);
+  static const Color warningDark = Color(0xFFFF9F0A);
+  static const Color warningSubtle = Color(0x1FFF9500);
+
+  static const Color error = Color(0xFFFF3B30);
+  static const Color errorDark = Color(0xFFFF453A);
+  static const Color errorSubtle = Color(0x1FFF3B30);
+
+  static const Color info = Color(0xFF0071E3);
+  static const Color infoDark = Color(0xFF2997FF);
+  static const Color infoSubtle = Color(0x1F0071E3);
+
+  // ---------------------------------------------------------------------------
+  // Compatibility Constants (Refined to Apple palette)
+  // ---------------------------------------------------------------------------
+  static const Color background = darkBackground;
+  static const Color surface = darkSurface;
+  static const Color surfaceDark = darkSecondaryBackground;
+  static const Color surfaceGlass = Color(0x1AFFFFFF);
+  static const Color surfaceCard = darkSurface;
+
+  // Primary brand accent
+  static const Color primary = Color(0xFF2997FF);
+  static const Color primaryGlow = Color(0x332997FF);
+  static const Color primaryDim = Color(0xFF1B6FD8);
+  static const Color onPrimary = Color(0xFFFFFFFF);
+
+  // Secondary
+  static const Color secondary = Color(0xFF5E5CE6);
+  static const Color secondaryGlow = Color(0x335E5CE6);
   static const Color onSecondary = Color(0xFFFFFFFF);
 
-  // Accent - Pink
-  static const Color accentPink = Color(0xFFFF006E);
-  static const Color accentPinkGlow = Color(0x4DFF006E);
-
-  // Accent - Green (Attendance)
-  static const Color accentGreen = Color(0xFF00FF88);
-  static const Color accentGreenGlow = Color(0x4D00FF88);
-
-  // Accent - Amber (Reports)
-  static const Color accentAmber = Color(0xFFFFB800);
-  static const Color accentAmberGlow = Color(0x4DFFB800);
+  // Accents
+  static const Color accentPink = Color(0xFFFF375F);
+  static const Color accentPinkGlow = Color(0x33FF375F);
+  static const Color accentGreen = Color(0xFF30D158);
+  static const Color accentGreenGlow = Color(0x3330D158);
+  static const Color accentAmber = Color(0xFFFF9F0A);
+  static const Color accentAmberGlow = Color(0x33FF9F0A);
 
   // Text
-  static const Color onSurface = Color(0xFFE2E8F0);
-  static const Color onSurfaceMuted = Color(0xFF94A3B8);
-  static const Color onSurfaceSubtle = Color(0xFF475569);
+  static const Color onSurface = darkTextPrimary;
+  static const Color onSurfaceMuted = darkTextSecondary;
+  static const Color onSurfaceSubtle = darkTextTertiary;
 
-  // Status
-  static const Color success = Color(0xFF00FF88);
-  static const Color error = Color(0xFFFF4444);
-  static const Color warning = Color(0xFFFFB800);
-  static const Color info = Color(0xFF00F5FF);
+  // Glass & Borders (Subtle Apple hairline borders)
+  static const Color glassStroke = Color(0x1FFFFFFF);
+  static const Color glassStrokeHover = Color(0x33FFFFFF);
+  static const Color glassStrokePurple = Color(0x335E5CE6);
+  static const Color glassStrokePink = Color(0x33FF375F);
+  static const Color glassStrokeGreen = Color(0x3330D158);
+  static const Color glassStrokeAmber = Color(0x33FF9F0A);
 
-  // Glass
-  static const Color glassStroke = Color(0x2600F5FF);
-  static const Color glassStrokeHover = Color(0x6600F5FF);
-  static const Color glassStrokePurple = Color(0x267C3AED);
-  static const Color glassStrokePink = Color(0x26FF006E);
-  static const Color glassStrokeGreen = Color(0x2600FF88);
-  static const Color glassStrokeAmber = Color(0x26FFB800);
+  // Module Refined Accents
+  static const Color moduleDashboard = Color(0xFF2997FF);
+  static const Color moduleStudents = Color(0xFF0A84FF);
+  static const Color moduleMembers = Color(0xFF5E5CE6);
+  static const Color moduleEvents = Color(0xFFFF375F);
+  static const Color moduleAttendance = Color(0xFF30D158);
+  static const Color moduleReports = Color(0xFFFF9F0A);
+  static const Color moduleSettings = Color(0xFF8E8E93);
 
-  // Gradient stops
-  static const List<Color> primaryGradient = [primary, secondary];
-  static const List<Color> secondaryGradient = [secondary, accentPink];
-  static const List<Color> accentGradient = [accentPink, accentAmber];
-  static const List<Color> bgGradient1 = [Color(0xFF0A0F1E), Color(0xFF0D1527)];
-  static const List<Color> bgGradient2 = [Color(0xFF0D1527), Color(0xFF12082A)];
-  static const List<Color> bgGradient3 = [Color(0xFF12082A), Color(0xFF0A0F1E)];
+  // Gradients (Subtle & Restrained)
+  static const List<Color> primaryGradient = [Color(0xFF2997FF), Color(0xFF5E5CE6)];
+  static const List<Color> secondaryGradient = [Color(0xFF5E5CE6), Color(0xFFFF375F)];
+  static const List<Color> accentGradient = [Color(0xFFFF375F), Color(0xFFFF9F0A)];
 
-  // Module colors
-  static const Color moduleDashboard = primary;
-  static const Color moduleStudents = Color(0xFF0EA5E9);
-  static const Color moduleMembers = secondary;
-  static const Color moduleEvents = accentPink;
-  static const Color moduleAttendance = accentGreen;
-  static const Color moduleReports = accentAmber;
-  static const Color moduleSettings = Color(0xFF64748B);
+  // ---------------------------------------------------------------------------
+  // Context-aware color resolution helpers
+  // ---------------------------------------------------------------------------
+  static Color bgOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkBackground : lightBackground;
+
+  static Color surfaceOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSurface : lightSurface;
+
+  static Color elevatedSurfaceOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkElevatedSurface : lightElevatedSurface;
+
+  static Color textPrimaryOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextPrimary : lightTextPrimary;
+
+  static Color textSecondaryOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextSecondary : lightTextSecondary;
+
+  static Color textTertiaryOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextTertiary : lightTextTertiary;
+
+  static Color separatorOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSeparator : lightSeparator;
+
+  static Color borderOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSeparator : lightSeparator;
+
+  static Color accentOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkAccent : lightAccent;
+
+  static Color successOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? successDark : success;
+
+  static Color warningOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? warningDark : warning;
+
+  static Color errorOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? errorDark : error;
+
+  static Color infoOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? infoDark : info;
+
+  static Color cardBorderOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
 }

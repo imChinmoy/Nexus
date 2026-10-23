@@ -6,8 +6,15 @@ class StudentRepository {
   async findById(id) { return Student.findById(id).exec(); }
 
   async findByRollNumber(rollNumber) {
-    return Student.findOne({ rollNumber: rollNumber.toUpperCase() }).exec();
+    if (!rollNumber) return null;
+    return Student.findOne({ rollNo: rollNumber.trim().toUpperCase() }).exec();
   }
+
+  async findByStudentNo(studentNo) {
+    if (!studentNo) return null;
+    return Student.findOne({ studentNo: studentNo.trim() }).exec();
+  }
+
 
   async findAll({ filter = {}, sort = { createdAt: -1 }, skip = 0, limit = 20 } = {}) {
     const [data, total] = await Promise.all([

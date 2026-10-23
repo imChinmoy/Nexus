@@ -21,38 +21,13 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen>
-    with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  late AnimationController _slideController;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _slideController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeIn),
-    );
-    _slideController.forward();
-  }
 
   @override
   void dispose() {
-    _slideController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -72,143 +47,137 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final isLoading = authState is AuthLoading;
     final errorMessage = authState.whenOrNull(error: (message) => message);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final errorColor = isDark ? AppColors.errorDark : AppColors.error;
+
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CyberLogo(size: 80),
-                      const SizedBox(height: 20),
-                      ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [AppColors.primary, AppColors.secondary],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds),
-                        child: Text(
-                          'BRL NEXUS',
-                          style: AppTextStyles.displayLg.copyWith(
-                            color: Colors.white,
-                            letterSpacing: 4,
-                          ),
-                        ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CyberLogo(size: 76),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Nexus',
+                      style: AppTextStyles.displayLg.copyWith(
+                        color: textPrimary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.6,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'BLOCKCHAIN RESEARCH LAB',
-                        style: AppTextStyles.labelMd.copyWith(
-                          color: AppColors.onSurfaceMuted,
-                          letterSpacing: 3,
-                        ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sign in to manage society and attendance',
+                      style: AppTextStyles.bodyMd.copyWith(
+                        color: textSecondary,
                       ),
-                      const SizedBox(height: 40),
-                      BrlGlassCard(
-                        borderColor: AppColors.glassStroke,
-                        padding: const EdgeInsets.all(28),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'INITIALIZE ACCESS',
-                                style: AppTextStyles.labelLg.copyWith(
-                                  color: AppColors.primary,
-                                  letterSpacing: 2,
-                                ),
-                                textAlign: TextAlign.center,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    BrlGlassCard(
+                      padding: const EdgeInsets.all(24),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            BrlTextField(
+                              label: 'Email Address',
+                              hint: 'name@akgec.ac.in',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.email,
+                              prefix: Icon(
+                                Icons.alternate_email_rounded,
+                                color: textSecondary,
+                                size: 18,
                               ),
-                              const SizedBox(height: 24),
-                              BrlTextField(
-                                label: 'Email Address',
-                                hint: 'admin@brl.com',
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                validator: Validators.email,
-                                prefix: const Icon(
-                                  Icons.alternate_email_rounded,
-                                  color: AppColors.onSurfaceSubtle,
-                                  size: 18,
-                                ),
+                            ),
+                            const SizedBox(height: 16),
+                            BrlTextField(
+                              label: 'Password',
+                              controller: _passwordController,
+                              obscureText: true,
+                              textInputAction: TextInputAction.done,
+                              validator: Validators.password,
+                              onSubmitted: (_) => _handleLogin(),
+                              prefix: Icon(
+                                Icons.lock_outline_rounded,
+                                color: textSecondary,
+                                size: 18,
                               ),
-                              const SizedBox(height: 16),
-                              BrlTextField(
-                                label: 'Password',
-                                controller: _passwordController,
-                                obscureText: true,
-                                textInputAction: TextInputAction.done,
-                                validator: Validators.password,
-                                onSubmitted: (_) => _handleLogin(),
-                                prefix: const Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: AppColors.onSurfaceSubtle,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: GestureDetector(
-                                  onTap: () => context.push(RouteConstants.forgotPassword),
-                                  child: Text(
-                                    'Forgot Password?',
-                                    style: AppTextStyles.bodyMd.copyWith(
-                                      color: AppColors.primary,
-                                    ),
+                            ),
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () => context.push(RouteConstants.forgotPassword),
+                                child: Text(
+                                  'Forgot password?',
+                                  style: AppTextStyles.bodySm.copyWith(
+                                    color: accent,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
-                              if (errorMessage != null) ...
-                                [
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.error.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: AppColors.error.withOpacity(0.3),
+                            ),
+                            if (errorMessage != null) ...[
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: errorColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: errorColor.withValues(alpha: 0.3),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.error_outline_rounded, color: errorColor, size: 18),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        errorMessage,
+                                        style: AppTextStyles.bodySm.copyWith(color: errorColor),
                                       ),
                                     ),
-                                    child: Text(
-                                      errorMessage,
-                                      style: AppTextStyles.bodySm
-                                          .copyWith(color: AppColors.error),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              const SizedBox(height: 24),
-                              BrlButton(
-                                label: 'LOGIN',
-                                isLoading: isLoading,
-                                isFullWidth: true,
-                                onPressed: isLoading ? null : _handleLogin,
+                                  ],
+                                ),
                               ),
                             ],
-                          ),
+                            const SizedBox(height: 24),
+                            BrlButton(
+                              label: 'Sign In',
+                              isLoading: isLoading,
+                              isFullWidth: true,
+                              height: 48,
+                              onPressed: isLoading ? null : _handleLogin,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'v${AppConstants.appVersion} • NODE ACTIVE',
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: AppColors.onSurfaceSubtle,
-                          letterSpacing: 2,
-                        ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'v${AppConstants.appVersion} • BRL AKGEC',
+                      style: AppTextStyles.caption.copyWith(
+                        color: textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

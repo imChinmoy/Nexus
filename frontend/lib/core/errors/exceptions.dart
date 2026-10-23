@@ -1,21 +1,24 @@
 class AppException implements Exception {
   final String message;
   final int? statusCode;
+  final String? code;
   final dynamic data;
 
-  const AppException(this.message, {this.statusCode, this.data});
+  const AppException(this.message, {this.statusCode, this.code, this.data});
 
   @override
-  String toString() => 'AppException: $message (status: $statusCode)';
+  String toString() => 'AppException: $message (code: $code, status: $statusCode)';
 }
+
 
 class NetworkException extends AppException {
   const NetworkException(super.message, {super.statusCode});
 }
 
 class ServerException extends AppException {
-  const ServerException(super.message, {super.statusCode, super.data});
+  const ServerException(super.message, {super.statusCode, super.code, super.data});
 }
+
 
 class AuthException extends AppException {
   const AuthException(super.message, {super.statusCode});

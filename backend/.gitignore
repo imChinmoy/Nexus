@@ -4,3 +4,5 @@ src/logs/
 dist/
 coverage/
 *.log
+.test_data/
+

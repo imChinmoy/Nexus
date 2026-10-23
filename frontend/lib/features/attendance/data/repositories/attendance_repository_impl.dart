@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../data/models/scan_attendance_result.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../sources/attendance_remote_source.dart';
 
@@ -8,6 +9,24 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   final AttendanceRemoteSource _remote;
 
   AttendanceRepositoryImpl(this._remote);
+
+  @override
+  Future<Either<Failure, ScanAttendanceResult>> scanAttendance({
+    required String eventId,
+    required String qrValue,
+  }) async {
+    try {
+      final result = await _remote.scanAttendance(
+        eventId: eventId,
+        qrValue: qrValue,
+      );
+      return Right(result);
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, void>> markManual({
@@ -23,7 +42,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       );
       return const Right(null);
     } on AppException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
     }
@@ -35,7 +54,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       final result = await _remote.getAttendanceByEvent(eventId);
       return Right(result);
     } on AppException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
     }

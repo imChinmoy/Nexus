@@ -1,12 +1,12 @@
 const router = require('express').Router();
 const eventController = require('../controllers/event.controller');
 const { authenticate } = require('../middlewares/auth.middleware');
-const { authorize, requirePermission } = require('../middlewares/role.middleware');
+const { requirePermission } = require('../middlewares/role.middleware');
 const { validate } = require('../middlewares/validate.middleware');
 const { createEventValidator, updateEventValidator } = require('../validators/event.validator');
-const { ROLES } = require('../constants/roles');
 const { PERMISSIONS } = require('../constants/permissions');
 const eventUpload = require('../middlewares/eventUpload.middleware');
+
 
 router.use(authenticate);
 

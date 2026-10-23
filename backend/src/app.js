@@ -12,6 +12,9 @@ const logger = require('./config/logger');
 
 const app = express();
 
+// Trust proxy for proper IP resolution behind reverse proxies (Render, Nginx, Cloudflare)
+app.set('trust proxy', 1);
+
 // Security
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },

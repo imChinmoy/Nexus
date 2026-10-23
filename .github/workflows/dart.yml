@@ -61,7 +61,9 @@ jobs:
         run: flutter pub get
 
       - name: Analyze project
-        run: flutter analyze || true
+        run: flutter analyze --no-fatal-infos
+
+
 
       - name: Run tests
         run: flutter test

@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_gradients.dart';
 import '../../core/constants/route_constants.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class BrlBottomNav extends StatelessWidget {
   final Widget child;
@@ -15,32 +15,32 @@ class BrlBottomNav extends StatelessWidget {
     _NavItem(
       label: 'Dashboard',
       icon: Icons.grid_view_rounded,
+      activeIcon: Icons.grid_view_rounded,
       route: RouteConstants.dashboard,
-      gradient: AppGradients.primary,
     ),
     _NavItem(
       label: 'Students',
-      icon: Icons.school_rounded,
+      icon: Icons.school_outlined,
+      activeIcon: Icons.school_rounded,
       route: RouteConstants.students,
-      gradient: AppGradients.primary,
     ),
     _NavItem(
       label: 'Members',
-      icon: Icons.group_rounded,
+      icon: Icons.group_outlined,
+      activeIcon: Icons.group_rounded,
       route: RouteConstants.members,
-      gradient: AppGradients.secondary,
     ),
     _NavItem(
       label: 'Events',
-      icon: Icons.event_rounded,
+      icon: Icons.calendar_today_outlined,
+      activeIcon: Icons.calendar_today_rounded,
       route: RouteConstants.events,
-      gradient: AppGradients.accent,
     ),
     _NavItem(
       label: 'Settings',
-      icon: Icons.settings_rounded,
+      icon: Icons.settings_outlined,
+      activeIcon: Icons.settings_rounded,
       route: RouteConstants.settings,
-      gradient: AppGradients.primary,
     ),
   ];
 
@@ -55,6 +55,11 @@ class BrlBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = _selectedIndex(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = (isDark ? AppColors.darkSurface : AppColors.lightSurface)
+        .withValues(alpha: isDark ? 0.85 : 0.92);
+    final separatorColor = isDark ? AppColors.darkSeparator : AppColors.lightSeparator;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -62,38 +67,29 @@ class BrlBottomNav extends StatelessWidget {
 
         final bool shouldPop = await showDialog<bool>(
               context: context,
-              builder: (context) => AlertDialog(
-                backgroundColor: const Color(0xFF1A1F32),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.glassStroke, width: 1),
-                ),
-                title: const Text(
-                  'Exit App?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                content: const Text(
+              builder: (ctx) => AlertDialog(
+                title: Text('Exit App?', style: AppTextStyles.headlineSm),
+                content: Text(
                   'Are you sure you want to exit Nexus?',
-                  style: TextStyle(color: Colors.white70),
+                  style: AppTextStyles.bodyMd,
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => Navigator.of(ctx).pop(false),
                     child: Text(
                       'Cancel',
-                      style: TextStyle(color: AppColors.onSurfaceSubtle),
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      ),
                     ),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: Text(
                       'Exit',
                       style: TextStyle(
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.errorDark : AppColors.error,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -109,36 +105,37 @@ class BrlBottomNav extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: child,
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0x1A0A0F1E),
-              border: Border(
-                top: BorderSide(color: AppColors.glassStroke, width: 1),
+        bottomNavigationBar: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                border: Border(
+                  top: BorderSide(color: separatorColor, width: 0.5),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: SizedBox(
-                height: 60,
-                child: Row(
-                  children: List.generate(_items.length, (i) {
-                    final isSelected = i == selectedIndex;
-                    return Expanded(
-                      child: _NavItemWidget(
-                        item: _items[i],
-                        isSelected: isSelected,
-                        onTap: () => context.go(_items[i].route),
-                      ),
-                    );
-                  }),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 54,
+                  child: Row(
+                    children: List.generate(_items.length, (i) {
+                      final isSelected = i == selectedIndex;
+                      return Expanded(
+                        child: _NavItemWidget(
+                          item: _items[i],
+                          isSelected: isSelected,
+                          onTap: () => context.go(_items[i].route),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -147,14 +144,14 @@ class BrlBottomNav extends StatelessWidget {
 class _NavItem {
   final String label;
   final IconData icon;
+  final IconData activeIcon;
   final String route;
-  final LinearGradient gradient;
 
   const _NavItem({
     required this.label,
     required this.icon,
+    required this.activeIcon,
     required this.route,
-    required this.gradient,
   });
 }
 
@@ -171,51 +168,35 @@ class _NavItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+
+    return Semantics(
+      label: item.label,
+      selected: isSelected,
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isSelected)
-              Container(
-                width: 4,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 4),
-                decoration: BoxDecoration(
-                  gradient: item.gradient,
-                  borderRadius: BorderRadius.circular(2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: item.gradient.colors.first.withOpacity(0.8),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-              )
-            else
-              const SizedBox(height: 8),
-            isSelected
-                ? ShaderMask(
-                    shaderCallback: (bounds) => item.gradient.createShader(bounds),
-                    child: Icon(item.icon, color: Colors.white, size: 22),
-                  )
-                : Icon(item.icon, color: AppColors.onSurfaceSubtle, size: 22),
-            const SizedBox(height: 2),
+            Icon(
+              isSelected ? item.activeIcon : item.icon,
+              color: isSelected ? activeColor : inactiveColor,
+              size: 22,
+            ),
+            const SizedBox(height: 3),
             Text(
               item.label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                color: isSelected
-                    ? item.gradient.colors.first
-                    : AppColors.onSurfaceSubtle,
-                letterSpacing: 0.5,
+              style: AppTextStyles.labelSm.copyWith(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? activeColor : inactiveColor,
               ),
+              maxLines: 1,
             ),
           ],
         ),

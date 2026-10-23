@@ -1,17 +1,19 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
+import '../../../../shared/widgets/brl_button.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
+import '../../../../shared/widgets/brl_text_field.dart';
 import '../../../../shared/widgets/neon_badge.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/members_provider.dart';
-import '../../../../core/network/dio_client.dart';
 
 class MemberDetailsScreen extends ConsumerStatefulWidget {
   final UserEntity member;
@@ -35,153 +37,164 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final canEdit = currentUser?.isAdmin == true;
+    final accent = AppColors.accentOf(context);
 
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const BrlAppBar(
-          title: 'MEMBER DETAILS',
-          accentColor: AppColors.moduleMembers,
+        appBar: BrlAppBar(
+          title: 'Member Profile',
+          showBack: true,
+          actions: [
+            if (canEdit)
+              IconButton(
+                icon: Icon(Icons.edit_outlined, color: accent, size: 20),
+                onPressed: () => _showEditMemberDialog(context),
+              ),
+          ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildAvatar(),
-              const SizedBox(height: 24),
+              _buildAvatar(context),
+              const SizedBox(height: 16),
               Text(
                 _member.name,
-                style: AppTextStyles.headlineMd.copyWith(color: Colors.white),
+                style: AppTextStyles.headlineMd.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              NeonBadge(label: _member.role.displayName.toUpperCase(), type: NeonBadgeType.info),
-              const SizedBox(height: 32),
-              _buildDetailsCard(),
+              const SizedBox(height: 6),
+              NeonBadge(
+                label: _member.role.displayName.toUpperCase(),
+                type: _getRoleBadgeType(_member.role),
+              ),
+              const SizedBox(height: 24),
+              _buildDetailsCard(context),
+              const SizedBox(height: 40),
             ],
           ),
         ),
-        floatingActionButton: canEdit
-            ? Container(
-                decoration: BoxDecoration(
-                  gradient: AppGradients.accent,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: AppColors.accentPink.withOpacity(0.4), blurRadius: 16),
-                  ],
-                ),
-                child: FloatingActionButton(
-                  onPressed: () => _showEditMemberDialog(context),
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  child: const Icon(Icons.edit, color: Colors.white),
-                ),
-              )
-            : null,
       ),
     );
   }
 
-  Widget _buildAvatar() {
+  NeonBadgeType _getRoleBadgeType(UserRole role) {
+    switch (role) {
+      case UserRole.superAdmin:
+      case UserRole.admin:
+        return NeonBadgeType.warning;
+      case UserRole.coordinator:
+        return NeonBadgeType.info;
+      case UserRole.volunteer:
+        return NeonBadgeType.success;
+      case UserRole.viewer:
+        return NeonBadgeType.info;
+    }
+  }
+
+  Widget _buildAvatar(BuildContext context) {
+    final accent = AppColors.accentOf(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final initials = _member.name.trim().isNotEmpty
+        ? _member.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        : 'M';
+
     return Container(
-      width: 120,
-      height: 120,
+      width: 90,
+      height: 90,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            AppColors.moduleMembers.withOpacity(0.8),
-            AppColors.moduleMembers.withOpacity(0.2),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(color: AppColors.moduleMembers, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.moduleMembers.withOpacity(0.3),
-            blurRadius: 24,
-            spreadRadius: 4,
-          ),
-        ],
+        color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
+        border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
       ),
       child: Center(
         child: _member.avatar != null && _member.avatar!.isNotEmpty
             ? ClipRRect(
-                borderRadius: BorderRadius.circular(60),
-                child: Image.network(_member.avatar!, width: 120, height: 120, fit: BoxFit.cover),
+                borderRadius: BorderRadius.circular(45),
+                child: Image.network(_member.avatar!, width: 90, height: 90, fit: BoxFit.cover),
               )
             : Text(
-                _member.name.isNotEmpty ? _member.name[0].toUpperCase() : 'M',
-                style: AppTextStyles.headlineLg.copyWith(color: Colors.white, fontSize: 48),
+                initials,
+                style: AppTextStyles.headlineLg.copyWith(
+                  color: accent,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
       ),
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildDetailsCard(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (_member.bio?.isNotEmpty == true) ...[
-          _buildSectionHeader(Icons.person_outline, 'About Me'),
-          const SizedBox(height: 12),
+          _buildSectionHeader(context, 'ABOUT'),
+          const SizedBox(height: 8),
           BrlGlassCard(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Text(
               _member.bio!,
-              style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
+              style: AppTextStyles.bodyMd.copyWith(height: 1.5),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
         ],
-        _buildSectionHeader(Icons.contact_mail_outlined, 'Contact Information'),
-        const SizedBox(height: 12),
+
+        _buildSectionHeader(context, 'CONTACT INFORMATION'),
+        const SizedBox(height: 8),
         BrlGlassCard(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              _buildInfoRow(Icons.email_outlined, 'Email', _member.email),
+              _buildInfoRow(context, Icons.email_outlined, 'Email', _member.email),
               if (_member.phone?.isNotEmpty == true) ...[
-                const Divider(color: Colors.white12, height: 24),
-                _buildInfoRow(Icons.phone_outlined, 'Phone', _member.phone!),
+                Divider(color: AppColors.borderOf(context), height: 1),
+                _buildInfoRow(context, Icons.phone_outlined, 'Phone', _member.phone!),
               ],
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
+
         if (_member.domain?.isNotEmpty == true || _member.year?.isNotEmpty == true) ...[
-          _buildSectionHeader(Icons.school_outlined, 'Academic Details'),
-          const SizedBox(height: 12),
+          _buildSectionHeader(context, 'ACADEMIC PROFILE'),
+          const SizedBox(height: 8),
           BrlGlassCard(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               children: [
                 if (_member.domain?.isNotEmpty == true)
-                  _buildInfoRow(Icons.work_outline, 'Domain', _member.domain!),
+                  _buildInfoRow(context, Icons.domain_outlined, 'Domain', _member.domain!),
                 if (_member.domain?.isNotEmpty == true && _member.year?.isNotEmpty == true)
-                  const Divider(color: Colors.white12, height: 24),
+                  Divider(color: AppColors.borderOf(context), height: 1),
                 if (_member.year?.isNotEmpty == true)
-                  _buildInfoRow(Icons.timeline, 'Year', _member.year!),
+                  _buildInfoRow(context, Icons.school_outlined, 'Year', 'Year ${_member.year!}'),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
         ],
+
         if (_member.github?.isNotEmpty == true || _member.linkedin?.isNotEmpty == true) ...[
-          _buildSectionHeader(Icons.link, 'Social Profiles'),
-          const SizedBox(height: 12),
+          _buildSectionHeader(context, 'SOCIAL LINKS'),
+          const SizedBox(height: 8),
           BrlGlassCard(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               children: [
                 if (_member.github?.isNotEmpty == true)
-                  _buildInfoRow(Icons.code, 'GitHub', _member.github!),
+                  _buildInfoRow(context, Icons.code_rounded, 'GitHub', _member.github!),
                 if (_member.github?.isNotEmpty == true && _member.linkedin?.isNotEmpty == true)
-                  const Divider(color: Colors.white12, height: 24),
+                  Divider(color: AppColors.borderOf(context), height: 1),
                 if (_member.linkedin?.isNotEmpty == true)
-                  _buildInfoRow(Icons.open_in_new, 'LinkedIn', _member.linkedin!),
+                  _buildInfoRow(context, Icons.open_in_new_rounded, 'LinkedIn', _member.linkedin!),
               ],
             ),
           ),
@@ -190,39 +203,42 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.moduleMembers, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          title.toUpperCase(),
-          style: AppTextStyles.labelLg.copyWith(
-            color: AppColors.moduleMembers,
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        title,
+        style: AppTextStyles.caption.copyWith(
+          letterSpacing: 0.8,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textTertiaryOf(context),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.moduleMembers, size: 20),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: AppColors.onSurfaceMuted, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(value, style: const TextStyle(color: Colors.white, fontSize: 16)),
-            ],
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.accentOf(context), size: 18),
+          const SizedBox(width: 12),
+          Text(label, style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context))),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodySm.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimaryOf(context),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -240,171 +256,234 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final githubController = TextEditingController(text: _member.github ?? '');
     final linkedinController = TextEditingController(text: _member.linkedin ?? '');
     UserRole selectedRole = _member.role;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Edit Member Details', style: AppTextStyles.headlineSm.copyWith(color: AppColors.moduleMembers)),
-              const SizedBox(height: 24),
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildTextField('Name', nameController),
-                    const SizedBox(height: 16),
-                    _buildTextField('Email', emailController, keyboardType: TextInputType.emailAddress),
-                    const SizedBox(height: 16),
-                    _buildTextField('Phone', phoneController, keyboardType: TextInputType.phone),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedDomain,
-                      dropdownColor: AppColors.surface,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Domain',
-                        labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
-                        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
-                        focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
+        builder: (context, setSheetState) => ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.85,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 20,
+                right: 20,
+                top: 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.95 : 0.98),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: null,
-                          child: Text('None', style: TextStyle(color: Colors.white54)),
-                        ),
-                        ...domainOptions.map((domain) {
-                          return DropdownMenuItem<String>(
-                            value: domain,
-                            child: Text(domain),
-                          );
-                        }),
-                      ],
-                      onChanged: (val) {
-                        setState(() => selectedDomain = val);
-                      },
                     ),
-                    const SizedBox(height: 16),
-                    _buildTextField('Year', yearController),
-                    const SizedBox(height: 16),
-                    _buildTextField('GitHub URL', githubController),
-                    const SizedBox(height: 16),
-                    _buildTextField('LinkedIn URL', linkedinController),
-                    const SizedBox(height: 16),
-                    _buildTextField('Bio', bioController, maxLines: 3),
-                    const SizedBox(height: 16),
-                    if (ref.read(currentUserProvider)?.isSuperAdmin == true)
-                      DropdownButtonFormField<UserRole>(
-                        value: selectedRole,
-                        dropdownColor: AppColors.surface,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Role',
-                          labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
-                          focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
-                        ),
-                        items: UserRole.values.map((role) {
-                          return DropdownMenuItem(
-                            value: role,
-                            child: Text(role.displayName.toUpperCase()),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => selectedRole = val);
-                        },
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.moduleMembers,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () async {
-                    if (nameController.text.isEmpty || emailController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and email are required')));
-                      return;
-                    }
-                    try {
-                      final dio = ref.read(dioClientProvider);
-                      final response = await dio.put('/members/${_member.id}', data: {
-                        'name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
-                        'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
-                        'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
-                        'domain': selectedDomain,
-                        'year': yearController.text.trim().isEmpty ? null : yearController.text.trim(),
-                        'github': githubController.text.trim().isEmpty ? null : githubController.text.trim(),
-                        'linkedin': linkedinController.text.trim().isEmpty ? null : linkedinController.text.trim(),
-                        'bio': bioController.text.trim().isEmpty ? null : bioController.text.trim(),
-                        'role': selectedRole.backendValue,
-                      });
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ref.invalidate(membersProvider);
-                        
-                        if (response.data != null && response.data['data'] != null) {
-                           final updatedModel = UserModel.fromJson(response.data['data']);
-                           this.setState(() {
-                             _member = updatedModel.toEntity();
-                           });
-                        }
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member updated successfully')));
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Edit Member Details', style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700)),
+                      IconButton(
+                        icon: Icon(Icons.close, size: 20, color: AppColors.textSecondaryOf(context)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        BrlTextField(label: 'Name', controller: nameController),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'Email', controller: emailController, keyboardType: TextInputType.emailAddress),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'Phone', controller: phoneController, keyboardType: TextInputType.phone),
+                        const SizedBox(height: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'DOMAIN',
+                              style: AppTextStyles.caption.copyWith(
+                                letterSpacing: 0.8,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textTertiaryOf(context),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceOf(context),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: selectedDomain,
+                                  isExpanded: true,
+                                  dropdownColor: AppColors.surfaceOf(context),
+                                  items: [
+                                    DropdownMenuItem<String>(
+                                      value: null,
+                                      child: Text('None', style: TextStyle(color: AppColors.textSecondaryOf(context))),
+                                    ),
+                                    ...domainOptions.map((domain) {
+                                      return DropdownMenuItem<String>(
+                                        value: domain,
+                                        child: Text(domain, style: TextStyle(color: AppColors.textPrimaryOf(context))),
+                                      );
+                                    }),
+                                  ],
+                                  onChanged: (val) {
+                                    setSheetState(() => selectedDomain = val);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'Academic Year', controller: yearController),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'GitHub URL', controller: githubController),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'LinkedIn URL', controller: linkedinController),
+                        const SizedBox(height: 12),
+                        BrlTextField(label: 'Bio', controller: bioController, maxLines: 3),
+                        const SizedBox(height: 12),
+                        if (ref.read(currentUserProvider)?.isSuperAdmin == true) ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ROLE',
+                                style: AppTextStyles.caption.copyWith(
+                                  letterSpacing: 0.8,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textTertiaryOf(context),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceOf(context),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<UserRole>(
+                                    value: selectedRole,
+                                    isExpanded: true,
+                                    dropdownColor: AppColors.surfaceOf(context),
+                                    items: UserRole.values.map((role) {
+                                      return DropdownMenuItem(
+                                        value: role,
+                                        child: Text(role.displayName, style: TextStyle(color: AppColors.textPrimaryOf(context))),
+                                      );
+                                    }).toList(),
+                                    onChanged: (val) {
+                                      if (val != null) setSheetState(() => selectedRole = val);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  BrlButton(
+                    label: 'Save Changes',
+                    icon: Icons.check,
+                    onPressed: () async {
+                      if (nameController.text.trim().isEmpty || emailController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Name and email are required'),
+                            backgroundColor: AppColors.errorOf(context),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                        return;
                       }
-                    } catch (e) {
-                      if (context.mounted) {
-                        String errMsg = 'Failed to update member';
-                        if (e.toString().contains('403')) {
-                          errMsg = 'Access Denied: You do not have permission to edit members';
+                      try {
+                        final dio = ref.read(dioClientProvider);
+                        final response = await dio.put('/members/${_member.id}', data: {
+                          'name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
+                          'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
+                          'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+                          'domain': selectedDomain,
+                          'year': yearController.text.trim().isEmpty ? null : yearController.text.trim(),
+                          'github': githubController.text.trim().isEmpty ? null : githubController.text.trim(),
+                          'linkedin': linkedinController.text.trim().isEmpty ? null : linkedinController.text.trim(),
+                          'bio': bioController.text.trim().isEmpty ? null : bioController.text.trim(),
+                          'role': selectedRole.backendValue,
+                        });
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ref.invalidate(membersProvider);
+
+                          if (response.data != null && response.data['data'] != null) {
+                            final updatedModel = UserModel.fromJson(response.data['data']);
+                            setState(() {
+                              _member = updatedModel.toEntity();
+                            });
+                          }
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Member updated successfully'),
+                              backgroundColor: AppColors.successOf(context),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
                         }
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errMsg)));
+                      } catch (e) {
+                        if (context.mounted) {
+                          String errMsg = 'Failed to update member';
+                          if (e.toString().contains('403')) {
+                            errMsg = 'Access Denied: You do not have permission to edit members';
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(errMsg),
+                              backgroundColor: AppColors.errorOf(context),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                  child: const Text('SAVE CHANGES', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: AppColors.onSurfaceMuted),
-        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColors.moduleMembers), borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

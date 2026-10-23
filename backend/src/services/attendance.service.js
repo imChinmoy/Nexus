@@ -2,80 +2,172 @@ const attendanceRepository = require('../repositories/attendance.repository');
 const eventRepository = require('../repositories/event.repository');
 const Registration = require('../models/Registration.model');
 const Student = require('../models/Student.model');
+const qrResolverService = require('./qrResolver.service');
 const { verifyQRToken } = require('../utils/generateQR');
 const { ATTENDANCE_STATUS, ATTENDANCE_METHOD } = require('../constants/attendanceStatus');
 const { getPagination, buildPaginationMeta } = require('../utils/pagination');
+const logger = require('../config/logger');
 
 class AttendanceService {
-  async _syncToStudentModel(registrationId, status) {
-    const reg = await Registration.findById(registrationId);
-    if (!reg) return null;
-
-    const studentData = {
-      name: reg.name,
-      rollNo: reg.rollNo,
-      studentNo: reg.studentNo,
-      phone: reg.phone,
-      domain: reg.domain,
-      github: reg.github,
-      unstopProfile: reg.unstopProfile,
-      codingProfiles: reg.codingProfiles,
-      hackerrank: reg.hackerrank,
-      email: reg.email,
-      gender: reg.gender,
-      branch: reg.branch,
-      hosteller: reg.hosteller,
-      isPresent: status === ATTENDANCE_STATUS.PRESENT,
-      lastMarkedAt: new Date(),
-    };
-
-    let student = await Student.findOne({ rollNo: reg.rollNo });
-    if (student) {
-      Object.assign(student, studentData);
-      await student.save();
-    } else {
-      student = await Student.create(studentData);
+  /**
+   * Validate that an event exists, is active, and accepts attendance within configured time window.
+   */
+  _validateEventForAttendance(event) {
+    if (!event) {
+      throw { status: 404, code: 'EVENT_NOT_FOUND', message: 'Event not found' };
     }
-    return student;
+    if (['archived', 'cancelled'].includes(event.status)) {
+      throw { status: 400, code: 'EVENT_INACTIVE', message: `Event is ${event.status}` };
+    }
+    if (!event.isAttendanceOpen) {
+      throw { status: 400, code: 'ATTENDANCE_CLOSED', message: 'Attendance is not open for this event' };
+    }
+
+    const now = new Date();
+    if (event.attendanceWindowStart && now < new Date(event.attendanceWindowStart)) {
+      throw {
+        status: 400,
+        code: 'ATTENDANCE_WINDOW_NOT_STARTED',
+        message: 'Attendance window has not started yet',
+      };
+    }
+    if (event.attendanceWindowEnd && now > new Date(event.attendanceWindowEnd)) {
+      throw {
+        status: 400,
+        code: 'ATTENDANCE_WINDOW_EXPIRED',
+        message: 'Attendance window has expired',
+      };
+    }
   }
 
-  async markViaQR(qrToken, studentId, userId) {
-    let payload;
-    try {
-      payload = verifyQRToken(qrToken);
-    } catch (err) {
-      if (err.message === 'QR_EXPIRED') throw { status: 400, message: 'QR code has expired' };
-      throw { status: 400, message: 'Invalid QR code' };
+  /**
+   * Resolve student reference for attendance from either Student or Registration ID.
+   */
+  async _resolveStudentById(studentOrRegId) {
+    let student = await Student.findById(studentOrRegId).exec();
+    if (student) return student;
+
+    // Check if the ID belongs to a Registration document
+    const reg = await Registration.findById(studentOrRegId).exec();
+    if (reg) {
+      student = await qrResolverService._getOrCreateStudentFromRegistration(reg);
+      return student;
     }
 
-    const { eventId, sessionId } = payload;
+    return null;
+  }
+
+  /**
+   * Dedicated entry-gate scan method.
+   * Consumes existing student QR, resolves student, checks event window,
+   * handles duplicate races safely, and records attendance.
+   */
+  async scanAttendance({ eventId, qrValue, userId }) {
+    const startTime = Date.now();
+
+    // Step 1: Event lookup & window validation
     const event = await eventRepository.findById(eventId);
-    if (!event) throw { status: 404, message: 'Event not found' };
-    if (!event.isAttendanceOpen) throw { status: 400, message: 'Attendance window is closed' };
-    if (event.qrSessionId !== sessionId) throw { status: 400, message: 'QR code is outdated' };
+    this._validateEventForAttendance(event);
+    const eventValidationMs = Date.now() - startTime;
 
-    const student = await this._syncToStudentModel(studentId, ATTENDANCE_STATUS.PRESENT);
-    if (!student) throw { status: 404, message: 'Registered user not found' };
+    // Step 2: Student resolution from external QR
+    const resolveStart = Date.now();
+    const student = await qrResolverService.resolveStudent(qrValue);
+    if (!student) {
+      throw {
+        status: 404,
+        code: 'STUDENT_NOT_FOUND',
+        message: 'Student could not be resolved from scanned QR code',
+      };
+    }
+    const qrResolutionMs = Date.now() - resolveStart;
 
+    // Step 3: Check for existing attendance
     const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
-    if (existing) throw { status: 409, message: 'Attendance already recorded for this student' };
+    if (existing) {
+      logger.info('Duplicate scan detected', {
+        eventId,
+        studentId: student._id,
+        durationMs: Date.now() - startTime,
+      });
+      return {
+        record: existing,
+        isDuplicate: true,
+        code: 'ALREADY_MARKED',
+        message: 'Attendance already recorded for this student',
+      };
+    }
 
-    return attendanceRepository.create({
-      event: eventId,
-      student: student._id,
-      status: ATTENDANCE_STATUS.PRESENT,
-      method: ATTENDANCE_METHOD.QR,
-      markedBy: userId,
-      qrSessionId: sessionId,
-    });
+    // Step 4: Atomic insertion with race-condition error handling
+    const dbWriteStart = Date.now();
+    try {
+      const created = await attendanceRepository.create({
+        event: eventId,
+        student: student._id,
+        status: ATTENDANCE_STATUS.PRESENT,
+        method: ATTENDANCE_METHOD.QR,
+        markedBy: userId,
+        markedAt: new Date(),
+      });
+
+      await attendanceRepository.createLog({
+        event: eventId,
+        student: student._id,
+        action: 'mark',
+        newStatus: ATTENDANCE_STATUS.PRESENT,
+        performedBy: userId,
+      });
+
+      // Update student last marked timestamp
+      await Student.updateOne({ _id: student._id }, { $set: { lastMarkedAt: new Date() } });
+
+      const record = await attendanceRepository.findById(created._id);
+      const totalDurationMs = Date.now() - startTime;
+
+      logger.info('Attendance marked via QR successfully', {
+        eventId,
+        studentId: student._id,
+        eventValidationMs,
+        qrResolutionMs,
+        dbWriteMs: Date.now() - dbWriteStart,
+        totalDurationMs,
+      });
+
+      return {
+        record,
+        isDuplicate: false,
+        code: 'ATTENDANCE_MARKED',
+        message: 'Attendance marked successfully',
+      };
+    } catch (err) {
+      if (err.code === 11000) {
+        // Handled race condition: concurrent request inserted record first
+        const dupRecord = await attendanceRepository.findOne({ event: eventId, student: student._id });
+        logger.info('Concurrency duplicate resolved safely', {
+          eventId,
+          studentId: student._id,
+          totalDurationMs: Date.now() - startTime,
+        });
+        return {
+          record: dupRecord,
+          isDuplicate: true,
+          code: 'ALREADY_MARKED',
+          message: 'Attendance already recorded for this student',
+        };
+      }
+      throw err;
+    }
   }
 
+  /**
+   * Manual attendance marking.
+   */
   async markManual(eventId, studentId, status, userId, note) {
     const event = await eventRepository.findById(eventId);
-    if (!event) throw { status: 404, message: 'Event not found' };
+    this._validateEventForAttendance(event);
 
-    const student = await this._syncToStudentModel(studentId, status);
-    if (!student) throw { status: 404, message: 'Registered user not found' };
+    const student = await this._resolveStudentById(studentId);
+    if (!student) throw { status: 404, code: 'STUDENT_NOT_FOUND', message: 'Registered student not found' };
 
     const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
 
@@ -88,30 +180,43 @@ class AttendanceService {
         newStatus: status,
         performedBy: userId,
       });
+      await Student.updateOne({ _id: student._id }, { $set: { lastMarkedAt: new Date() } });
       return attendanceRepository.updateById(existing._id, { status, note, markedBy: userId });
     }
 
-    await attendanceRepository.createLog({
-      event: eventId,
-      student: student._id,
-      action: 'mark',
-      newStatus: status,
-      performedBy: userId,
-    });
+    try {
+      await attendanceRepository.createLog({
+        event: eventId,
+        student: student._id,
+        action: 'mark',
+        newStatus: status,
+        performedBy: userId,
+      });
 
-    return attendanceRepository.create({
-      event: eventId,
-      student: student._id,
-      status,
-      method: ATTENDANCE_METHOD.MANUAL,
-      markedBy: userId,
-      note,
-    });
+      await Student.updateOne({ _id: student._id }, { $set: { lastMarkedAt: new Date() } });
+
+      return await attendanceRepository.create({
+        event: eventId,
+        student: student._id,
+        status,
+        method: ATTENDANCE_METHOD.MANUAL,
+        markedBy: userId,
+        note,
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        return attendanceRepository.findOne({ event: eventId, student: student._id });
+      }
+      throw err;
+    }
   }
 
+  /**
+   * Bulk attendance marking.
+   */
   async markBulk(eventId, records, userId) {
     const event = await eventRepository.findById(eventId);
-    if (!event) throw { status: 404, message: 'Event not found' };
+    this._validateEventForAttendance(event);
 
     const results = { success: 0, failed: 0, errors: [] };
     for (const record of records) {
@@ -124,6 +229,50 @@ class AttendanceService {
       }
     }
     return results;
+  }
+
+  /**
+   * Legacy QR token method (for backward compatibility).
+   */
+  async markViaQR(qrToken, studentId, userId) {
+    let payload;
+    try {
+      payload = verifyQRToken(qrToken);
+    } catch (err) {
+      if (err.message === 'QR_EXPIRED') throw { status: 400, code: 'QR_EXPIRED', message: 'QR code has expired' };
+      throw { status: 400, code: 'INVALID_QR', message: 'Invalid QR code' };
+    }
+
+    const { eventId, sessionId } = payload;
+    const event = await eventRepository.findById(eventId);
+    this._validateEventForAttendance(event);
+    if (event.qrSessionId && event.qrSessionId !== sessionId) {
+      throw { status: 400, code: 'QR_OUTDATED', message: 'QR code is outdated' };
+    }
+
+    const student = await this._resolveStudentById(studentId);
+    if (!student) throw { status: 404, code: 'STUDENT_NOT_FOUND', message: 'Registered student not found' };
+
+    const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
+    if (existing) {
+      return existing;
+    }
+
+    try {
+      return await attendanceRepository.create({
+        event: eventId,
+        student: student._id,
+        status: ATTENDANCE_STATUS.PRESENT,
+        method: ATTENDANCE_METHOD.QR,
+        markedBy: userId,
+        qrSessionId: sessionId,
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        return attendanceRepository.findOne({ event: eventId, student: student._id });
+      }
+      throw err;
+    }
   }
 
   async getByEvent(eventId, query) {

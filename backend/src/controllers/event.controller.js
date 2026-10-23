@@ -41,10 +41,11 @@ exports.generateQR = asyncHandler(async (req, res) => {
 });
 
 exports.toggleAttendance = asyncHandler(async (req, res) => {
-  const { isOpen } = req.body;
+  const isOpen = req.body.isOpen === true || req.body.isOpen === 'true';
   const event = await eventService.toggleAttendance(req.params.id, isOpen);
   sendSuccess(res, `Attendance ${isOpen ? 'opened' : 'closed'}`, event);
 });
+
 
 exports.archive = asyncHandler(async (req, res) => {
   const event = await eventService.archive(req.params.id);

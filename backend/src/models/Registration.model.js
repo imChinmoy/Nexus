@@ -22,8 +22,13 @@ const registrationSchema = new mongoose.Schema(
   }
 );
 
-// Indexes are implicitly created by unique: true
+registrationSchema.virtual('rollNumber').get(function () {
+  return this.rollNo;
+});
+
+// Indexes
 registrationSchema.index({ domain: 1 });
 registrationSchema.index({ branch: 1 });
 
 module.exports = mongoose.model('Registration', registrationSchema);
+

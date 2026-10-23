@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_gradients.dart';
 import '../../core/theme/app_text_styles.dart';
 
 enum BrlButtonVariant { primary, secondary, danger, ghost }
@@ -12,6 +11,7 @@ class BrlButton extends StatefulWidget {
   final bool isLoading;
   final bool isFullWidth;
   final IconData? leadingIcon;
+  final IconData? icon;
   final double? height;
   final LinearGradient? customGradient;
 
@@ -23,6 +23,7 @@ class BrlButton extends StatefulWidget {
     this.isLoading = false,
     this.isFullWidth = false,
     this.leadingIcon,
+    this.icon,
     this.height,
     this.customGradient,
   });
@@ -31,10 +32,9 @@ class BrlButton extends StatefulWidget {
   State<BrlButton> createState() => _BrlButtonState();
 }
 
-class _BrlButtonState extends State<BrlButton>
-    with SingleTickerProviderStateMixin {
+class _BrlButtonState extends State<BrlButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnim;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -42,10 +42,10 @@ class _BrlButtonState extends State<BrlButton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
-      lowerBound: 0.95,
+      lowerBound: 0.97,
       upperBound: 1.0,
     );
-    _scaleAnim = _controller;
+    _scaleAnimation = _controller;
     _controller.value = 1.0;
   }
 
@@ -55,226 +55,105 @@ class _BrlButtonState extends State<BrlButton>
     super.dispose();
   }
 
-  void _onTapDown(_) => _controller.reverse();
-  void _onTapUp(_) => _controller.forward();
-  void _onTapCancel() => _controller.forward();
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scaleAnim,
-      child: GestureDetector(
-        onTapDown: widget.onPressed != null ? _onTapDown : null,
-        onTapUp: widget.onPressed != null ? _onTapUp : null,
-        onTapCancel: _onTapCancel,
-        onTap: widget.onPressed,
-        child: _buildButton(),
-      ),
-    );
-  }
-
-  Widget _buildButton() {
-    final h = widget.height ?? 52.0;
-    switch (widget.variant) {
-      case BrlButtonVariant.primary:
-        return _PrimaryButton(
-          label: widget.label,
-          isLoading: widget.isLoading,
-          isFullWidth: widget.isFullWidth,
-          leadingIcon: widget.leadingIcon,
-          height: h,
-          gradient: widget.customGradient ?? AppGradients.primary,
-        );
-      case BrlButtonVariant.secondary:
-        return _SecondaryButton(
-          label: widget.label,
-          isLoading: widget.isLoading,
-          isFullWidth: widget.isFullWidth,
-          leadingIcon: widget.leadingIcon,
-          height: h,
-        );
-      case BrlButtonVariant.danger:
-        return _PrimaryButton(
-          label: widget.label,
-          isLoading: widget.isLoading,
-          isFullWidth: widget.isFullWidth,
-          leadingIcon: widget.leadingIcon,
-          height: h,
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFF4444), Color(0xFFFF006E)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case BrlButtonVariant.ghost:
-        return _GhostButton(
-          label: widget.label,
-          isLoading: widget.isLoading,
-          isFullWidth: widget.isFullWidth,
-          leadingIcon: widget.leadingIcon,
-          height: h,
-        );
+  void _onTapDown(TapDownDetails _) {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.reverse();
     }
   }
-}
 
-class _PrimaryButton extends StatelessWidget {
-  final String label;
-  final bool isLoading;
-  final bool isFullWidth;
-  final IconData? leadingIcon;
-  final double height;
-  final LinearGradient gradient;
+  void _onTapUp(TapUpDetails _) {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.forward();
+    }
+  }
 
-  const _PrimaryButton({
-    required this.label,
-    required this.isLoading,
-    required this.isFullWidth,
-    required this.height,
-    required this.gradient,
-    this.leadingIcon,
-  });
+  void _onTapCancel() {
+    if (widget.onPressed != null && !widget.isLoading) {
+      _controller.forward();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: isFullWidth ? double.infinity : null,
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(height / 2),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.colors.first.withOpacity(0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEnabled = widget.onPressed != null && !widget.isLoading;
+    final h = widget.height ?? 48.0;
+
+    Color bg;
+    Color fg;
+    Border? border;
+
+    switch (widget.variant) {
+      case BrlButtonVariant.primary:
+        bg = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+        fg = Colors.white;
+        break;
+      case BrlButtonVariant.secondary:
+        bg = isDark ? const Color(0x262997FF) : const Color(0x140071E3);
+        fg = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+        break;
+      case BrlButtonVariant.danger:
+        bg = isDark ? AppColors.errorDark : AppColors.error;
+        fg = Colors.white;
+        break;
+      case BrlButtonVariant.ghost:
+        bg = Colors.transparent;
+        fg = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+        break;
+    }
+
+    if (!isEnabled && widget.variant != BrlButtonVariant.ghost) {
+      bg = isDark ? const Color(0xFF2C2C30) : const Color(0xFFE5E5EA);
+      fg = isDark ? const Color(0xFF636366) : const Color(0xFF8E8E93);
+    }
+
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: GestureDetector(
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        onTap: isEnabled ? widget.onPressed : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: widget.isFullWidth ? double.infinity : null,
+          height: h,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: widget.customGradient == null ? bg : null,
+            gradient: widget.customGradient,
+            borderRadius: BorderRadius.circular(12),
+            border: border,
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isLoading)
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          else ...
-            [
-              if (leadingIcon != null) ...
-                [
-                  Icon(leadingIcon, color: Colors.white, size: 18),
+          child: Row(
+            mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.isLoading)
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(fg),
+                  ),
+                )
+              else ...[
+                if ((widget.icon ?? widget.leadingIcon) != null) ...[
+                  Icon(widget.icon ?? widget.leadingIcon, color: fg, size: 18),
                   const SizedBox(width: 8),
                 ],
-              Text(
-                label.toUpperCase(),
-                style: AppTextStyles.buttonLg.copyWith(color: Colors.white),
-              ),
-            ]
-        ],
-      ),
-    );
-  }
-}
-
-class _SecondaryButton extends StatelessWidget {
-  final String label;
-  final bool isLoading;
-  final bool isFullWidth;
-  final IconData? leadingIcon;
-  final double height;
-
-  const _SecondaryButton({
-    required this.label,
-    required this.isLoading,
-    required this.isFullWidth,
-    required this.height,
-    this.leadingIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: isFullWidth ? double.infinity : null,
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      decoration: BoxDecoration(
-        color: const Color(0x0DFFFFFF),
-        border: Border.all(color: AppColors.glassStroke, width: 1.5),
-        borderRadius: BorderRadius.circular(height / 2),
-      ),
-      child: Row(
-        mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isLoading)
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
-              ),
-            )
-          else ...
-            [
-              if (leadingIcon != null) ...
-                [
-                  Icon(leadingIcon, color: AppColors.primary, size: 18),
-                  const SizedBox(width: 8),
-                ],
-              Text(
-                label.toUpperCase(),
-                style: AppTextStyles.buttonMd.copyWith(color: AppColors.primary),
-              ),
-            ]
-        ],
-      ),
-    );
-  }
-}
-
-class _GhostButton extends StatelessWidget {
-  final String label;
-  final bool isLoading;
-  final bool isFullWidth;
-  final IconData? leadingIcon;
-  final double height;
-
-  const _GhostButton({
-    required this.label,
-    required this.isLoading,
-    required this.isFullWidth,
-    required this.height,
-    this.leadingIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: Row(
-        mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (leadingIcon != null) ...
-            [
-              Icon(leadingIcon, color: AppColors.onSurfaceMuted, size: 16),
-              const SizedBox(width: 6),
+                Text(
+                  widget.label,
+                  style: AppTextStyles.buttonMd.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ],
-          Text(
-            label,
-            style: AppTextStyles.buttonMd.copyWith(
-              color: AppColors.onSurfaceMuted,
-            ),
           ),
-        ],
+        ),
       ),
     );
   }

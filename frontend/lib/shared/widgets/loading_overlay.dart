@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final Widget child;
@@ -16,82 +17,67 @@ class LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface;
+    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
     return Stack(
       children: [
         child,
         if (isLoading)
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _NexusLoader(),
-                    if (message != null) ...
-                      [
-                        const SizedBox(height: 16),
-                        Text(
-                          message!,
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontFamily: 'JetBrains Mono',
-                            fontSize: 12,
-                            letterSpacing: 1.5,
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.35),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000),
+                        width: 0.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(accent),
                           ),
                         ),
-                      ]
-                  ],
+                        if (message != null) ...[
+                          const SizedBox(height: 14),
+                          Text(
+                            message!,
+                            style: AppTextStyles.bodySm.copyWith(
+                              color: textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
       ],
-    );
-  }
-}
-
-class _NexusLoader extends StatefulWidget {
-  const _NexusLoader();
-
-  @override
-  State<_NexusLoader> createState() => _NexusLoaderState();
-}
-
-class _NexusLoaderState extends State<_NexusLoader>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (_, __) => SizedBox(
-        width: 60,
-        height: 60,
-        child: CircularProgressIndicator(
-          value: null,
-          strokeWidth: 2,
-          color: AppColors.primary,
-          backgroundColor: AppColors.primaryGlow,
-        ),
-      ),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 
 class AppGradients {
   AppGradients._();
@@ -7,42 +6,40 @@ class AppGradients {
   static const LinearGradient primary = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.primary, AppColors.secondary],
+    colors: [Color(0xFF2997FF), Color(0xFF5E5CE6)],
   );
 
   static const LinearGradient secondary = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.secondary, AppColors.accentPink],
+    colors: [Color(0xFF5E5CE6), Color(0xFFFF375F)],
   );
 
   static const LinearGradient accent = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.accentPink, AppColors.accentAmber],
+    colors: [Color(0xFFFF375F), Color(0xFFFF9F0A)],
   );
 
   static const LinearGradient attendance = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.accentGreen, AppColors.primary],
+    colors: [Color(0xFF30D158), Color(0xFF2997FF)],
   );
 
   static const LinearGradient reports = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [AppColors.accentAmber, AppColors.accentPink],
+    colors: [Color(0xFFFF9F0A), Color(0xFFFF375F)],
   );
 
   static const LinearGradient background = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF0A0F1E),
-      Color(0xFF0D1527),
-      Color(0xFF12082A),
+      Color(0xFF111114),
+      Color(0xFF18181C),
     ],
-    stops: [0.0, 0.5, 1.0],
   );
 
   static LinearGradient forModule(ModuleGradient module) {
@@ -51,7 +48,7 @@ class AppGradients {
         return primary;
       case ModuleGradient.students:
         return const LinearGradient(
-          colors: [Color(0xFF0EA5E9), AppColors.primary],
+          colors: [Color(0xFF0A84FF), Color(0xFF2997FF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         );
