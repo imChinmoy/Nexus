@@ -25,7 +25,10 @@ abstract interface class EventRemoteSource {
     String? description,
     String? venue,
     String? bannerPath,
+    String? status,
+    bool? isAttendanceOpen,
   });
+  Future<EventModel> toggleAttendance(String id, bool isOpen);
 }
 
 class EventRemoteSourceImpl implements EventRemoteSource {
@@ -105,6 +108,8 @@ class EventRemoteSourceImpl implements EventRemoteSource {
     String? description,
     String? venue,
     String? bannerPath,
+    String? status,
+    bool? isAttendanceOpen,
   }) async {
     try {
       final mapData = <String, dynamic>{};
@@ -115,6 +120,8 @@ class EventRemoteSourceImpl implements EventRemoteSource {
       if (capacity != null) mapData['capacity'] = capacity;
       if (description != null) mapData['description'] = description;
       if (venue != null) mapData['venue'] = venue;
+      if (status != null) mapData['status'] = status;
+      if (isAttendanceOpen != null) mapData['isAttendanceOpen'] = isAttendanceOpen;
       
       final formData = FormData.fromMap(mapData);
 
@@ -136,6 +143,24 @@ class EventRemoteSourceImpl implements EventRemoteSource {
       rethrow;
     } catch (e) {
       throw ServerException('Failed to update event: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<EventModel> toggleAttendance(String id, bool isOpen) async {
+    try {
+      final response = await _dio.patch(
+        '${ApiConstants.events}/$id/attendance-toggle',
+        data: {'isOpen': isOpen},
+      );
+      return EventModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      throw ServerException('Failed to toggle attendance: ${e.message}');
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Failed to toggle attendance: ${e.toString()}');
     }
   }
 }

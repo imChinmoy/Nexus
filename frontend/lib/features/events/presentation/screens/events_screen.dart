@@ -6,10 +6,13 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../../../shared/widgets/brl_app_bar.dart';
-import '../../../../shared/widgets/brl_glass_card.dart';
-import '../../../../shared/widgets/neon_badge.dart';
-import '../../providers/event_provider.dart';
+import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../domain/entities/event_entity.dart';
+import '../../providers/event_provider.dart';
+import '../widgets/event_deck_controls.dart';
+import '../widgets/event_filter_bar.dart';
+import '../widgets/event_swipe_deck.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({super.key});
@@ -18,274 +21,356 @@ class EventsScreen extends ConsumerStatefulWidget {
   ConsumerState<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends ConsumerState<EventsScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _EventsScreenState extends ConsumerState<EventsScreen> {
+  final GlobalKey<EventSwipeDeckState> _deckKey =
+      GlobalKey<EventSwipeDeckState>();
+  final TextEditingController _searchController = TextEditingController();
 
-  static const _tabs = ['All', 'Upcoming', 'Ongoing', 'Completed', 'Archived'];
+  String _selectedFilter = 'All';
+  int _currentIndex = 0;
+  bool _isSearching = false;
+  String _searchQuery = '';
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
+  static const List<String> _filters = [
+    'All',
+    'Upcoming',
+    'Ongoing',
+    'Ended',
+    'Archived'
+  ];
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onFilterSelected(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      _currentIndex = 0; // reconcile index safely
+    });
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query.trim().toLowerCase();
+      _currentIndex = 0;
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        _searchQuery = '';
+        _currentIndex = 0;
+      }
+    });
+  }
+
+  List<EventEntity> _getFilteredEvents(List<EventEntity> allEvents) {
+    return allEvents.where((event) {
+      // 1. Timeline Category Filter
+      final matchesCategory = event.matchesFilter(_selectedFilter);
+      if (!matchesCategory) return false;
+
+      // 2. Search Query Filter
+      if (_searchQuery.isNotEmpty) {
+        final title = event.title.toLowerCase();
+        final desc = (event.description ?? '').toLowerCase();
+        final venue = (event.venue ?? '').toLowerCase();
+        final type = event.type.toLowerCase();
+        final matchesSearch = title.contains(_searchQuery) ||
+            desc.contains(_searchQuery) ||
+            venue.contains(_searchQuery) ||
+            type.contains(_searchQuery);
+        if (!matchesSearch) return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  Map<String, int> _buildFilterCounts(List<EventEntity> allEvents) {
+    final counts = <String, int>{};
+    for (final f in _filters) {
+      final key = f.toLowerCase();
+      if (key == 'all') {
+        counts[key] = allEvents.length;
+      } else {
+        counts[key] = allEvents.where((e) => e.matchesFilter(f)).length;
+      }
+    }
+    return counts;
   }
 
   @override
   Widget build(BuildContext context) {
+    final eventsAsync = ref.watch(eventsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+
+    // Permissions check
+    final user = ref.watch(currentUserProvider);
+    final isSuperAdmin = user?.isSuperAdmin ?? false;
+    final permissions = ref.watch(myPermissionsProvider).value ?? [];
+    final canAdd = isSuperAdmin ||
+        permissions.contains('event:add') ||
+        permissions.contains('all');
+    final canEdit = isSuperAdmin ||
+        permissions.contains('event:edit') ||
+        permissions.contains('all');
 
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const BrlAppBar(
+        appBar: BrlAppBar(
           title: 'Events',
-        ),
-        body: Column(
-          children: [
-            Container(
-              height: 44,
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkElevatedSurface : AppColors.lightSecondaryBackground,
-                borderRadius: BorderRadius.circular(12),
+          actions: [
+            // Search Toggle Button
+            IconButton(
+              icon: Icon(
+                _isSearching ? Icons.close_rounded : Icons.search_rounded,
+                color: _isSearching
+                    ? accent
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
+                size: 22,
               ),
-              child: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                indicator: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
+              tooltip: _isSearching ? 'Close Search' : 'Search Events',
+              onPressed: _toggleSearch,
+            ),
+            // Add Event Button (for authorized users)
+            if (canAdd)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: isDark ? 0.20 : 0.12),
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                    child: Icon(
+                      Icons.add_rounded,
+                      color: accent,
+                      size: 20,
+                    ),
+                  ),
+                  tooltip: 'Create New Event',
+                  onPressed: () => context.push(RouteConstants.createEvent),
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                dividerColor: Colors.transparent,
-                labelColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                unselectedLabelColor: textSecondary,
-                labelStyle: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w600),
-                unselectedLabelStyle: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w500),
-                padding: const EdgeInsets.all(3),
-                tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
               ),
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildEventList(null),
-                  _buildEventList('upcoming'),
-                  _buildEventList('ongoing'),
-                  _buildEventList('completed'),
-                  _buildEventList('archived'),
-                ],
-              ),
-            ),
           ],
         ),
-        floatingActionButton: Consumer(
-          builder: (context, ref, child) {
-            final user = ref.watch(currentUserProvider);
-            final isSuperAdmin = user?.isSuperAdmin ?? false;
-            final permissions = ref.watch(myPermissionsProvider).value ?? [];
-            final canAdd = isSuperAdmin || permissions.contains('event:add') || permissions.contains('all');
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Search Input Bar (when expanded)
+              if (_isSearching)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkElevatedSurface
+                          : AppColors.lightSecondaryBackground,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: accent.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      onChanged: _onSearchChanged,
+                      style: AppTextStyles.bodyMd.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary,
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Search by title, venue, or type...',
+                        hintStyle: AppTextStyles.bodySm.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.lightTextTertiary,
+                        ),
+                        prefixIcon:
+                            Icon(Icons.search_rounded, size: 20, color: accent),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ),
 
-            if (!canAdd) return const SizedBox.shrink();
+              // Filter Category Chips
+              eventsAsync.maybeWhen(
+                data: (events) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: EventFilterBar(
+                    filters: _filters,
+                    selectedFilter: _selectedFilter,
+                    onFilterSelected: _onFilterSelected,
+                    filterCounts: _buildFilterCounts(events),
+                  ),
+                ),
+                orElse: () => const SizedBox(height: 48),
+              ),
 
-            return FloatingActionButton(
-              onPressed: () => context.push(RouteConstants.createEvent),
-              backgroundColor: accent,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add_rounded, size: 24),
-            );
-          },
-        ),
-      ),
-    );
-  }
+              // Main Deck Viewport
+              Expanded(
+                child: eventsAsync.when(
+                  loading: () => Center(
+                    child: CircularProgressIndicator(
+                      color: accent,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                  error: (error, _) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: EmptyStateWidget(
+                        icon: Icons.error_outline_rounded,
+                        title: 'Unable to Load Events',
+                        message: error.toString(),
+                        actionLabel: 'Retry',
+                        onAction: () => ref.invalidate(eventsProvider),
+                      ),
+                    ),
+                  ),
+                  data: (events) {
+                    final filteredEvents = _getFilteredEvents(events);
 
-  Widget _buildEventList(String? statusFilter) {
-    final eventsAsync = ref.watch(eventsProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+                    if (filteredEvents.isEmpty) {
+                      return RefreshIndicator(
+                        color: accent,
+                        onRefresh: () async {
+                          ref.invalidate(eventsProvider);
+                        },
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.55,
+                              child: EmptyStateWidget(
+                                icon: Icons.event_busy_rounded,
+                                title: _searchQuery.isNotEmpty
+                                    ? 'No Matching Events'
+                                    : 'No ${_selectedFilter == 'All' ? '' : _selectedFilter} Events',
+                                message: _searchQuery.isNotEmpty
+                                    ? 'No events match "$_searchQuery". Try searching with different keywords.'
+                                    : 'There are currently no events categorized under $_selectedFilter.',
+                                actionLabel: (_selectedFilter != 'All' ||
+                                        _searchQuery.isNotEmpty)
+                                    ? 'Reset Filters'
+                                    : null,
+                                onAction: () {
+                                  setState(() {
+                                    _selectedFilter = 'All';
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                    _isSearching = false;
+                                    _currentIndex = 0;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
-    return RefreshIndicator(
-      color: accent,
-      backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
-      onRefresh: () async {
-        ref.invalidate(eventsProvider);
-        await Future.delayed(const Duration(milliseconds: 600));
-      },
-      child: eventsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        error: (error, _) => Center(
-          child: Text(
-            'Error loading events: $error',
-            style: AppTextStyles.bodyMd.copyWith(
-              color: isDark ? AppColors.errorDark : AppColors.error,
-            ),
-          ),
-        ),
-        data: (events) {
-          final filtered = statusFilter == null
-              ? events
-              : events.where((e) => e.status.toLowerCase() == statusFilter.toLowerCase()).toList();
+                    // Reconcile index if filtered list shrunk
+                    if (_currentIndex >= filteredEvents.length) {
+                      _currentIndex = filteredEvents.length - 1;
+                    }
+                    if (_currentIndex < 0) {
+                      _currentIndex = 0;
+                    }
 
-          if (filtered.isEmpty) {
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    return Column(
                       children: [
-                        Icon(Icons.event_note_outlined, size: 48, color: textSecondary),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No Events Found',
-                          style: AppTextStyles.headlineSm.copyWith(color: textSecondary),
+                        // Responsive Deck Canvas
+                        Expanded(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final availableWidth = constraints.maxWidth;
+                              final availableHeight = constraints.maxHeight;
+
+                              // Responsive card dimensions with safety padding
+                              final cardWidth =
+                                  (availableWidth - 36).clamp(280.0, 480.0);
+                              final cardHeight =
+                                  (availableHeight - 32).clamp(380.0, 680.0);
+
+                              return Center(
+                                child: EventSwipeDeck(
+                                  key: _deckKey,
+                                  events: filteredEvents,
+                                  currentIndex: _currentIndex,
+                                  cardWidth: cardWidth,
+                                  cardHeight: cardHeight,
+                                  onIndexChanged: (newIdx) {
+                                    setState(() {
+                                      _currentIndex = newIdx;
+                                    });
+                                  },
+                                  onCardTap: (event) {
+                                    context.push(
+                                        '${RouteConstants.events}/${event.id}');
+                                  },
+                                  onScanAttendance: (event) {
+                                    context.push(
+                                        '${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                  },
+                                  onEdit: canEdit
+                                      ? (event) {
+                                          context.push(
+                                              '${RouteConstants.events}/${event.id}/edit',
+                                              extra: event);
+                                        }
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
                         ),
+
+                        // Deck Navigation Controls & Accessibility Previous/Next
+                        EventDeckControls(
+                          currentIndex: _currentIndex,
+                          totalCount: filteredEvents.length,
+                          onPrevious: () => _deckKey.currentState?.swipeLeft(),
+                          onNext: () => _deckKey.currentState?.swipeRight(),
+                        ),
+                        const SizedBox(height: 6),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
-              ],
-            );
-          }
-
-          return ListView.separated(
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-            itemCount: filtered.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final event = filtered[index];
-              return _EventListItem(event: event);
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _EventListItem extends StatelessWidget {
-  final dynamic event;
-
-  const _EventListItem({required this.event});
-
-  NeonBadgeType _getStatusBadgeType(String status) {
-    switch (status.toLowerCase()) {
-      case 'ongoing':
-        return NeonBadgeType.success;
-      case 'upcoming':
-        return NeonBadgeType.warning;
-      case 'completed':
-        return NeonBadgeType.info;
-      case 'cancelled':
-      case 'archived':
-        return NeonBadgeType.error;
-      default:
-        return NeonBadgeType.neutral;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-
-    return BrlGlassCard(
-      padding: const EdgeInsets.all(16),
-      onTap: () => context.push('/events/${event.id}'),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkElevatedSurface : AppColors.lightSecondaryBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.event_outlined,
-              color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
-              size: 24,
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        event.title,
-                        style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    NeonBadge(
-                      label: event.status.toUpperCase(),
-                      type: _getStatusBadgeType(event.status),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today_outlined, size: 13, color: textSecondary),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${event.startDate.toString().split(' ').first} to ${event.endDate.toString().split(' ').first}',
-                      style: AppTextStyles.caption.copyWith(color: textSecondary),
-                    ),
-                  ],
-                ),
-                if (event.venue != null && event.venue!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 14, color: textSecondary),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          event.venue!,
-                          style: AppTextStyles.caption.copyWith(color: textSecondary),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

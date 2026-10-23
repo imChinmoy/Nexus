@@ -7,7 +7,14 @@ class EventService {
     const { page, limit, skip } = getPagination(query);
     const sort = buildSortOptions(query.sort, ['title', 'startDate', 'status', 'createdAt']);
     const filter = {};
-    if (query.status) filter.status = query.status;
+    if (query.status) {
+      const s = query.status.toLowerCase().trim();
+      if (s === 'ended' || s === 'completed') {
+        filter.status = 'completed';
+      } else {
+        filter.status = s;
+      }
+    }
     if (query.type) filter.type = query.type;
     if (query.search) filter.$text = { $search: query.search };
 

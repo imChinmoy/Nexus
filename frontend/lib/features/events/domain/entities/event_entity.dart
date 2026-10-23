@@ -24,4 +24,113 @@ class EventEntity {
     required this.capacity,
     required this.status,
   });
+
+  static bool isDateOnly(DateTime dt) {
+    return dt.hour == 0 &&
+        dt.minute == 0 &&
+        dt.second == 0 &&
+        dt.millisecond == 0 &&
+        dt.microsecond == 0;
+  }
+
+  static DateTime getStartBoundary(DateTime start) {
+    if (isDateOnly(start)) {
+      return DateTime(start.year, start.month, start.day, 0, 0, 0, 0);
+    }
+    return start;
+  }
+
+  static DateTime getEndBoundary(DateTime end) {
+    if (isDateOnly(end)) {
+      return DateTime(end.year, end.month, end.day, 23, 59, 59, 999);
+    }
+    return end;
+  }
+
+  /// Calculates the authoritative timeline status for an event.
+  /// Controllable with an optional [now] parameter for testing.
+  static String calculateEffectiveStatus({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String rawStatus,
+    DateTime? now,
+  }) {
+    final normalized = rawStatus.toLowerCase().trim();
+    if (normalized == 'cancelled') return 'cancelled';
+    if (normalized == 'archived') return 'archived';
+
+    final currentInstant = now ?? DateTime.now();
+    final startBoundary = getStartBoundary(startDate);
+    final endBoundary = getEndBoundary(endDate);
+
+    if (currentInstant.isAfter(endBoundary)) {
+      return 'completed';
+    }
+    if (currentInstant.isBefore(startBoundary)) {
+      return 'upcoming';
+    }
+    return 'ongoing';
+  }
+
+  bool isPastAt([DateTime? now]) {
+    final current = now ?? DateTime.now();
+    return current.isAfter(getEndBoundary(endDate));
+  }
+
+  bool get isPast => isPastAt();
+
+  /// Normalized effective status ensuring timeline consistency
+  String get effectiveStatus => calculateEffectiveStatus(
+        startDate: startDate,
+        endDate: endDate,
+        rawStatus: status,
+      );
+
+  String effectiveStatusAt(DateTime now) => calculateEffectiveStatus(
+        startDate: startDate,
+        endDate: endDate,
+        rawStatus: status,
+        now: now,
+      );
+
+  /// Checks if this event matches the requested category filter
+  bool matchesFilter(String? filter, [DateTime? now]) {
+    if (filter == null || filter.isEmpty || filter.toLowerCase() == 'all') {
+      return true;
+    }
+    final f = filter.toLowerCase().trim();
+    final eff = effectiveStatusAt(now ?? DateTime.now()).toLowerCase();
+    if (f == 'ended' || f == 'completed') {
+      return eff == 'completed' || eff == 'ended';
+    }
+    return eff == f;
+  }
+
+  EventEntity copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? venue,
+    String? banner,
+    bool? isAttendanceOpen,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? type,
+    int? capacity,
+    String? status,
+  }) {
+    return EventEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      venue: venue ?? this.venue,
+      banner: banner ?? this.banner,
+      isAttendanceOpen: isAttendanceOpen ?? this.isAttendanceOpen,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      type: type ?? this.type,
+      capacity: capacity ?? this.capacity,
+      status: status ?? this.status,
+    );
+  }
 }

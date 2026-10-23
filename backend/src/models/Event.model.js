@@ -36,9 +36,45 @@ const eventSchema = new mongoose.Schema(
   },
 );
 
+function calculateEffectiveStatus(startDate, endDate, status, now = new Date()) {
+  const normalized = (status || '').toLowerCase().trim();
+  if (normalized === 'cancelled' || normalized === 'archived') {
+    return normalized;
+  }
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const isEndDateOnly =
+    (end.getUTCHours() === 0 && end.getUTCMinutes() === 0 && end.getUTCSeconds() === 0 && end.getUTCMilliseconds() === 0) ||
+    (end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0 && end.getMilliseconds() === 0);
+
+  const endBoundary = isEndDateOnly
+    ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59, 999)
+    : end;
+
+  const isStartDateOnly =
+    (start.getUTCHours() === 0 && start.getUTCMinutes() === 0 && start.getUTCSeconds() === 0 && start.getUTCMilliseconds() === 0) ||
+    (start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0 && start.getMilliseconds() === 0);
+
+  const startBoundary = isStartDateOnly
+    ? new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0)
+    : start;
+
+  if (now > endBoundary) return 'completed';
+  if (now < startBoundary) return 'upcoming';
+  return 'ongoing';
+}
+
+eventSchema.virtual('effectiveStatus').get(function () {
+  return calculateEffectiveStatus(this.startDate, this.endDate, this.status);
+});
+
 eventSchema.index({ status: 1, startDate: -1 });
 eventSchema.index({ isAttendanceOpen: 1 });
 eventSchema.index({ title: 'text', description: 'text' });
 eventSchema.index({ createdBy: 1 });
 
-module.exports = mongoose.model('Event', eventSchema);
+const EventModel = mongoose.model('Event', eventSchema);
+EventModel.calculateEffectiveStatus = calculateEffectiveStatus;
+
+module.exports = EventModel;

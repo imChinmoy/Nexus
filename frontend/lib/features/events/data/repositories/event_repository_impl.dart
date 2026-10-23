@@ -63,6 +63,8 @@ class EventRepositoryImpl implements EventRepository {
     String? description,
     String? venue,
     String? bannerPath,
+    String? status,
+    bool? isAttendanceOpen,
   }) async {
     try {
       final model = await _remote.updateEvent(
@@ -75,7 +77,21 @@ class EventRepositoryImpl implements EventRepository {
         description: description,
         venue: venue,
         bannerPath: bannerPath,
+        status: status,
+        isAttendanceOpen: isAttendanceOpen,
       );
+      return Right(model.toEntity());
+    } on AppException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, EventEntity>> toggleAttendance(String id, bool isOpen) async {
+    try {
+      final model = await _remote.toggleAttendance(id, isOpen);
       return Right(model.toEntity());
     } on AppException catch (e) {
       return Left(ServerFailure(e.message));

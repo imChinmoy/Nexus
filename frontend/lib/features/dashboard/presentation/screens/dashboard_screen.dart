@@ -64,7 +64,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       // 2. Featured Event Hero Card
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-                        child: _buildFeaturedEventCard(context, featuredEvent, isDark),
+                        child: _buildFeaturedEventCard(
+                          context,
+                          featuredEvent,
+                          isDark,
+                          isAdmin: user?.isAdmin ?? false,
+                        ),
                       ),
 
                       // 3. Attendance Overview (Single Compact Horizontal Statistics Section)
@@ -288,7 +293,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   // 2. FEATURED EVENT (HERO WIDE CARD)
   // ---------------------------------------------------------------------------
-  Widget _buildFeaturedEventCard(BuildContext context, EventEntity? event, bool isDark) {
+  Widget _buildFeaturedEventCard(
+    BuildContext context,
+    EventEntity? event,
+    bool isDark, {
+    bool isAdmin = false,
+  }) {
     if (event == null) {
       return _buildEmptyFeaturedCard(context, isDark);
     }
@@ -371,12 +381,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                               decoration: BoxDecoration(
-                                color: event.isAttendanceOpen
+                                color: (event.isAttendanceOpen && !event.isPast)
                                     ? successColor.withValues(alpha: 0.25)
                                     : Colors.black.withValues(alpha: 0.45),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: event.isAttendanceOpen
+                                  color: (event.isAttendanceOpen && !event.isPast)
                                       ? successColor.withValues(alpha: 0.8)
                                       : Colors.white.withValues(alpha: 0.25),
                                   width: 0.8,
@@ -389,20 +399,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     width: 7,
                                     height: 7,
                                     decoration: BoxDecoration(
-                                      color: event.isAttendanceOpen ? successColor : Colors.white70,
+                                      color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white70,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    event.isAttendanceOpen
+                                    (event.isAttendanceOpen && !event.isPast)
                                         ? 'LIVE CHECK-IN OPEN'
-                                        : event.status.toUpperCase(),
+                                        : event.effectiveStatus.toUpperCase(),
                                     style: GoogleFonts.inter(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.5,
-                                      color: event.isAttendanceOpen ? successColor : Colors.white,
+                                      color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white,
                                     ),
                                   ),
                                 ],
@@ -507,7 +517,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       ),
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: event.isAttendanceOpen ? successColor : accent,
+                                      backgroundColor: (event.isAttendanceOpen && !event.isPast) ? successColor : accent,
                                       foregroundColor: Colors.white,
                                       elevation: 0,
                                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -518,6 +528,74 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
+
+                                // Admin Quick Attendance Toggle
+                                if (isAdmin) ...[
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: (event.isAttendanceOpen && !event.isPast)
+                                          ? successColor.withValues(alpha: 0.25)
+                                          : Colors.white.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(11),
+                                      border: Border.all(
+                                        color: (event.isAttendanceOpen && !event.isPast)
+                                            ? successColor.withValues(alpha: 0.8)
+                                            : Colors.white.withValues(alpha: 0.25),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        HapticFeedback.mediumImpact();
+                                        final nextState = !(event.isAttendanceOpen && !event.isPast);
+                                        final result = await ref
+                                            .read(eventRepositoryProvider)
+                                            .toggleAttendance(event.id, nextState);
+                                        result.fold(
+                                          (failure) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(failure.message),
+                                                backgroundColor: AppColors.errorOf(context),
+                                              ),
+                                            );
+                                          },
+                                          (_) {
+                                            ref.invalidate(eventsProvider);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  nextState
+                                                      ? 'Attendance check-in opened'
+                                                      : 'Attendance check-in closed',
+                                                ),
+                                                backgroundColor: nextState
+                                                    ? successColor
+                                                    : AppColors.surfaceOf(context),
+                                                duration: const Duration(milliseconds: 1500),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: Icon(
+                                        (event.isAttendanceOpen && !event.isPast)
+                                            ? Icons.how_to_reg_rounded
+                                            : Icons.person_off_outlined,
+                                        size: 18,
+                                        color: (event.isAttendanceOpen && !event.isPast)
+                                            ? successColor
+                                            : Colors.white,
+                                      ),
+                                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                                      padding: EdgeInsets.zero,
+                                      tooltip: (event.isAttendanceOpen && !event.isPast)
+                                          ? 'Close Attendance'
+                                          : 'Open Attendance',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
 
                                 // Secondary Info / Details Button
                                 Container(
@@ -1541,22 +1619,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   EventEntity? _resolveFeaturedEvent(List<EventEntity> events) {
     if (events.isEmpty) return null;
 
-    // 1. Priority 1: Open attendance event
-    final openEvent = events.where((e) => e.isAttendanceOpen).firstOrNull;
+    final now = DateTime.now();
+
+    // Active (non-past, non-completed, non-cancelled) events
+    final activeEvents = events
+        .where((e) => !now.isAfter(e.endDate) && e.status != 'completed' && e.status != 'cancelled')
+        .toList();
+
+    // 1. Priority 1: Open attendance active event
+    final openEvent = activeEvents.where((e) => e.isAttendanceOpen).firstOrNull;
     if (openEvent != null) return openEvent;
 
-    // 2. Priority 2: Ongoing event
-    final ongoingEvent = events.where((e) => e.status == 'ongoing').firstOrNull;
+    // 2. Priority 2: Currently ongoing active event
+    final ongoingEvent = activeEvents
+        .where((e) => e.status == 'ongoing' || (now.isAfter(e.startDate) && now.isBefore(e.endDate)))
+        .firstOrNull;
     if (ongoingEvent != null) return ongoingEvent;
 
     // 3. Priority 3: Upcoming event closest to current date
-    final upcoming = events.where((e) => e.status == 'upcoming').toList();
+    final upcoming = activeEvents
+        .where((e) => e.status == 'upcoming' || now.isBefore(e.startDate))
+        .toList();
     if (upcoming.isNotEmpty) {
       upcoming.sort((a, b) => a.startDate.compareTo(b.startDate));
       return upcoming.first;
     }
 
-    // 4. Default: First event
-    return events.first;
+    // 4. Fallback: If all events are completed or past, feature the most recent event
+    final sortedByDate = List<EventEntity>.from(events)
+      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    return sortedByDate.first;
   }
 }

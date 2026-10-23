@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/route_constants.dart';
@@ -11,6 +12,7 @@ import '../../../../shared/widgets/brl_button.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../domain/entities/event_entity.dart';
 import '../../providers/event_provider.dart';
 
 class EventDetailScreen extends ConsumerWidget {
@@ -24,7 +26,9 @@ class EventDetailScreen extends ConsumerWidget {
     final isSuperAdmin = user?.isSuperAdmin ?? false;
     final permissionsAsync = ref.watch(myPermissionsProvider);
     final permissions = permissionsAsync.value ?? [];
-    final hasEventEdit = isSuperAdmin || permissions.contains('event:edit') || permissions.contains('all');
+    final hasEventEdit = isSuperAdmin ||
+        permissions.contains('event:edit') ||
+        permissions.contains('all');
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedGradientBg(
@@ -32,17 +36,21 @@ class EventDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         body: eventsAsync.when(
           loading: () => Center(
-            child: CircularProgressIndicator(color: AppColors.accentOf(context)),
+            child:
+                CircularProgressIndicator(color: AppColors.accentOf(context)),
           ),
           error: (err, _) => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.errorOf(context)),
+                Icon(Icons.error_outline,
+                    size: 48, color: AppColors.errorOf(context)),
                 const SizedBox(height: 12),
                 Text('Failed to load event', style: AppTextStyles.headlineSm),
                 const SizedBox(height: 6),
-                Text(err.toString(), style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context))),
+                Text(err.toString(),
+                    style: AppTextStyles.bodySm
+                        .copyWith(color: AppColors.textSecondaryOf(context))),
               ],
             ),
           ),
@@ -58,7 +66,8 @@ class EventDetailScreen extends ConsumerWidget {
                   expandedHeight: 260,
                   pinned: true,
                   elevation: 0,
-                  backgroundColor: AppColors.surfaceOf(context).withValues(alpha: 0.85),
+                  backgroundColor:
+                      AppColors.surfaceOf(context).withValues(alpha: 0.85),
                   surfaceTintColor: Colors.transparent,
                   leading: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -71,7 +80,8 @@ class EventDetailScreen extends ConsumerWidget {
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.white),
+                            icon: const Icon(Icons.arrow_back_ios_new,
+                                size: 18, color: Colors.white),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ),
@@ -91,9 +101,12 @@ class EventDetailScreen extends ConsumerWidget {
                                 shape: BoxShape.circle,
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.white),
+                                icon: const Icon(Icons.edit_outlined,
+                                    size: 20, color: Colors.white),
                                 onPressed: () {
-                                  context.push('${RouteConstants.events}/${event.id}/edit', extra: event);
+                                  context.push(
+                                      '${RouteConstants.events}/${event.id}/edit',
+                                      extra: event);
                                 },
                               ),
                             ),
@@ -110,12 +123,17 @@ class EventDetailScreen extends ConsumerWidget {
                             imageUrl: event.banner!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
-                              color: isDark ? const Color(0xFF1E1E22) : const Color(0xFFE5E5EA),
+                              color: isDark
+                                  ? const Color(0xFF1E1E22)
+                                  : const Color(0xFFE5E5EA),
                               child: Center(
-                                child: CircularProgressIndicator(color: AppColors.accentOf(context), strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    color: AppColors.accentOf(context),
+                                    strokeWidth: 2),
                               ),
                             ),
-                            errorWidget: (context, url, error) => _buildPlaceholderBanner(context),
+                            errorWidget: (context, url, error) =>
+                                _buildPlaceholderBanner(context),
                           )
                         else
                           _buildPlaceholderBanner(context),
@@ -129,8 +147,10 @@ class EventDetailScreen extends ConsumerWidget {
                                 Colors.black.withValues(alpha: 0.35),
                                 Colors.transparent,
                                 isDark
-                                    ? const Color(0xFF111114).withValues(alpha: 0.95)
-                                    : const Color(0xFFF5F5F7).withValues(alpha: 0.95),
+                                    ? const Color(0xFF111114)
+                                        .withValues(alpha: 0.95)
+                                    : const Color(0xFFF5F5F7)
+                                        .withValues(alpha: 0.95),
                               ],
                               stops: const [0.0, 0.5, 1.0],
                             ),
@@ -150,8 +170,8 @@ class EventDetailScreen extends ConsumerWidget {
                         Row(
                           children: [
                             NeonBadge(
-                              label: event.status.toUpperCase(),
-                              type: _getStatusType(event.status),
+                              label: event.effectiveStatus.toUpperCase(),
+                              type: _getStatusType(event.effectiveStatus),
                             ),
                             const SizedBox(width: 8),
                             NeonBadge(
@@ -160,11 +180,14 @@ class EventDetailScreen extends ConsumerWidget {
                             ),
                             const Spacer(),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: event.isAttendanceOpen
-                                    ? AppColors.successOf(context).withValues(alpha: 0.12)
-                                    : AppColors.textTertiaryOf(context).withValues(alpha: 0.1),
+                                color: (event.isAttendanceOpen && !event.isPast)
+                                    ? AppColors.successOf(context)
+                                        .withValues(alpha: 0.12)
+                                    : AppColors.textTertiaryOf(context)
+                                        .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -175,17 +198,21 @@ class EventDetailScreen extends ConsumerWidget {
                                     height: 6,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: event.isAttendanceOpen
+                                      color: (event.isAttendanceOpen &&
+                                              !event.isPast)
                                           ? AppColors.successOf(context)
                                           : AppColors.textTertiaryOf(context),
                                     ),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    event.isAttendanceOpen ? 'Attendance Open' : 'Attendance Closed',
+                                    (event.isAttendanceOpen && !event.isPast)
+                                        ? 'Attendance Open'
+                                        : 'Attendance Closed',
                                     style: AppTextStyles.caption.copyWith(
                                       fontWeight: FontWeight.w600,
-                                      color: event.isAttendanceOpen
+                                      color: (event.isAttendanceOpen &&
+                                              !event.isPast)
                                           ? AppColors.successOf(context)
                                           : AppColors.textSecondaryOf(context),
                                     ),
@@ -216,7 +243,8 @@ class EventDetailScreen extends ConsumerWidget {
                                 label: 'Scan QR Attendance',
                                 icon: Icons.qr_code_scanner,
                                 onPressed: () {
-                                  context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                  context.push(
+                                      '${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
                                 },
                               ),
                             ),
@@ -228,40 +256,57 @@ class EventDetailScreen extends ConsumerWidget {
                                 variant: BrlButtonVariant.secondary,
                                 icon: Icons.edit_note_rounded,
                                 onPressed: () {
-                                  context.push('${RouteConstants.attendance}/manual?eventId=${event.id}');
+                                  context.push(
+                                      '${RouteConstants.attendance}/manual?eventId=${event.id}');
                                 },
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
+
+                        // Admin Operations Controls Card (Status update & Attendance toggle)
+                        if (hasEventEdit) ...[
+                          _buildAdminControlsCard(context, ref, event),
+                          const SizedBox(height: 24),
+                        ],
 
                         // Event Meta Group
                         _buildSectionHeader(context, 'EVENT OVERVIEW'),
                         const SizedBox(height: 8),
                         BrlGlassCard(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           child: Column(
                             children: [
                               _buildMetaRow(
                                 context,
                                 icon: Icons.calendar_today_rounded,
                                 label: 'Dates',
-                                value: '${_formatDate(event.startDate)} – ${_formatDate(event.endDate)}',
+                                value:
+                                    '${_formatDate(event.startDate)} – ${_formatDate(event.endDate)}',
                               ),
-                              Divider(color: AppColors.borderOf(context), height: 1),
+                              Divider(
+                                  color: AppColors.borderOf(context),
+                                  height: 1),
                               _buildMetaRow(
                                 context,
                                 icon: Icons.location_on_outlined,
                                 label: 'Venue',
-                                value: event.venue?.isNotEmpty == true ? event.venue! : 'To Be Announced',
+                                value: event.venue?.isNotEmpty == true
+                                    ? event.venue!
+                                    : 'To Be Announced',
                               ),
-                              Divider(color: AppColors.borderOf(context), height: 1),
+                              Divider(
+                                  color: AppColors.borderOf(context),
+                                  height: 1),
                               _buildMetaRow(
                                 context,
                                 icon: Icons.groups_outlined,
                                 label: 'Capacity',
-                                value: event.capacity > 0 ? '${event.capacity} Attendees' : 'Unlimited Capacity',
+                                value: event.capacity > 0
+                                    ? '${event.capacity} Attendees'
+                                    : 'Unlimited Capacity',
                               ),
                             ],
                           ),
@@ -382,7 +427,252 @@ class EventDetailScreen extends ConsumerWidget {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  Widget _buildAdminControlsCard(
+      BuildContext context, WidgetRef ref, EventEntity event) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.accentOf(context);
+    final successColor = AppColors.successOf(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader(context, 'ADMIN OPERATIONS'),
+            InkWell(
+              onTap: () {
+                context.push('${RouteConstants.events}/${event.id}/edit',
+                    extra: event);
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.edit_outlined, size: 13, color: accent),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Full Edit',
+                      style: AppTextStyles.caption.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        BrlGlassCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Live Attendance Check-In Switch
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: (event.isAttendanceOpen
+                                  ? successColor
+                                  : AppColors.textTertiaryOf(context))
+                              .withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          event.isAttendanceOpen
+                              ? Icons.how_to_reg_rounded
+                              : Icons.person_off_outlined,
+                          size: 18,
+                          color: event.isAttendanceOpen
+                              ? successColor
+                              : AppColors.textTertiaryOf(context),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Live Attendance Check-In',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimaryOf(context),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            event.isAttendanceOpen
+                                ? 'Status: OPEN for verification'
+                                : 'Status: CLOSED',
+                            style: AppTextStyles.caption.copyWith(
+                              color: event.isAttendanceOpen
+                                  ? successColor
+                                  : AppColors.textSecondaryOf(context),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Switch.adaptive(
+                    value: event.isAttendanceOpen,
+                    activeTrackColor: successColor,
+                    onChanged: (val) async {
+                      HapticFeedback.mediumImpact();
+                      final result = await ref
+                          .read(eventRepositoryProvider)
+                          .toggleAttendance(event.id, val);
+                      result.fold(
+                        (failure) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(failure.message),
+                              backgroundColor: AppColors.errorOf(context),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        (_) {
+                          ref.invalidate(eventsProvider);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Attendance check-in ${val ? 'opened' : 'closed'}'),
+                              backgroundColor: val
+                                  ? successColor
+                                  : AppColors.surfaceOf(context),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(milliseconds: 1500),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Divider(color: AppColors.borderOf(context), height: 1),
+              const SizedBox(height: 14),
+
+              // 2. Status Quick Selector
+              Text(
+                'Lifecycle Status',
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondaryOf(context),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['upcoming', 'ongoing', 'completed', 'cancelled']
+                    .map((statusKey) {
+                  final isCurrent = event.status.toLowerCase() == statusKey;
+                  final Color chipColor;
+                  switch (statusKey) {
+                    case 'ongoing':
+                      chipColor = successColor;
+                      break;
+                    case 'completed':
+                      chipColor = accent;
+                      break;
+                    case 'cancelled':
+                      chipColor = AppColors.errorOf(context);
+                      break;
+                    default:
+                      chipColor = AppColors.warningOf(context);
+                  }
+
+                  return ChoiceChip(
+                    label: Text(
+                      statusKey[0].toUpperCase() + statusKey.substring(1),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight:
+                            isCurrent ? FontWeight.w700 : FontWeight.w500,
+                        color: isCurrent
+                            ? Colors.white
+                            : AppColors.textSecondaryOf(context),
+                      ),
+                    ),
+                    selected: isCurrent,
+                    selectedColor: chipColor,
+                    backgroundColor: isDark
+                        ? const Color(0xFF242428)
+                        : const Color(0xFFEBEBEF),
+                    side: BorderSide(
+                      color:
+                          isCurrent ? chipColor : AppColors.borderOf(context),
+                      width: 0.8,
+                    ),
+                    onSelected: (selected) async {
+                      if (!selected || isCurrent) return;
+                      HapticFeedback.selectionClick();
+                      final result =
+                          await ref.read(eventRepositoryProvider).updateEvent(
+                                event.id,
+                                status: statusKey,
+                              );
+                      result.fold(
+                        (failure) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(failure.message),
+                              backgroundColor: AppColors.errorOf(context),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        (_) {
+                          ref.invalidate(eventsProvider);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Status updated to ${statusKey.toUpperCase()}'),
+                              backgroundColor: chipColor,
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(milliseconds: 1500),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

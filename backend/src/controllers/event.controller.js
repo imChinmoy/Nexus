@@ -32,6 +32,9 @@ exports.update = asyncHandler(async (req, res) => {
   if (req.file) {
     eventData.banner = req.file.path;
   }
+  if (eventData.isAttendanceOpen !== undefined) {
+    eventData.isAttendanceOpen = eventData.isAttendanceOpen === true || eventData.isAttendanceOpen === 'true';
+  }
   const event = await eventService.update(req.params.id, eventData);
   sendSuccess(res, 'Event updated successfully', event);
 });

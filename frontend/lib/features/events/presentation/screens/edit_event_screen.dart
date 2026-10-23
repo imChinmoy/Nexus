@@ -31,6 +31,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
   late String _type;
+  late String _status;
+  late bool _isAttendanceOpen;
   File? _bannerImage;
   bool _isLoading = false;
 
@@ -44,6 +46,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     _startDate = widget.event.startDate;
     _endDate = widget.event.endDate;
     _type = widget.event.type.toLowerCase();
+    _status = widget.event.status.toLowerCase();
+    _isAttendanceOpen = widget.event.isAttendanceOpen;
   }
 
   Future<void> _pickImage() async {
@@ -116,6 +120,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         endDate: _endDate,
         type: _type,
         bannerPath: _bannerImage?.path,
+        status: _status,
+        isAttendanceOpen: _isAttendanceOpen,
       );
 
       result.fold(
@@ -126,7 +132,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               content: Text(failure.message),
               backgroundColor: AppColors.errorOf(context),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
           );
         },
@@ -137,7 +144,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               content: const Text('Event updated successfully'),
               backgroundColor: AppColors.successOf(context),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
           );
           ref.invalidate(eventsProvider);
@@ -151,7 +159,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             content: Text(e.toString()),
             backgroundColor: AppColors.errorOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -197,7 +206,9 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       height: 180,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF161619) : const Color(0xFFF0F0F3),
+                        color: isDark
+                            ? const Color(0xFF161619)
+                            : const Color(0xFFF0F0F3),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Stack(
@@ -206,15 +217,18 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           if (_bannerImage != null)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: Image.file(_bannerImage!, fit: BoxFit.cover),
+                              child:
+                                  Image.file(_bannerImage!, fit: BoxFit.cover),
                             )
-                          else if (widget.event.banner != null && widget.event.banner!.isNotEmpty)
+                          else if (widget.event.banner != null &&
+                              widget.event.banner!.isNotEmpty)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: CachedNetworkImage(
                                 imageUrl: widget.event.banner!,
                                 fit: BoxFit.cover,
-                                errorWidget: (context, url, error) => _buildPlaceholder(),
+                                errorWidget: (context, url, error) =>
+                                    _buildPlaceholder(),
                               ),
                             )
                           else
@@ -223,7 +237,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             right: 12,
                             bottom: 12,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.65),
                                 borderRadius: BorderRadius.circular(20),
@@ -231,7 +246,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.photo_camera_outlined, size: 14, color: Colors.white),
+                                  Icon(Icons.photo_camera_outlined,
+                                      size: 14, color: Colors.white),
                                   SizedBox(width: 4),
                                   Text(
                                     'Change',
@@ -264,12 +280,15 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                         label: 'Event Title',
                         hintText: 'e.g., Annual Tech Symposium',
                         controller: _titleController,
-                        validator: (val) => val == null || val.trim().isEmpty ? 'Title is required' : null,
+                        validator: (val) => val == null || val.trim().isEmpty
+                            ? 'Title is required'
+                            : null,
                       ),
                       const SizedBox(height: 14),
                       BrlTextField(
                         label: 'Description',
-                        hintText: 'Brief summary of agenda, speakers, requirements...',
+                        hintText:
+                            'Brief summary of agenda, speakers, requirements...',
                         controller: _descriptionController,
                         maxLines: 3,
                       ),
@@ -312,31 +331,49 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               decoration: BoxDecoration(
                                 color: AppColors.surfaceOf(context),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                                border: Border.all(
+                                    color: AppColors.borderOf(context),
+                                    width: 0.8),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   value: _type,
                                   isExpanded: true,
                                   dropdownColor: AppColors.surfaceOf(context),
-                                  icon: Icon(Icons.arrow_drop_down, color: AppColors.textSecondaryOf(context)),
-                                  items: ['workshop', 'seminar', 'hackathon', 'meeting', 'recruitment', 'social', 'other']
+                                  icon: Icon(Icons.arrow_drop_down,
+                                      color:
+                                          AppColors.textSecondaryOf(context)),
+                                  items: [
+                                    'workshop',
+                                    'seminar',
+                                    'hackathon',
+                                    'meeting',
+                                    'recruitment',
+                                    'social',
+                                    'other'
+                                  ]
                                       .map((t) => DropdownMenuItem(
                                             value: t,
                                             child: Text(
-                                              t[0].toUpperCase() + t.substring(1),
-                                              style: AppTextStyles.bodyMd.copyWith(
-                                                color: AppColors.textPrimaryOf(context),
+                                              t[0].toUpperCase() +
+                                                  t.substring(1),
+                                              style:
+                                                  AppTextStyles.bodyMd.copyWith(
+                                                color: AppColors.textPrimaryOf(
+                                                    context),
                                               ),
                                             ),
                                           ))
                                       .toList(),
                                   onChanged: (val) {
-                                    if (val != null) setState(() => _type = val);
+                                    if (val != null) {
+                                      setState(() => _type = val);
+                                    }
                                   },
                                 ),
                               ),
@@ -374,6 +411,114 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                // Status & Attendance Controls
+                _buildSectionHeader('EVENT STATUS & ATTENDANCE'),
+                const SizedBox(height: 8),
+                BrlGlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Operational Status',
+                        style: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondaryOf(context),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceOf(context),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: AppColors.borderOf(context), width: 0.8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: [
+                              'upcoming',
+                              'ongoing',
+                              'completed',
+                              'cancelled',
+                              'archived'
+                            ].contains(_status)
+                                ? _status
+                                : 'upcoming',
+                            isExpanded: true,
+                            dropdownColor: AppColors.surfaceOf(context),
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: AppColors.textSecondaryOf(context)),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'upcoming', child: Text('Upcoming')),
+                              DropdownMenuItem(
+                                  value: 'ongoing',
+                                  child: Text('Ongoing (Live)')),
+                              DropdownMenuItem(
+                                  value: 'completed', child: Text('Completed')),
+                              DropdownMenuItem(
+                                  value: 'cancelled', child: Text('Cancelled')),
+                              DropdownMenuItem(
+                                  value: 'archived', child: Text('Archived')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _status = val);
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Divider(color: AppColors.borderOf(context), height: 1),
+                      const SizedBox(height: 12),
+
+                      // Attendance Check-in Switch
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Live Attendance Check-In',
+                                  style: AppTextStyles.bodyMd.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimaryOf(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _isAttendanceOpen
+                                      ? 'Check-in is OPEN for scanning and manual entry'
+                                      : 'Check-in is currently CLOSED',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: _isAttendanceOpen
+                                        ? AppColors.successOf(context)
+                                        : AppColors.textSecondaryOf(context),
+                                    fontWeight: _isAttendanceOpen
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch.adaptive(
+                            value: _isAttendanceOpen,
+                            activeTrackColor: AppColors.successOf(context),
+                            onChanged: (val) {
+                              setState(() => _isAttendanceOpen = val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 28),
 
                 BrlButton(
@@ -396,11 +541,13 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.image_outlined, size: 36, color: primaryAccent.withValues(alpha: 0.5)),
+        Icon(Icons.image_outlined,
+            size: 36, color: primaryAccent.withValues(alpha: 0.5)),
         const SizedBox(height: 8),
         Text(
           'No Image Selected',
-          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+          style: AppTextStyles.caption
+              .copyWith(color: AppColors.textSecondaryOf(context)),
         ),
       ],
     );
@@ -442,7 +589,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.accentOf(context)),
+                Icon(Icons.calendar_today_outlined,
+                    size: 14, color: AppColors.accentOf(context)),
                 const SizedBox(width: 6),
                 Text(
                   title,
@@ -467,7 +615,20 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   }
 
   String _monthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return months[month - 1];
   }
 }

@@ -42,7 +42,9 @@ class EventModel {
             : DateTime.now(),
         type: json['type'] as String? ?? 'general',
         capacity: json['capacity'] as int? ?? 0,
-        status: json['status'] as String? ?? 'upcoming',
+        status: json['effectiveStatus'] as String? ??
+            json['status'] as String? ??
+            'upcoming',
       );
 
   EventEntity toEntity() => EventEntity(

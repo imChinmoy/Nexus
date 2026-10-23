@@ -66,7 +66,13 @@ class MockEventRepository implements EventRepository {
     String? description,
     String? venue,
     String? bannerPath,
+    String? status,
+    bool? isAttendanceOpen,
   }) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, EventEntity>> toggleAttendance(String id, bool isOpen) async =>
       throw UnimplementedError();
 }
 

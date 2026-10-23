@@ -24,5 +24,8 @@ abstract interface class EventRepository {
     String? description,
     String? venue,
     String? bannerPath,
+    String? status,
+    bool? isAttendanceOpen,
   });
+  Future<Either<Failure, EventEntity>> toggleAttendance(String id, bool isOpen);
 }
