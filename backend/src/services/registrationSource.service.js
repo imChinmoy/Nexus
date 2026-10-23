@@ -39,6 +39,32 @@ class RegistrationSourceService {
   }
 
   /**
+   * Helper to resolve the registration source key from an event object or payload.
+   * Checks explicit registrationSourceKey, meta.registrationSourceKey,
+   * and falls back to canonical inference from title, type, and description.
+   *
+   * @param {object|null} event
+   * @returns {string|null}
+   */
+  resolveEventSourceKey(event) {
+    if (!event) return null;
+    const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+    if (sourceKey && typeof sourceKey === 'string' && sourceKey.trim()) {
+      return sourceKey.trim();
+    }
+
+    const text = `${event.title || ''} ${event.type || ''} ${event.description || ''}`.toLowerCase();
+    if (text.includes('reload')) {
+      return 'reload';
+    }
+    if (text.includes('seminar') || text.includes('expert')) {
+      return 'expert-seminar';
+    }
+
+    return null;
+  }
+
+  /**
    * Check if a registration source key is valid and configured.
    * @param {string} key
    * @returns {boolean}
@@ -162,9 +188,12 @@ class RegistrationSourceService {
       // Re-use connection pool without opening new TCP connections
       const targetDb = mongoose.connection.useDb(dbName, { useCache: true });
 
-      // Verify collection existence in target database
-      const collections = await targetDb.db.listCollections({ name: collectionName }).toArray();
-      if (!collections || collections.length === 0) {
+      // Verify collection existence in target database (case-insensitive)
+      const allCollections = await targetDb.db.listCollections().toArray();
+      const matched = allCollections.find((c) => c.name.toLowerCase() === collectionName.toLowerCase()) ||
+                      allCollections.find((c) => c.name.toLowerCase().includes('regist'));
+
+      if (!matched) {
         throw {
           status: 404,
           code: 'REGISTRATION_COLLECTION_NOT_FOUND',
@@ -172,8 +201,8 @@ class RegistrationSourceService {
         };
       }
 
-      const collection = targetDb.collection(collectionName);
-      return { collection, dbName, collectionName };
+      const collection = targetDb.collection(matched.name);
+      return { collection, dbName, collectionName: matched.name };
     } catch (err) {
       if (err.code === 'REGISTRATION_COLLECTION_NOT_FOUND') {
         throw err;

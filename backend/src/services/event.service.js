@@ -22,11 +22,21 @@ class EventService {
   }
 
   async create(data, userId) {
-    return eventRepository.create({ ...data, createdBy: userId });
+    const registrationSourceService = require('./registrationSource.service');
+    const enriched = { ...data };
+    if (!enriched.registrationSourceKey) {
+      enriched.registrationSourceKey = registrationSourceService.resolveEventSourceKey(enriched);
+    }
+    return eventRepository.create({ ...enriched, createdBy: userId });
   }
 
   async update(id, data) {
-    const event = await eventRepository.updateById(id, data);
+    const registrationSourceService = require('./registrationSource.service');
+    const enriched = { ...data };
+    if (!enriched.registrationSourceKey && enriched.title) {
+      enriched.registrationSourceKey = registrationSourceService.resolveEventSourceKey(enriched);
+    }
+    const event = await eventRepository.updateById(id, enriched);
     if (!event) throw { status: 404, message: 'Event not found' };
     return event;
   }

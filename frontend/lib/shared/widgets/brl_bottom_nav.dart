@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +5,9 @@ import '../../core/constants/route_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
+/// Minimalist, modern floating pill HomeBar inspired by @jsav.design.
+/// Features a dark capsule with a smooth-sliding circular white indicator,
+/// high-contrast monochrome iconography, and subtle floating drop shadows.
 class BrlBottomNav extends StatelessWidget {
   final Widget child;
 
@@ -13,9 +15,9 @@ class BrlBottomNav extends StatelessWidget {
 
   static const _items = [
     _NavItem(
-      label: 'Ops',
-      icon: Icons.space_dashboard_outlined,
-      activeIcon: Icons.space_dashboard_rounded,
+      label: 'Home',
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
       route: RouteConstants.dashboard,
     ),
     _NavItem(
@@ -39,7 +41,7 @@ class BrlBottomNav extends StatelessWidget {
     ),
     _NavItem(
       label: 'Settings',
-      icon: Icons.tune_outlined,
+      icon: Icons.tune_rounded,
       activeIcon: Icons.tune_rounded,
       route: RouteConstants.settings,
     ),
@@ -59,9 +61,7 @@ class BrlBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedIndex = _selectedIndex(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = (isDark ? AppColors.darkSurface : AppColors.lightSurface)
-        .withValues(alpha: isDark ? 0.90 : 0.95);
-    final separatorColor = isDark ? AppColors.darkSeparator : AppColors.lightSeparator;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
 
     return PopScope(
       canPop: false,
@@ -108,45 +108,35 @@ class BrlBottomNav extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: child,
-        bottomNavigationBar: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              decoration: BoxDecoration(
-                color: surfaceColor,
-                border: Border(
-                  top: BorderSide(color: separatorColor, width: 0.5),
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  height: 50,
-                  child: Row(
-                    children: List.generate(_items.length, (i) {
-                      final item = _items[i];
-                      final isSelected = i == selectedIndex;
-                      return Expanded(
-                        child: item.isScanner
-                            ? _ScannerShortcutWidget(
-                                item: item,
-                                isSelected: isSelected,
-                                onTap: () {
-                                  HapticFeedback.lightImpact();
-                                  context.push(item.route);
-                                },
-                              )
-                            : _NavItemWidget(
-                                item: item,
-                                isSelected: isSelected,
-                                onTap: () {
-                                  HapticFeedback.selectionClick();
-                                  context.go(item.route);
-                                },
-                              ),
-                      );
-                    }),
-                  ),
+        bottomNavigationBar: Container(
+          color: bgColor,
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 4,
+            bottom: MediaQuery.of(context).padding.bottom > 0
+                ? MediaQuery.of(context).padding.bottom + 4
+                : 14,
+          ),
+          child: SizedBox(
+            height: 64,
+            child: Align(
+              alignment: Alignment.center,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: _ModernHomeBar(
+                  items: _items,
+                  selectedIndex: selectedIndex,
+                  isDark: isDark,
+                  onItemTapped: (index, item) {
+                    if (item.isScanner) {
+                      HapticFeedback.lightImpact();
+                      context.push(item.route);
+                    } else {
+                      HapticFeedback.selectionClick();
+                      context.go(item.route);
+                    }
+                  },
                 ),
               ),
             ),
@@ -173,73 +163,103 @@ class _NavItem {
   });
 }
 
-class _NavItemWidget extends StatelessWidget {
-  final _NavItem item;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _ModernHomeBar extends StatelessWidget {
+  final List<_NavItem> items;
+  final int selectedIndex;
+  final bool isDark;
+  final void Function(int index, _NavItem item) onItemTapped;
 
-  const _NavItemWidget({
-    required this.item,
-    required this.isSelected,
-    required this.onTap,
+  const _ModernHomeBar({
+    required this.items,
+    required this.selectedIndex,
+    required this.isDark,
+    required this.onItemTapped,
   });
+
+  static const double _barHeight = 64.0;
+  static const double _verticalPadding = 6.0;
+  static const double _horizontalPadding = 6.0;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final activeColor = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+    // Pill capsule styling matching @jsav.design mockup
+    final barBgColor = isDark ? const Color(0xFF16161A) : const Color(0xFF101012);
+    final borderColor = isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
 
-    return Semantics(
-      label: item.label,
-      selected: isSelected,
-      button: true,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      height: _barHeight,
+      decoration: BoxDecoration(
+        color: barBgColor,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: borderColor, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.20),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: _horizontalPadding,
+        vertical: _verticalPadding,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          final itemWidth = totalWidth / items.length;
+          final indicatorSize = constraints.maxHeight; // 52.0 (64 - 12)
+          final indicatorLeft = selectedIndex * itemWidth + (itemWidth - indicatorSize) / 2;
+
+          return Stack(
+            alignment: Alignment.centerLeft,
             children: [
-              AnimatedScale(
-                scale: isSelected ? 1.08 : 1.0,
-                duration: const Duration(milliseconds: 180),
-                child: Icon(
-                  isSelected ? item.activeIcon : item.icon,
-                  color: isSelected ? activeColor : inactiveColor,
-                  size: 20,
+              // 1. Sliding Circular Active Indicator (Smooth pure white bubble)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.fastOutSlowIn,
+                left: indicatorLeft,
+                top: 0,
+                child: Container(
+                  width: indicatorSize,
+                  height: indicatorSize,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                item.label,
-                style: AppTextStyles.labelSm.copyWith(
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? activeColor : inactiveColor,
-                  letterSpacing: -0.1,
-                ),
-                maxLines: 1,
+
+              // 2. Interactive Row of Icons
+              Row(
+                children: List.generate(items.length, (index) {
+                  final item = items[index];
+                  final isSelected = index == selectedIndex;
+
+                  return Expanded(
+                    child: _HomeBarItemWidget(
+                      item: item,
+                      isSelected: isSelected,
+                      onTap: () => onItemTapped(index, item),
+                    ),
+                  );
+                }),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class _ScannerShortcutWidget extends StatelessWidget {
+class _HomeBarItemWidget extends StatelessWidget {
   final _NavItem item;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ScannerShortcutWidget({
+  const _HomeBarItemWidget({
     required this.item,
     required this.isSelected,
     required this.onTap,
@@ -247,46 +267,42 @@ class _ScannerShortcutWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
+    // When selected: pitch dark icon inside white circle
+    // When unselected: clean white outline icon
+    final targetColor = isSelected ? const Color(0xFF101012) : Colors.white.withValues(alpha: 0.90);
 
     return Semantics(
-      label: 'Scan QR Shortcut',
+      label: item.label,
+      selected: isSelected,
       button: true,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: accent.withValues(alpha: isDark ? 0.35 : 0.22),
-                width: 0.8,
+      child: Tooltip(
+        message: item.label,
+        waitDuration: const Duration(milliseconds: 600),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(100),
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            child: Center(
+              child: AnimatedScale(
+                scale: isSelected ? 1.05 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
+                child: TweenAnimationBuilder<Color?>(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeInOut,
+                  tween: ColorTween(end: targetColor),
+                  builder: (context, color, child) {
+                    return Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      color: color,
+                      size: 24,
+                    );
+                  },
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.qr_code_scanner_rounded,
-                  color: accent,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Scan',
-                  style: AppTextStyles.labelSm.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: accent,
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              ],
             ),
           ),
         ),

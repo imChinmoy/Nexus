@@ -58,9 +58,13 @@ final eventStudentsProvider = FutureProvider.autoDispose<EventStudentsResultEnti
 final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) async {
   final eventId = ref.watch(selectedEventIdProvider);
   if (eventId != null && eventId.trim().isNotEmpty) {
-    final eventResult = await ref.watch(eventStudentsProvider.future);
-    if (eventResult != null) {
-      return eventResult.students;
+    try {
+      final eventResult = await ref.watch(eventStudentsProvider.future);
+      if (eventResult != null && eventResult.students.isNotEmpty) {
+        return eventResult.students;
+      }
+    } catch (_) {
+      // Fallback gracefully to default students query if event-scoped registrations fail
     }
   }
 

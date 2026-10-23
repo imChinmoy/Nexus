@@ -32,8 +32,8 @@ class EventStudentsService {
       throw { status: 404, code: 'EVENT_NOT_FOUND', message: 'Event not found' };
     }
 
-    // 2. Resolve registration source key from event
-    const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+    // 2. Resolve registration source key from event (with canonical inference fallback)
+    const sourceKey = registrationSourceService.resolveEventSourceKey(event);
     if (!sourceKey) {
       throw {
         status: 422,

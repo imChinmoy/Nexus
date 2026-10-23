@@ -1,6 +1,7 @@
 require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/database');
+const initData = require('./database/initData');
 const { configureCloudinary } = require('./config/cloudinary');
 const logger = require('./config/logger');
 
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();
+  await initData();
   configureCloudinary();
 
   const server = app.listen(PORT, () => {

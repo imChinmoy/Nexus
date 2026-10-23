@@ -116,7 +116,7 @@ class QrResolverService {
 
     // If event has a configured registration source, check that source collection
     if (event) {
-      const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+      const sourceKey = registrationSourceService.resolveEventSourceKey(event);
       if (sourceKey && registrationSourceService.isConfigured(sourceKey)) {
         try {
           const { collection } = await registrationSourceService.getCollection(sourceKey);

@@ -402,7 +402,7 @@ void main() {
       expect(find.text('No upcoming events scheduled'), findsOneWidget);
     });
 
-    testWidgets('BrlBottomNav renders slimmer profile with integrated Scan shortcut',
+    testWidgets('BrlBottomNav renders minimalist floating homebar design with sliding active indicator',
         (tester) async {
       final router = GoRouter(
         initialLocation: '/dashboard',
@@ -442,17 +442,27 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Ops'), findsOneWidget);
-      expect(find.text('Events'), findsOneWidget);
-      expect(find.text('Scan'), findsOneWidget);
-      expect(find.text('Students'), findsOneWidget);
-      expect(find.text('Settings'), findsOneWidget);
+      // Verify body content is rendered and not displaced or zero-height
+      expect(find.text('Dashboard Content'), findsOneWidget);
+      final bodyRect = tester.getRect(find.text('Dashboard Content'));
+      expect(bodyRect.height, greaterThan(0));
 
-      // Verify Scan shortcut has scanner icon
+      // Verify all 5 homebar icons are rendered
+      expect(find.byIcon(Icons.home_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.calendar_today_outlined), findsOneWidget);
       expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.school_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+
+      // Verify semantics labels for accessibility
+      expect(find.bySemanticsLabel('Home'), findsOneWidget);
+      expect(find.bySemanticsLabel('Events'), findsOneWidget);
+      expect(find.bySemanticsLabel('Scan'), findsOneWidget);
+      expect(find.bySemanticsLabel('Students'), findsOneWidget);
+      expect(find.bySemanticsLabel('Settings'), findsOneWidget);
 
       // Tapping Events navigates to events screen
-      await tester.tap(find.text('Events'));
+      await tester.tap(find.byIcon(Icons.calendar_today_outlined));
       await tester.pumpAndSettle();
       expect(find.text('Events Content'), findsOneWidget);
     });

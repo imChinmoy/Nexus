@@ -58,7 +58,7 @@ class AttendanceService {
 
     // Check event-specific registration source if available
     if (event) {
-      const sourceKey = event.registrationSourceKey || (event.meta && event.meta.registrationSourceKey);
+      const sourceKey = registrationSourceService.resolveEventSourceKey(event);
       if (sourceKey && registrationSourceService.isConfigured(sourceKey)) {
         try {
           const { collection } = await registrationSourceService.getCollection(sourceKey);

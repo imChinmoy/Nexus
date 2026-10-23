@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "test": "jest --runInBand --coverage",
     "test:watch": "jest --watch",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "seed:data": "node src/scripts/seedEventsAndStudents.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
