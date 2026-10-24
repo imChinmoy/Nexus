@@ -12,6 +12,12 @@ abstract interface class AuthRemoteSource {
     required String email,
     required String password,
     required String secretKey,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
   });
   Future<void> logout(String? refreshToken);
   Future<UserModel> getCurrentUser();
@@ -19,7 +25,15 @@ abstract interface class AuthRemoteSource {
   Future<void> forgotPassword(String email);
   Future<void> resetPassword({required String token, required String newPassword});
   Future<void> changePassword({required String currentPassword, required String newPassword});
-  Future<UserModel> updateProfile({String? name});
+  Future<UserModel> updateProfile({
+    String? name,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+  });
   Future<UserModel> updateAvatar(File imageFile);
 }
 
@@ -56,6 +70,12 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String email,
     required String password,
     required String secretKey,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
   }) async {
     try {
       final response = await _dio.post(
@@ -65,6 +85,12 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
           'email': email,
           'password': password,
           'secretKey': secretKey,
+          if (year != null && year.isNotEmpty) 'year': year,
+          if (domain != null && domain.isNotEmpty) 'domain': domain,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
+          if (bio != null && bio.isNotEmpty) 'bio': bio,
+          if (github != null && github.isNotEmpty) 'github': github,
+          if (linkedin != null && linkedin.isNotEmpty) 'linkedin': linkedin,
         },
       );
       return AuthResponseModel.fromJson(response.data['data']);
@@ -184,12 +210,26 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   @override
-  Future<UserModel> updateProfile({String? name}) async {
+  Future<UserModel> updateProfile({
+    String? name,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+  }) async {
     try {
       final response = await _dio.put(
         ApiConstants.me,
         data: {
           if (name != null) 'name': name,
+          if (year != null) 'year': year,
+          if (domain != null) 'domain': domain,
+          if (phone != null) 'phone': phone,
+          if (bio != null) 'bio': bio,
+          if (github != null) 'github': github,
+          if (linkedin != null) 'linkedin': linkedin,
         },
       );
       return UserModel.fromJson(response.data['data']);

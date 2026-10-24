@@ -84,13 +84,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                   .where((e) => e.status != 'archived' && e.status != 'cancelled')
                   .toList();
               final availableEvents = activeEvents.isNotEmpty ? activeEvents : events;
+              final sortedEvents = EventEntity.sortChronologically(availableEvents);
 
-              final selectedEvent = availableEvents.firstWhere(
+              final selectedEvent = sortedEvents.firstWhere(
                 (e) => e.id == _selectedEventId,
-                orElse: () {
-                  final openEvent = availableEvents.where((e) => e.isAttendanceOpen).firstOrNull;
-                  return openEvent ?? availableEvents.first;
-                },
+                orElse: () => EventEntity.findDefaultEvent(sortedEvents) ?? sortedEvents.first,
               );
 
               return ListView(

@@ -15,9 +15,9 @@ exports.login = asyncHandler(async (req, res) => {
 });
 
 exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password, secretKey, year, domain, phone } = req.body;
+  const { name, email, password, secretKey, year, domain, phone, bio, github, linkedin } = req.body;
   const { user, accessToken, refreshToken } = await authService.register(
-    { name, email, password, year, domain, phone },
+    { name, email, password, year, domain, phone, bio, github, linkedin },
     secretKey,
     req.ip,
   );

@@ -43,6 +43,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             HapticFeedback.lightImpact();
             ref.invalidate(eventsProvider);
             ref.invalidate(studentsProvider);
+            ref.invalidate(eventScopedStudentsFamilyProvider);
             await Future.delayed(const Duration(milliseconds: 500));
           },
           child: CustomScrollView(
@@ -78,11 +79,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         child: _buildAttendanceOverview(context, featuredEvent, isDark),
                       ),
 
-                      // 4. Recent Activity (Connected Timeline)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                        child: _buildRecentActivityTimeline(context, featuredEvent, isDark),
-                      ),
+                      // 4. Recent Activity (Connected Timeline, hidden if no activity)
+                      _buildRecentActivityTimeline(context, featuredEvent, isDark),
 
                       // 5. Upcoming Events (Image-Led Horizontal Carousel)
                       Padding(
@@ -248,7 +246,46 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
+
+              // Settings icon button
+              Semantics(
+                label: 'Settings',
+                button: true,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.push(RouteConstants.settings);
+                  },
+                  borderRadius: BorderRadius.circular(19),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000),
+                        width: 0.8,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.tune_rounded,
+                      size: 18,
+                      color: textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
 
               // Profile Avatar
               Semantics(
@@ -705,22 +742,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     // Dynamic metrics retrieval
     final allStudentsAsync = ref.watch(studentsProvider);
-    final eventScopedResult = featuredEvent != null
-        ? ref.watch(eventScopedStudentsFamilyProvider(featuredEvent.id)).value
+    final eventScopedAsync = featuredEvent != null
+        ? ref.watch(eventScopedStudentsFamilyProvider(featuredEvent.id))
         : null;
 
     int totalRegistered = 0;
     int presentCount = 0;
 
-    if (eventScopedResult != null && eventScopedResult.counts.total > 0) {
-      totalRegistered = eventScopedResult.counts.total;
-      presentCount = eventScopedResult.counts.present;
-    } else {
-      final students = allStudentsAsync.value ?? [];
+    if (eventScopedAsync != null && eventScopedAsync.hasValue && eventScopedAsync.value != null) {
+      totalRegistered = eventScopedAsync.value!.counts.total;
+      presentCount = eventScopedAsync.value!.counts.present;
+    } else if (featuredEvent == null && allStudentsAsync.hasValue && allStudentsAsync.value != null) {
+      final students = allStudentsAsync.value!;
+      totalRegistered = students.length;
       presentCount = students.where((s) => s.isPresent).length;
-      totalRegistered = (featuredEvent != null && featuredEvent.capacity > 0)
-          ? featuredEvent.capacity
-          : students.length;
     }
 
     final double progress = totalRegistered > 0
@@ -971,77 +1006,83 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final recentCheckIns = presentStudents.take(4).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'RECENT ACTIVITY',
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-                color: textSecondary,
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                context.push(RouteConstants.recentAttendance);
-              },
-              child: Text(
-                'See All',
+    // If no recent activity exists, hide the entire section completely
+    if (recentCheckIns.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'RECENT ACTIVITY',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: accent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: textSecondary,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // Single Continuous Timeline Container (No separate card per row)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor, width: 0.8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push(RouteConstants.recentAttendance);
+                },
+                child: Text(
+                  'See All',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
               ),
             ],
           ),
-          child: recentCheckIns.isEmpty
-              ? _buildEmptyActivityState(textSecondary)
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: recentCheckIns.length,
-                  itemBuilder: (context, index) {
-                    final student = recentCheckIns[index];
-                    final isLast = index == recentCheckIns.length - 1;
-                    return _buildTimelineRow(
-                      context,
-                      student: student,
-                      isLast: isLast,
-                      isDark: isDark,
-                      accent: accent,
-                      textPrimary: textPrimary,
-                      textSecondary: textSecondary,
-                    );
-                  },
+          const SizedBox(height: 8),
+
+          // Single Continuous Timeline Container
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor, width: 0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
                 ),
-        ),
-      ],
+              ],
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recentCheckIns.length,
+              itemBuilder: (context, index) {
+                final student = recentCheckIns[index];
+                final isLast = index == recentCheckIns.length - 1;
+                return _buildTimelineRow(
+                  context,
+                  student: student,
+                  isLast: isLast,
+                  isDark: isDark,
+                  accent: accent,
+                  textPrimary: textPrimary,
+                  textSecondary: textSecondary,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1198,27 +1239,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildEmptyActivityState(Color textSecondary) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.qr_code_2_rounded, size: 28, color: textSecondary.withValues(alpha: 0.6)),
-            const SizedBox(height: 6),
-            Text(
-              'No check-ins recorded yet today',
-              style: GoogleFonts.inter(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   // ---------------------------------------------------------------------------
   // 5. UPCOMING EVENTS (IMAGE-LED HORIZONTAL CAROUSEL)
@@ -1618,36 +1639,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   EventEntity? _resolveFeaturedEvent(List<EventEntity> events) {
     if (events.isEmpty) return null;
-
-    final now = DateTime.now();
-
-    // Active (non-past, non-completed, non-cancelled) events
-    final activeEvents = events
-        .where((e) => !now.isAfter(e.endDate) && e.status != 'completed' && e.status != 'cancelled')
-        .toList();
-
-    // 1. Priority 1: Open attendance active event
-    final openEvent = activeEvents.where((e) => e.isAttendanceOpen).firstOrNull;
+    final sorted = EventEntity.sortChronologically(events);
+    // If an active event has attendance open, prioritize it
+    final openEvent = sorted.where((e) => e.isAttendanceOpen && !e.isPast).firstOrNull;
     if (openEvent != null) return openEvent;
-
-    // 2. Priority 2: Currently ongoing active event
-    final ongoingEvent = activeEvents
-        .where((e) => e.status == 'ongoing' || (now.isAfter(e.startDate) && now.isBefore(e.endDate)))
-        .firstOrNull;
-    if (ongoingEvent != null) return ongoingEvent;
-
-    // 3. Priority 3: Upcoming event closest to current date
-    final upcoming = activeEvents
-        .where((e) => e.status == 'upcoming' || now.isBefore(e.startDate))
-        .toList();
-    if (upcoming.isNotEmpty) {
-      upcoming.sort((a, b) => a.startDate.compareTo(b.startDate));
-      return upcoming.first;
-    }
-
-    // 4. Fallback: If all events are completed or past, feature the most recent event
-    final sortedByDate = List<EventEntity>.from(events)
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
-    return sortedByDate.first;
+    return EventEntity.findDefaultEvent(sorted);
   }
 }

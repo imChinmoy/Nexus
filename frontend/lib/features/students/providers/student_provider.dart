@@ -91,7 +91,7 @@ final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) a
 });
 
 /// Family provider for fetching event-scoped student registrations and live counts.
-final eventScopedStudentsFamilyProvider = FutureProvider.autoDispose.family<EventStudentsResultEntity?, String>((ref, eventId) async {
+final eventScopedStudentsFamilyProvider = FutureProvider.family<EventStudentsResultEntity?, String>((ref, eventId) async {
   if (eventId.trim().isEmpty) return null;
   final repository = ref.watch(studentRepositoryProvider);
   final result = await repository.getStudentsByEvent(eventId, limit: 50);

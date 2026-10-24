@@ -40,10 +40,10 @@ class BrlBottomNav extends StatelessWidget {
       route: RouteConstants.students,
     ),
     _NavItem(
-      label: 'Settings',
-      icon: Icons.tune_rounded,
-      activeIcon: Icons.tune_rounded,
-      route: RouteConstants.settings,
+      label: 'Members',
+      icon: Icons.account_tree_outlined,
+      activeIcon: Icons.account_tree_rounded,
+      route: RouteConstants.members,
     ),
   ];
 
@@ -53,7 +53,7 @@ class BrlBottomNav extends StatelessWidget {
       if (location.startsWith(_items[i].route)) return i;
     }
     if (location.startsWith(RouteConstants.attendance)) return 2;
-    if (location.startsWith(RouteConstants.members)) return 3;
+    if (location.startsWith(RouteConstants.members)) return 4;
     return 0;
   }
 

@@ -24,8 +24,17 @@ class SettingsScreen extends ConsumerWidget {
     return AnimatedGradientBg(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const BrlAppBar(
+        appBar: BrlAppBar(
           title: 'Settings',
+          overline: 'NEXUS • PREFERENCES & SYSTEM',
+          counterText: 'v2.0.0',
+          actions: [
+            BrlHeaderIconButton(
+              icon: Icons.shield_outlined,
+              tooltip: 'Role Permissions',
+              onTap: () => context.push(RouteConstants.rolePermissions),
+            ),
+          ],
         ),
         body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

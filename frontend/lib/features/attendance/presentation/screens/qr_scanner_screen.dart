@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -13,7 +15,9 @@ import '../../../../shared/widgets/brl_button.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../data/models/scan_attendance_result.dart';
 import '../../providers/attendance_provider.dart';
+import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
+import '../../../students/providers/student_provider.dart';
 
 class QrScannerScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -51,6 +55,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
   _ScanFeedback? _activeFeedback;
   final List<ScanAttendanceResult> _sessionHistory = [];
   Timer? _feedbackTimer;
+  String? _overrideEventId;
 
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
@@ -89,9 +94,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
     super.dispose();
   }
 
-  Future<void> _processBarcode(String rawValue) async {
+  Future<void> _processBarcode(String rawValue, String eventId) async {
     final trimmed = rawValue.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty || eventId.trim().isEmpty) return;
 
     if (_isProcessing) return;
 
@@ -113,7 +118,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
     try {
       final repository = ref.read(attendanceRepositoryProvider);
       final result = await repository.scanAttendance(
-        eventId: widget.eventId,
+        eventId: eventId,
         qrValue: trimmed,
       );
 
@@ -154,7 +159,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
             ),
           );
 
-          ref.invalidate(eventAttendanceProvider(widget.eventId));
+          ref.invalidate(eventAttendanceProvider(eventId));
+          ref.invalidate(eventScopedStudentsFamilyProvider(eventId));
+          ref.invalidate(eventStudentsProvider);
+          ref.invalidate(studentsProvider);
         },
       );
     } catch (e) {
@@ -319,12 +327,35 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
-    if (widget.eventId.trim().isEmpty) {
+    final eventsAsync = ref.watch(eventsProvider);
+    final events = eventsAsync.valueOrNull ?? [];
+    final sortedEvents = EventEntity.sortChronologically(events);
+
+    // Resolve active event:
+    // 1. Manual user override in this screen
+    EventEntity? event;
+    if (_overrideEventId != null && _overrideEventId!.trim().isNotEmpty) {
+      event = sortedEvents.where((e) => e.id == _overrideEventId).firstOrNull;
+    }
+    // 2. Event explicitly passed via navigation parameter
+    if (event == null && widget.eventId.trim().isNotEmpty) {
+      event = sortedEvents.where((e) => e.id == widget.eventId.trim()).firstOrNull;
+    }
+    // 3. Default event: ongoing event first, or closest upcoming event
+    event ??= EventEntity.findDefaultEvent(sortedEvents);
+
+    final effectiveEventId = event?.id ??
+        (_overrideEventId?.trim().isNotEmpty == true
+            ? _overrideEventId!
+            : widget.eventId.trim());
+
+    if (effectiveEventId.isEmpty) {
+      if (eventsAsync.isLoading) {
+        return _buildLoadingEventState();
+      }
       return _buildNoEventState();
     }
 
-    final eventsAsync = ref.watch(eventsProvider);
-    final event = eventsAsync.value?.where((e) => e.id == widget.eventId).firstOrNull;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
     final isOpen = event?.isAttendanceOpen ?? true;
@@ -387,7 +418,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
               for (final barcode in barcodes) {
                 final rawValue = barcode.rawValue;
                 if (rawValue != null && rawValue.trim().isNotEmpty) {
-                  _processBarcode(rawValue);
+                  _processBarcode(rawValue, effectiveEventId);
                   break;
                 }
               }
@@ -416,49 +447,76 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.5),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            event?.title ?? 'Attendance Scanner',
-                            style: AppTextStyles.bodySm.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                    child: InkWell(
+                      onTap: sortedEvents.length > 1
+                          ? () => _showEventSwitchSheet(sortedEvents, effectiveEventId)
+                          : null,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.5),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    event?.title ?? 'Attendance Scanner',
+                                    style: AppTextStyles.bodySm.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          color: isOpen ? successColor : AppColors.errorDark,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        isOpen ? 'Attendance Open' : 'Attendance Closed',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          color: isOpen ? successColor : AppColors.errorDark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
+                            if (sortedEvents.length > 1) ...[
+                              const SizedBox(width: 6),
                               Container(
-                                width: 6,
-                                height: 6,
+                                padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: isOpen ? successColor : AppColors.errorDark,
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isOpen ? 'Attendance Open' : 'Attendance Closed',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: isOpen ? successColor : AppColors.errorDark,
+                                child: const Icon(
+                                  Icons.unfold_more_rounded,
+                                  size: 14,
+                                  color: Colors.white70,
                                 ),
                               ),
                             ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -691,6 +749,169 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingEventState() {
+    return const Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2997FF)),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Connecting to event gate...',
+              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEventSwitchSheet(List<EventEntity> events, String currentEventId) {
+    HapticFeedback.lightImpact();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final textPrimary = isDark ? Colors.white : AppColors.lightTextPrimary;
+    final textSecondary = isDark ? Colors.white60 : AppColors.lightTextSecondary;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: textSecondary.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select Event for Scanner',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded, size: 20, color: textSecondary),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: events.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 1,
+                      color: isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000),
+                    ),
+                    itemBuilder: (context, index) {
+                      final ev = events[index];
+                      final isSelected = ev.id == currentEventId;
+                      final isOngoing = ev.isOngoing;
+                      final isUpcoming = ev.isUpcoming;
+                      final statusLabel = isOngoing
+                          ? 'ONGOING'
+                          : (isUpcoming ? 'UPCOMING' : (ev.isPast ? 'PAST' : ev.status.toUpperCase()));
+                      final statusColor = isOngoing
+                          ? (isDark ? AppColors.successDark : AppColors.success)
+                          : (isUpcoming
+                              ? (isDark ? AppColors.darkAccent : AppColors.lightAccent)
+                              : textSecondary);
+
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(() {
+                            _overrideEventId = ev.id;
+                          });
+                          Navigator.pop(context);
+                        },
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                ev.title,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                  color: isSelected
+                                      ? (isDark ? AppColors.darkAccent : AppColors.lightAccent)
+                                      : textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                statusLabel,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: statusColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(
+                          DateFormat('MMM d, yyyy • h:mm a').format(ev.startDate),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: textSecondary,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle_rounded,
+                                color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                                size: 20,
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

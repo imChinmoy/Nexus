@@ -404,7 +404,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No Active or Scheduled Events'), findsOneWidget);
-      expect(find.text('No check-ins recorded yet today'), findsOneWidget);
+      expect(find.text('RECENT ACTIVITY'), findsNothing);
       expect(find.text('No upcoming events scheduled'), findsOneWidget);
     });
 
@@ -427,6 +427,10 @@ void main() {
               GoRoute(
                 path: '/students',
                 builder: (context, state) => const Text('Students Content'),
+              ),
+              GoRoute(
+                path: '/members',
+                builder: (context, state) => const Text('Members Content'),
               ),
               GoRoute(
                 path: '/settings',
@@ -458,14 +462,14 @@ void main() {
       expect(find.byIcon(Icons.calendar_today_outlined), findsOneWidget);
       expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
       expect(find.byIcon(Icons.school_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.account_tree_outlined), findsOneWidget);
 
       // Verify semantics labels for accessibility
       expect(find.bySemanticsLabel('Home'), findsOneWidget);
       expect(find.bySemanticsLabel('Events'), findsOneWidget);
       expect(find.bySemanticsLabel('Scan'), findsOneWidget);
       expect(find.bySemanticsLabel('Students'), findsOneWidget);
-      expect(find.bySemanticsLabel('Settings'), findsOneWidget);
+      expect(find.bySemanticsLabel('Members'), findsOneWidget);
 
       // Tapping Events navigates to events screen
       await tester.tap(find.byIcon(Icons.calendar_today_outlined));

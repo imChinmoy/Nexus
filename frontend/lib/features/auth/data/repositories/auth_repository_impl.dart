@@ -49,6 +49,12 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
     required String secretKey,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
   }) async {
     try {
       final result = await _remote.register(
@@ -56,6 +62,12 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
         secretKey: secretKey,
+        year: year,
+        domain: domain,
+        phone: phone,
+        bio: bio,
+        github: github,
+        linkedin: linkedin,
       );
       await _local.saveTokens(
         accessToken: result.accessToken,
@@ -174,9 +186,25 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> updateProfile({String? name}) async {
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? name,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+  }) async {
     try {
-      final user = await _remote.updateProfile(name: name);
+      final user = await _remote.updateProfile(
+        name: name,
+        year: year,
+        domain: domain,
+        phone: phone,
+        bio: bio,
+        github: github,
+        linkedin: linkedin,
+      );
       await _local.saveUser(user);
       return Right(user.toEntity());
     } on ValidationException catch (e) {

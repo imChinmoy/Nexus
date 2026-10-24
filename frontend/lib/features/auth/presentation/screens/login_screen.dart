@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -21,7 +22,8 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _loginFormKey = GlobalKey<FormState>();
   final _registerFormKey = GlobalKey<FormState>();
 
@@ -38,6 +40,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   final _regConfirmPasswordController = TextEditingController();
   final _regSecretKeyController = TextEditingController();
 
+  // Optional profile details for registration
+  bool _showProfileFields = false;
+  String? _regYear;
+  String? _regDomain;
+  final _regPhoneController = TextEditingController();
+  final _regBioController = TextEditingController();
+  final _regGithubController = TextEditingController();
+  final _regLinkedinController = TextEditingController();
+
+  static const List<String> _yearOptions = [
+    '1st Year',
+    '2nd Year',
+    '3rd Year',
+    '4th Year',
+  ];
+
+  static const List<String> _domainOptions = [
+    'Web Development',
+    'App Development',
+    'AI / Machine Learning',
+    'Cloud & DevOps',
+    'UI/UX Design',
+    'Cybersecurity',
+    'Blockchain',
+    'Core Member',
+  ];
+
   @override
   void dispose() {
     _loginEmailController.dispose();
@@ -47,6 +76,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     _regPasswordController.dispose();
     _regConfirmPasswordController.dispose();
     _regSecretKeyController.dispose();
+    _regPhoneController.dispose();
+    _regBioController.dispose();
+    _regGithubController.dispose();
+    _regLinkedinController.dispose();
     super.dispose();
   }
 
@@ -66,13 +99,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         );
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleRegister({bool skipProfile = false}) async {
     if (!(_registerFormKey.currentState?.validate() ?? false)) return;
+
+    final year = (!skipProfile && _showProfileFields && _regYear != null && _regYear!.isNotEmpty)
+        ? _regYear
+        : null;
+    final domain = (!skipProfile && _showProfileFields && _regDomain != null && _regDomain!.isNotEmpty)
+        ? _regDomain
+        : null;
+    final phone = (!skipProfile && _showProfileFields && _regPhoneController.text.trim().isNotEmpty)
+        ? _regPhoneController.text.trim()
+        : null;
+    final bio = (!skipProfile && _showProfileFields && _regBioController.text.trim().isNotEmpty)
+        ? _regBioController.text.trim()
+        : null;
+    final github = (!skipProfile && _showProfileFields && _regGithubController.text.trim().isNotEmpty)
+        ? _regGithubController.text.trim()
+        : null;
+    final linkedin = (!skipProfile && _showProfileFields && _regLinkedinController.text.trim().isNotEmpty)
+        ? _regLinkedinController.text.trim()
+        : null;
+
     await ref.read(authNotifierProvider.notifier).register(
           name: _regNameController.text.trim(),
           email: _regEmailController.text.trim(),
           password: _regPasswordController.text,
           secretKey: _regSecretKeyController.text.trim(),
+          year: year,
+          domain: domain,
+          phone: phone,
+          bio: bio,
+          github: github,
+          linkedin: linkedin,
         );
   }
 
@@ -138,7 +197,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             child: Center(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: Column(
@@ -150,7 +210,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
 
                       // Society Portal Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
                           color: const Color(0x1F2997FF),
                           borderRadius: BorderRadius.circular(20),
@@ -262,7 +323,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 duration: const Duration(milliseconds: 300),
                                 switchInCurve: Curves.easeOutCubic,
                                 switchOutCurve: Curves.easeInCubic,
-                                layoutBuilder: (currentChild, previousChildren) {
+                                layoutBuilder:
+                                    (currentChild, previousChildren) {
                                   return Stack(
                                     alignment: Alignment.topCenter,
                                     children: <Widget>[
@@ -291,7 +353,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                 },
                                 child: _mode == _AuthMode.login
                                     ? _buildLoginForm(isLoading, errorMessage)
-                                    : _buildRegisterForm(isLoading, errorMessage),
+                                    : _buildRegisterForm(
+                                        isLoading, errorMessage),
                               ),
                             ),
                           ),
@@ -482,7 +545,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               onTap: () => _switchMode(_AuthMode.register),
               child: RichText(
                 text: TextSpan(
-                  style: AppTextStyles.bodySm.copyWith(color: const Color(0xFF8E9BB0)),
+                  style: AppTextStyles.bodySm
+                      .copyWith(color: const Color(0xFF8E9BB0)),
                   children: [
                     const TextSpan(text: "Society member without account? "),
                     TextSpan(
@@ -512,7 +576,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           // Full Name
           BrlTextField(
             label: 'Full Name',
-            hint: 'e.g. Chinmoy Anand',
+            hint: 'e.g. Chinmoy ',
             controller: _regNameController,
             keyboardType: TextInputType.name,
             textInputAction: TextInputAction.next,
@@ -569,7 +633,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             controller: _regConfirmPasswordController,
             isPassword: true,
             textInputAction: TextInputAction.next,
-            validator: (val) => Validators.confirmPassword(val, _regPasswordController.text),
+            validator: (val) =>
+                Validators.confirmPassword(val, _regPasswordController.text),
             prefix: const Icon(
               Icons.lock_reset_rounded,
               color: Color(0xFF8E9BB0),
@@ -632,6 +697,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               ],
             ),
           ),
+          const SizedBox(height: 14),
+
+          // Additional Profile Details Form (Optional with Skip for now)
+          _buildProfileDetailsCard(),
 
           if (errorMessage != null) ...[
             const SizedBox(height: 14),
@@ -652,7 +721,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               onTap: () => _switchMode(_AuthMode.login),
               child: RichText(
                 text: TextSpan(
-                  style: AppTextStyles.bodySm.copyWith(color: const Color(0xFF8E9BB0)),
+                  style: AppTextStyles.bodySm
+                      .copyWith(color: const Color(0xFF8E9BB0)),
                   children: [
                     const TextSpan(text: 'Already have an account? '),
                     TextSpan(
@@ -669,6 +739,321 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProfileDetailsCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0x140F172A),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _showProfileFields
+              ? const Color(0x4038BDF8)
+              : const Color(0x22FFFFFF),
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: const Color(0x2438BDF8),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(
+                  Icons.person_pin_rounded,
+                  color: Color(0xFF38BDF8),
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 2,
+                      children: [
+                        Text(
+                          'Profile Details',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0x1F34C759),
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(
+                              color: const Color(0x4D34C759),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Text(
+                            'Optional',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF34C759),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _showProfileFields
+                          ? 'Tap to skip or fill basic info'
+                          : 'Skipped for now · Fill in Profile',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: const Color(0xFF8E9BB0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                key: const ValueKey('toggle_profile_fields_button'),
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  setState(() {
+                    _showProfileFields = !_showProfileFields;
+                  });
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _showProfileFields ? 'Skip' : '+ Add',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _showProfileFields
+                              ? const Color(0xFFFF9F0A)
+                              : const Color(0xFF38BDF8),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        _showProfileFields
+                            ? Icons.fast_forward_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        size: 14,
+                        color: _showProfileFields
+                            ? const Color(0xFFFF9F0A)
+                            : const Color(0xFF38BDF8),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          if (_showProfileFields) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Color(0x1FFFFFFF), height: 1),
+            const SizedBox(height: 12),
+
+            // Academic Year dropdown
+            _buildDropdown(
+              label: 'Academic Year',
+              value: _regYear,
+              hint: 'Select current year',
+              icon: Icons.school_outlined,
+              items: _yearOptions,
+              onChanged: (val) => setState(() => _regYear = val),
+            ),
+            const SizedBox(height: 12),
+
+            // Society Domain dropdown
+            _buildDropdown(
+              label: 'Society Domain',
+              value: _regDomain,
+              hint: 'Select primary domain',
+              icon: Icons.workspaces_outlined,
+              items: _domainOptions,
+              onChanged: (val) => setState(() => _regDomain = val),
+            ),
+            const SizedBox(height: 12),
+
+            // Phone Number
+            BrlTextField(
+              label: 'Phone Number',
+              hint: 'e.g. 9876543210',
+              controller: _regPhoneController,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              prefix: const Icon(
+                Icons.phone_outlined,
+                color: Color(0xFF8E9BB0),
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // GitHub Profile
+            BrlTextField(
+              label: 'GitHub Profile',
+              hint: 'github.com/username',
+              controller: _regGithubController,
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.next,
+              prefix: const Icon(
+                Icons.code_rounded,
+                color: Color(0xFF8E9BB0),
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // LinkedIn Profile
+            BrlTextField(
+              label: 'LinkedIn Profile',
+              hint: 'linkedin.com/in/username',
+              controller: _regLinkedinController,
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.next,
+              prefix: const Icon(
+                Icons.link_rounded,
+                color: Color(0xFF8E9BB0),
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Short Bio
+            BrlTextField(
+              label: 'Short Bio',
+              hint: 'Share a line about your interests, stacks or passions...',
+              controller: _regBioController,
+              maxLines: 2,
+              textInputAction: TextInputAction.done,
+              prefix: const Icon(
+                Icons.edit_note_rounded,
+                color: Color(0xFF8E9BB0),
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Inline helper to skip
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showProfileFields = false;
+                  });
+                },
+                icon: const Icon(
+                  Icons.fast_forward_rounded,
+                  size: 14,
+                  color: Color(0xFF8E9BB0),
+                ),
+                label: Text(
+                  'Skip for now & continue',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF8E9BB0),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required String hint,
+    required IconData icon,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.bodySm.copyWith(
+            color: const Color(0xFF8E9BB0),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          isExpanded: true,
+          dropdownColor: const Color(0xFF141A29),
+          style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Color(0xFF8E9BB0),
+            size: 20,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle:
+                AppTextStyles.bodyMd.copyWith(color: const Color(0xFF4A5568)),
+            prefixIcon: Icon(icon, color: const Color(0xFF8E9BB0), size: 18),
+            filled: true,
+            fillColor: const Color(0x14FFFFFF),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0x14FFFFFF),
+                width: 0.5,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFF2997FF),
+                width: 1.5,
+              ),
+            ),
+          ),
+          items: items.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 

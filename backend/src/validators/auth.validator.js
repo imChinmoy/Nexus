@@ -21,6 +21,12 @@ const changePasswordValidator = [
 
 const updateProfileValidator = [
   body('name').optional().isString().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('year').optional().trim().isString(),
+  body('domain').optional().trim().isString(),
+  body('phone').optional().trim().isString(),
+  body('bio').optional().trim().isString().isLength({ max: 500 }),
+  body('github').optional().trim().isString(),
+  body('linkedin').optional().trim().isString(),
 ];
 
 const registerValidator = [
@@ -28,6 +34,12 @@ const registerValidator = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   body('secretKey').trim().notEmpty().withMessage('Society secret passkey is required'),
+  body('year').optional().trim().isString(),
+  body('domain').optional().trim().isString(),
+  body('phone').optional().trim().isString(),
+  body('bio').optional().trim().isString().isLength({ max: 500 }),
+  body('github').optional().trim().isString(),
+  body('linkedin').optional().trim().isString(),
 ];
 
 module.exports = {

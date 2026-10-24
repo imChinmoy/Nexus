@@ -73,6 +73,9 @@ class AuthService {
       year: userData.year,
       domain: userData.domain,
       phone: userData.phone,
+      bio: userData.bio,
+      github: userData.github,
+      linkedin: userData.linkedin,
       isActive: true,
       accessAllowed: true,
     });

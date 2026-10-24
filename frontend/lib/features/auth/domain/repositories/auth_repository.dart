@@ -14,6 +14,12 @@ abstract interface class AuthRepository {
     required String email,
     required String password,
     required String secretKey,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
   });
 
   Future<Either<Failure, void>> logout();
@@ -34,7 +40,15 @@ abstract interface class AuthRepository {
     required String newPassword,
   });
 
-  Future<Either<Failure, UserEntity>> updateProfile({String? name});
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? name,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+  });
   Future<Either<Failure, UserEntity>> updateAvatar(File imageFile);
 
   Future<bool> isLoggedIn();

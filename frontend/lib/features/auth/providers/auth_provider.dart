@@ -82,6 +82,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String email,
     required String password,
     required String secretKey,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
   }) async {
     state = const AuthState.loading();
     final result = await _repo.register(
@@ -89,6 +95,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       email: email,
       password: password,
       secretKey: secretKey,
+      year: year,
+      domain: domain,
+      phone: phone,
+      bio: bio,
+      github: github,
+      linkedin: linkedin,
     );
     return result.fold(
       (failure) {
@@ -117,8 +129,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
         authenticated: (user) => user,
       );
 
-  Future<String?> updateProfile({String? name}) async {
-    final result = await _repo.updateProfile(name: name);
+  Future<String?> updateProfile({
+    String? name,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+  }) async {
+    final result = await _repo.updateProfile(
+      name: name,
+      year: year,
+      domain: domain,
+      phone: phone,
+      bio: bio,
+      github: github,
+      linkedin: linkedin,
+    );
     return result.fold(
       (failure) => failure.message,
       (user) {

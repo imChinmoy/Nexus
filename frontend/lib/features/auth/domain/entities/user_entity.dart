@@ -39,6 +39,40 @@ class UserEntity extends Equatable {
       role == UserRole.coordinator || isAdmin;
   bool get canWrite => role != UserRole.viewer;
 
+  UserEntity copyWith({
+    String? id,
+    String? name,
+    String? email,
+    UserRole? role,
+    String? avatar,
+    String? year,
+    String? domain,
+    String? phone,
+    String? bio,
+    String? github,
+    String? linkedin,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      avatar: avatar ?? this.avatar,
+      year: year ?? this.year,
+      domain: domain ?? this.domain,
+      phone: phone ?? this.phone,
+      bio: bio ?? this.bio,
+      github: github ?? this.github,
+      linkedin: linkedin ?? this.linkedin,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -108,6 +142,51 @@ enum UserRole {
         return 'volunteer';
       case UserRole.viewer:
         return 'viewer';
+    }
+  }
+
+  int get hierarchyLevel {
+    switch (this) {
+      case UserRole.superAdmin:
+        return 5;
+      case UserRole.admin:
+        return 4;
+      case UserRole.coordinator:
+        return 3;
+      case UserRole.volunteer:
+        return 2;
+      case UserRole.viewer:
+        return 1;
+    }
+  }
+
+  String get tierTitle {
+    switch (this) {
+      case UserRole.superAdmin:
+        return 'Executive Council';
+      case UserRole.admin:
+        return 'Team Leads';
+      case UserRole.coordinator:
+        return 'Domain Coordinators';
+      case UserRole.volunteer:
+        return 'Operations & Crew';
+      case UserRole.viewer:
+        return 'Society Members';
+    }
+  }
+
+  String get shortCode {
+    switch (this) {
+      case UserRole.superAdmin:
+        return 'LEAD';
+      case UserRole.admin:
+        return 'ADMIN';
+      case UserRole.coordinator:
+        return 'COORD';
+      case UserRole.volunteer:
+        return 'CREW';
+      case UserRole.viewer:
+        return 'MBR';
     }
   }
 }

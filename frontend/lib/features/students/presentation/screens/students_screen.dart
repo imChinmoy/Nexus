@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
+import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
@@ -202,99 +203,48 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     EventEntity? selectedEvent,
     int activeFilterCount,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.85 : 0.90);
-    final textPrimary = AppColors.textPrimaryOf(context);
     final accent = AppColors.accentOf(context);
 
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            decoration: BoxDecoration(
-              color: surfaceColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.separatorOf(context).withValues(alpha: 0.6),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              centerTitle: false,
-              titleSpacing: 16,
-              title: Text(
-                'Students',
-                style: AppTextStyles.headlineSm.copyWith(
-                  color: textPrimary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                  fontSize: 21,
-                ),
-              ),
-              actions: [
-                // Secondary Filters Button with active count badge
-                IconButton(
-                  tooltip: 'Filter Students',
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Icon(
-                        Icons.tune_rounded,
-                        size: 21,
-                        color: activeFilterCount > 0 ? accent : textPrimary.withValues(alpha: 0.75),
+    return BrlAppBar(
+      title: 'Students',
+      overline: 'NEXUS • STUDENT REGISTRY',
+      counterText: activeFilterCount > 0 ? '$activeFilterCount filtered' : null,
+      actions: [
+        BrlHeaderIconButton(
+          icon: Icons.tune_rounded,
+          tooltip: 'Filter Students',
+          isActive: activeFilterCount > 0,
+          badge: activeFilterCount > 0
+              ? Container(
+                  padding: const EdgeInsets.all(3.5),
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  child: Center(
+                    child: Text(
+                      '$activeFilterCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
                       ),
-                      if (activeFilterCount > 0)
-                        Positioned(
-                          right: -4,
-                          top: -3,
-                          child: Container(
-                            padding: const EdgeInsets.all(3.5),
-                            decoration: BoxDecoration(
-                              color: accent,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                            child: Center(
-                              child: Text(
-                                '$activeFilterCount',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
-                  onPressed: () => _showSecondaryFiltersSheet(context),
-                ),
-                // Refresh Button
-                IconButton(
-                  tooltip: 'Refresh Registrations',
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    size: 22,
-                    color: textPrimary.withValues(alpha: 0.75),
-                  ),
-                  onPressed: () {
-                    ref.invalidate(eventStudentsProvider);
-                    ref.invalidate(eventsProvider);
-                  },
-                ),
-                const SizedBox(width: 4),
-              ],
-            ),
-          ),
+                )
+              : null,
+          onTap: () => _showSecondaryFiltersSheet(context),
         ),
-      ),
+        BrlHeaderIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'Refresh Registrations',
+          onTap: () {
+            ref.invalidate(eventStudentsProvider);
+            ref.invalidate(eventsProvider);
+          },
+        ),
+      ],
     );
   }
 
@@ -723,9 +673,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Filter Students',
-                            style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+                          Flexible(
+                            child: Text(
+                              'Filter Students',
+                              style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           TextButton(
                             onPressed: () {

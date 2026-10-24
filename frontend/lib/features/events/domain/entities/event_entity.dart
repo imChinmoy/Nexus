@@ -78,6 +78,8 @@ class EventEntity {
   }
 
   bool get isPast => isPastAt();
+  bool get isOngoing => effectiveStatus == 'ongoing';
+  bool get isUpcoming => effectiveStatus == 'upcoming';
 
   /// Normalized effective status ensuring timeline consistency
   String get effectiveStatus => calculateEffectiveStatus(

@@ -7,6 +7,8 @@ import 'package:brl_nexus/features/attendance/data/repositories/attendance_repos
 import 'package:brl_nexus/features/attendance/data/sources/attendance_remote_source.dart';
 import 'package:brl_nexus/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:brl_nexus/features/attendance/presentation/screens/qr_scanner_screen.dart';
+import 'package:brl_nexus/features/events/domain/entities/event_entity.dart';
+import 'package:brl_nexus/features/events/providers/event_provider.dart';
 
 class MockAttendanceRemoteSource implements AttendanceRemoteSource {
   bool shouldFail = false;
@@ -193,10 +195,14 @@ void main() {
   });
 
   group('QrScannerScreen widget tests', () {
-    testWidgets('Displays warning state when eventId is missing', (WidgetTester tester) async {
+    testWidgets('Displays warning state when eventId is missing and repository has no events',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            eventsProvider.overrideWith((ref) => <EventEntity>[]),
+          ],
+          child: const MaterialApp(
             home: QrScannerScreen(eventId: ''),
           ),
         ),
@@ -205,6 +211,108 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.text('NO EVENT SELECTED'), findsOneWidget);
       expect(find.text('GO TO ATTENDANCE HUB'), findsOneWidget);
+    });
+
+    testWidgets('Defaults to ongoing event when eventId parameter is omitted',
+        (WidgetTester tester) async {
+      final now = DateTime.now();
+      final mockEvents = [
+        EventEntity(
+          id: 'past-1',
+          title: 'Past Workshop 2026',
+          startDate: now.subtract(const Duration(days: 3)),
+          endDate: now.subtract(const Duration(days: 2)),
+          type: 'workshop',
+          capacity: 50,
+          status: 'completed',
+        ),
+        EventEntity(
+          id: 'ongoing-2',
+          title: 'Flagship Tech Summit 2026',
+          startDate: now.subtract(const Duration(hours: 2)),
+          endDate: now.add(const Duration(hours: 4)),
+          type: 'summit',
+          capacity: 200,
+          status: 'ongoing',
+          isAttendanceOpen: true,
+        ),
+        EventEntity(
+          id: 'upcoming-3',
+          title: 'AI Dev Lab 2026',
+          startDate: now.add(const Duration(days: 2)),
+          endDate: now.add(const Duration(days: 2, hours: 3)),
+          type: 'hackathon',
+          capacity: 100,
+          status: 'upcoming',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            eventsProvider.overrideWith((ref) => mockEvents),
+          ],
+          child: const MaterialApp(
+            home: QrScannerScreen(eventId: ''),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Flagship Tech Summit 2026'), findsOneWidget);
+      expect(find.text('Attendance Open'), findsOneWidget);
+      expect(find.text('NO EVENT SELECTED'), findsNothing);
+    });
+
+    testWidgets('Defaults to closest upcoming event when no ongoing event exists',
+        (WidgetTester tester) async {
+      final now = DateTime.now();
+      final mockEvents = [
+        EventEntity(
+          id: 'past-1',
+          title: 'Past Workshop 2026',
+          startDate: now.subtract(const Duration(days: 3)),
+          endDate: now.subtract(const Duration(days: 2)),
+          type: 'workshop',
+          capacity: 50,
+          status: 'completed',
+        ),
+        EventEntity(
+          id: 'upcoming-soon',
+          title: 'Next Gen Robotics Meetup',
+          startDate: now.add(const Duration(days: 1)),
+          endDate: now.add(const Duration(days: 1, hours: 2)),
+          type: 'meetup',
+          capacity: 80,
+          status: 'upcoming',
+          isAttendanceOpen: false,
+        ),
+        EventEntity(
+          id: 'upcoming-later',
+          title: 'Future Hackathon 2027',
+          startDate: now.add(const Duration(days: 14)),
+          endDate: now.add(const Duration(days: 16)),
+          type: 'hackathon',
+          capacity: 300,
+          status: 'upcoming',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            eventsProvider.overrideWith((ref) => mockEvents),
+          ],
+          child: const MaterialApp(
+            home: QrScannerScreen(eventId: ''),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Next Gen Robotics Meetup'), findsOneWidget);
+      expect(find.text('Attendance Closed'), findsOneWidget);
+      expect(find.text('NO EVENT SELECTED'), findsNothing);
     });
   });
 }
