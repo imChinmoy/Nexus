@@ -191,7 +191,7 @@ class AttendanceService {
   }
 
   /**
-   * Manual attendance marking.
+   * Manual attendance marking and status resetting.
    */
   async markManual(eventId, studentId, status, userId, note) {
     const event = await eventRepository.findById(eventId);
@@ -200,7 +200,30 @@ class AttendanceService {
     const student = await this._resolveStudentById(studentId, event);
     if (!student) throw { status: 404, code: 'STUDENT_NOT_FOUND', message: 'Registered student not found' };
 
+    const normalizedStatus = String(status || '').trim().toLowerCase();
+    const isUnmarking = ['not_scanned', 'not_marked', 'unmarked'].includes(normalizedStatus);
+
     const existing = await attendanceRepository.findOne({ event: eventId, student: student._id });
+
+    if (isUnmarking) {
+      if (existing) {
+        await attendanceRepository.createLog({
+          event: eventId,
+          student: student._id,
+          action: 'delete',
+          previousStatus: existing.status,
+          newStatus: 'not_scanned',
+          performedBy: userId,
+        });
+        await attendanceRepository.deleteByEventAndStudent(eventId, student._id);
+      }
+      return {
+        event: eventId,
+        student: student,
+        status: null,
+        message: 'Attendance reset to not scanned',
+      };
+    }
 
     if (existing) {
       await attendanceRepository.createLog({
@@ -208,11 +231,11 @@ class AttendanceService {
         student: student._id,
         action: 'update',
         previousStatus: existing.status,
-        newStatus: status,
+        newStatus: normalizedStatus,
         performedBy: userId,
       });
       await Student.updateOne({ _id: student._id }, { $set: { lastMarkedAt: new Date() } });
-      return attendanceRepository.updateById(existing._id, { status, note, markedBy: userId });
+      return attendanceRepository.updateById(existing._id, { status: normalizedStatus, note, markedBy: userId });
     }
 
     try {
@@ -220,7 +243,7 @@ class AttendanceService {
         event: eventId,
         student: student._id,
         action: 'mark',
-        newStatus: status,
+        newStatus: normalizedStatus,
         performedBy: userId,
       });
 
@@ -229,7 +252,7 @@ class AttendanceService {
       return await attendanceRepository.create({
         event: eventId,
         student: student._id,
-        status,
+        status: normalizedStatus,
         method: ATTENDANCE_METHOD.MANUAL,
         markedBy: userId,
         note,

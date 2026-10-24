@@ -11,6 +11,7 @@ import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/neon_badge.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
+import '../../../students/providers/student_provider.dart';
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
@@ -86,8 +87,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
               final availableEvents = activeEvents.isNotEmpty ? activeEvents : events;
               final sortedEvents = EventEntity.sortChronologically(availableEvents);
 
+              final activeEventId = _selectedEventId ?? ref.watch(selectedEventIdProvider);
               final selectedEvent = sortedEvents.firstWhere(
-                (e) => e.id == _selectedEventId,
+                (e) => e.id == activeEventId,
                 orElse: () => EventEntity.findDefaultEvent(sortedEvents) ?? sortedEvents.first,
               );
 
@@ -217,6 +219,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 onChanged: (newId) {
                   if (newId != null) {
                     setState(() => _selectedEventId = newId);
+                    ref.read(selectedEventIdProvider.notifier).state = newId;
                   }
                 },
               ),

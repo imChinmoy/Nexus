@@ -9,6 +9,9 @@ import '../../../../shared/widgets/brl_app_bar.dart';
 import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../providers/student_provider.dart';
+import '../../../attendance/providers/attendance_provider.dart';
+import '../../../events/domain/entities/event_entity.dart';
+import '../../../events/providers/event_provider.dart';
 
 class StudentDetailScreen extends ConsumerStatefulWidget {
   final String studentId;
@@ -237,10 +240,218 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     );
   }
 
+  Widget _buildEventAttendanceSection(BuildContext context, StudentEntity student) {
+    final eventsAsync = ref.watch(eventsProvider);
+    final events = eventsAsync.valueOrNull ?? [];
+    if (events.isEmpty) return const SizedBox.shrink();
+
+    final selectedEventId = ref.watch(selectedEventIdProvider);
+    final activeEvent = events.cast<EventEntity?>().firstWhere(
+          (e) => e?.id == selectedEventId,
+          orElse: () => EventEntity.findDefaultEvent(events) ?? events.first,
+        );
+
+    if (activeEvent == null) return const SizedBox.shrink();
+
+    final eventScopedAsync = ref.watch(eventScopedStudentsFamilyProvider(activeEvent.id));
+    final scopedStudent = eventScopedAsync.valueOrNull?.students.cast<StudentEntity?>().firstWhere(
+          (s) => s?.id == student.id || s?.rollNumber == student.rollNumber,
+          orElse: () => null,
+        );
+
+    final attStatus = scopedStudent?.attendanceStatus?.toLowerCase() ??
+        student.attendanceStatus?.toLowerCase() ??
+        (student.isPresent ? 'present' : 'not_scanned');
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color statusColor;
+    final String statusLabel;
+    final IconData statusIcon;
+
+    if (attStatus == 'present') {
+      statusColor = AppColors.successOf(context);
+      statusLabel = 'Present';
+      statusIcon = Icons.check_circle_rounded;
+    } else if (attStatus == 'late') {
+      statusColor = Colors.orange;
+      statusLabel = 'Late';
+      statusIcon = Icons.access_time_filled_rounded;
+    } else if (attStatus == 'absent') {
+      statusColor = AppColors.errorOf(context);
+      statusLabel = 'Absent';
+      statusIcon = Icons.cancel_rounded;
+    } else if (attStatus == 'excused') {
+      statusColor = Colors.blue;
+      statusLabel = 'Excused';
+      statusIcon = Icons.info_rounded;
+    } else {
+      statusColor = isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70);
+      statusLabel = 'Not Scanned';
+      statusIcon = Icons.radio_button_unchecked_rounded;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(context, 'EVENT ATTENDANCE • ${activeEvent.title.toUpperCase()}'),
+        const SizedBox(height: 8),
+        BrlGlassCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(statusIcon, color: statusColor, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        statusLabel,
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Manual Override',
+                    style: AppTextStyles.caption.copyWith(color: AppColors.textTertiaryOf(context)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildQuickMarkChip(
+                    context,
+                    label: 'Present',
+                    color: AppColors.successOf(context),
+                    isSelected: attStatus == 'present',
+                    onTap: () => _markStudent(student, activeEvent.id, 'present'),
+                  ),
+                  _buildQuickMarkChip(
+                    context,
+                    label: 'Absent',
+                    color: AppColors.errorOf(context),
+                    isSelected: attStatus == 'absent',
+                    onTap: () => _markStudent(student, activeEvent.id, 'absent'),
+                  ),
+                  _buildQuickMarkChip(
+                    context,
+                    label: 'Late',
+                    color: Colors.orange,
+                    isSelected: attStatus == 'late',
+                    onTap: () => _markStudent(student, activeEvent.id, 'late'),
+                  ),
+                  _buildQuickMarkChip(
+                    context,
+                    label: 'Not Scanned',
+                    color: isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70),
+                    isSelected: attStatus == 'not_scanned',
+                    onTap: () => _markStudent(student, activeEvent.id, 'not_scanned'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildQuickMarkChip(
+    BuildContext context, {
+    required String label,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: isDark ? 0.25 : 0.15)
+              : (isDark ? const Color(0xFF1E1E22) : const Color(0xFFF2F2F7)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : AppColors.borderOf(context),
+            width: isSelected ? 1.0 : 0.6,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12,
+            color: isSelected ? color : AppColors.textPrimaryOf(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _markStudent(StudentEntity student, String eventId, String status) async {
+    try {
+      final attendanceRepo = ref.read(attendanceRepositoryProvider);
+      final targetId = student.id.isNotEmpty ? student.id : student.rollNumber;
+      final result = await attendanceRepo.markManual(
+        eventId: eventId,
+        studentId: targetId,
+        status: status,
+      );
+
+      if (!mounted) return;
+
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed: ${failure.message}'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+        (_) {
+          final displayLabel = status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Attendance updated: $displayLabel'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          ref.invalidate(eventStudentsProvider);
+          ref.invalidate(eventScopedStudentsFamilyProvider(eventId));
+          ref.invalidate(eventAttendanceProvider(eventId));
+          ref.invalidate(studentsProvider);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
+  }
+
   Widget _buildOverviewTab(BuildContext context, StudentEntity student) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildEventAttendanceSection(context, student),
         _buildSectionHeader(context, 'ACADEMIC & PERSONAL'),
         const SizedBox(height: 8),
         BrlGlassCard(

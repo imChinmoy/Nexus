@@ -61,36 +61,111 @@ class EventStudentsService {
       };
     }
 
-    // Build fast lookup maps by roll number and student number
+    // Build fast lookup maps by roll number, student number, email, and ID
     const attendanceByRollNo = new Map();
     const attendanceByStudentNo = new Map();
+    const attendanceByEmail = new Map();
+    const attendanceByStudentId = new Map();
 
-    for (const record of attendanceRecords) {
-      if (record.student && record.student.rollNo) {
-        const normRoll = String(record.student.rollNo).trim().toUpperCase();
-        attendanceByRollNo.set(normRoll, record);
-      }
-      if (record.student && record.student.studentNo) {
-        const normStudentNo = String(record.student.studentNo).trim();
-        attendanceByStudentNo.set(normStudentNo, record);
-      }
-    }
+    const presentRolls = [];
+    const absentRolls = [];
+    const lateRolls = [];
+    const excusedRolls = [];
+    const presentStudentNos = [];
+    const absentStudentNos = [];
+    const lateStudentNos = [];
+    const excusedStudentNos = [];
 
-    // 5. Total registered students in this event's source
-    const totalRegistered = await collection.countDocuments({});
-
-    // Compute status counts for the selected event
     let presentCount = 0;
     let absentCount = 0;
     let lateCount = 0;
     let excusedCount = 0;
 
-    for (const att of attendanceRecords) {
-      if (att.status === 'present') presentCount++;
-      else if (att.status === 'absent') absentCount++;
-      else if (att.status === 'late') lateCount++;
-      else if (att.status === 'excused') excusedCount++;
+    for (const record of attendanceRecords) {
+      const normStatus = String(record.status || '').trim().toLowerCase();
+      record.status = normStatus;
+
+      if (normStatus === 'present') presentCount++;
+      else if (normStatus === 'absent') absentCount++;
+      else if (normStatus === 'late') lateCount++;
+      else if (normStatus === 'excused') excusedCount++;
+
+      if (!record.student) continue;
+
+      const s = record.student;
+      if (s._id) {
+        attendanceByStudentId.set(String(s._id), record);
+      }
+      const studentRoll = s.rollNo || s.rollNumber;
+      if (studentRoll) {
+        const normRoll = String(studentRoll).trim().toUpperCase();
+        attendanceByRollNo.set(normRoll, record);
+        if (normStatus === 'present') presentRolls.push(normRoll);
+        else if (normStatus === 'absent') absentRolls.push(normRoll);
+        else if (normStatus === 'late') lateRolls.push(normRoll);
+        else if (normStatus === 'excused') excusedRolls.push(normRoll);
+      }
+      const stNo = s.studentNo || s.studentNumber;
+      if (stNo) {
+        const normStudentNo = String(stNo).trim();
+        attendanceByStudentNo.set(normStudentNo, record);
+        if (normStatus === 'present') presentStudentNos.push(normStudentNo);
+        else if (normStatus === 'absent') absentStudentNos.push(normStudentNo);
+        else if (normStatus === 'late') lateStudentNos.push(normStudentNo);
+        else if (normStatus === 'excused') excusedStudentNos.push(normStudentNo);
+      }
+      if (s.email) {
+        attendanceByEmail.set(String(s.email).trim().toLowerCase(), record);
+      }
     }
+
+    // Helper to build match condition for collection
+    // Handles string/numeric roll numbers, rollNo/rollNumber fields, and studentNo/studentNumber
+    function buildMatchCondition(rolls, studentNos, isNotIn = false) {
+      const stringRolls = (rolls || []).flatMap((r) => [
+        String(r).trim().toUpperCase(),
+        String(r).trim().toLowerCase(),
+        String(r).trim(),
+      ]);
+      const numericRolls = (rolls || []).map((r) => Number(r)).filter((n) => !isNaN(n));
+      const allRollValues = [...new Set([...stringRolls, ...numericRolls])];
+      const allStudentNos = [...new Set((studentNos || []).map((st) => String(st).trim()))];
+
+      if (allRollValues.length === 0 && allStudentNos.length === 0) {
+        return isNotIn ? {} : { _id: { $in: [] } };
+      }
+
+      if (isNotIn) {
+        const andClauses = [];
+        if (allRollValues.length > 0) {
+          andClauses.push({
+            rollNo: { $nin: allRollValues },
+            rollNumber: { $nin: allRollValues },
+          });
+        }
+        if (allStudentNos.length > 0) {
+          andClauses.push({
+            studentNo: { $nin: allStudentNos },
+            studentNumber: { $nin: allStudentNos },
+          });
+        }
+        return andClauses.length === 1 ? andClauses[0] : { $and: andClauses };
+      }
+
+      const orClauses = [];
+      if (allRollValues.length > 0) {
+        orClauses.push({ rollNo: { $in: allRollValues } });
+        orClauses.push({ rollNumber: { $in: allRollValues } });
+      }
+      if (allStudentNos.length > 0) {
+        orClauses.push({ studentNo: { $in: allStudentNos } });
+        orClauses.push({ studentNumber: { $in: allStudentNos } });
+      }
+      return { $or: orClauses };
+    }
+
+    // 5. Total registered students in this event's source
+    const totalRegistered = await collection.countDocuments({});
 
     const markedCount = presentCount + absentCount + lateCount + excusedCount;
     const notMarkedCount = Math.max(0, totalRegistered - markedCount);
@@ -119,25 +194,40 @@ class EventStudentsService {
     }
 
     // 6. Build filter for registrations query
-    const filter = {};
+    const andClauses = [];
 
     // Branch filter
     if (query.branch && query.branch.trim() && query.branch.trim().toLowerCase() !== 'all') {
-      filter.branch = { $regex: new RegExp(`^${escapeRegex(query.branch.trim())}$`, 'i') };
+      andClauses.push({ branch: { $regex: new RegExp(`^${escapeRegex(query.branch.trim())}$`, 'i') } });
     }
 
     // Attendance status filter
     if (query.attendanceStatus && query.attendanceStatus.trim() && query.attendanceStatus.trim().toLowerCase() !== 'all') {
       const targetStatus = query.attendanceStatus.trim().toLowerCase();
       if (targetStatus === 'not_marked' || targetStatus === 'not_scanned' || targetStatus === 'unmarked') {
-        const markedRollNos = Array.from(attendanceByRollNo.keys());
-        filter.rollNo = { $nin: markedRollNos };
-      } else if (['present', 'absent', 'late', 'excused'].includes(targetStatus)) {
-        const matchingRollNos = [];
-        for (const [r, att] of attendanceByRollNo.entries()) {
-          if (att.status === targetStatus) matchingRollNos.push(r);
+        const allMarkedRolls = [...presentRolls, ...absentRolls, ...lateRolls, ...excusedRolls];
+        const allMarkedStudentNos = [...presentStudentNos, ...absentStudentNos, ...lateStudentNos, ...excusedStudentNos];
+        if (allMarkedRolls.length > 0 || allMarkedStudentNos.length > 0) {
+          andClauses.push(buildMatchCondition(allMarkedRolls, allMarkedStudentNos, true));
         }
-        filter.rollNo = { $in: matchingRollNos };
+      } else if (['present', 'absent', 'late', 'excused'].includes(targetStatus)) {
+        let targetRolls = [];
+        let targetStudentNos = [];
+        if (targetStatus === 'present') {
+          targetRolls = presentRolls;
+          targetStudentNos = presentStudentNos;
+        } else if (targetStatus === 'absent') {
+          targetRolls = absentRolls;
+          targetStudentNos = absentStudentNos;
+        } else if (targetStatus === 'late') {
+          targetRolls = lateRolls;
+          targetStudentNos = lateStudentNos;
+        } else if (targetStatus === 'excused') {
+          targetRolls = excusedRolls;
+          targetStudentNos = excusedStudentNos;
+        }
+
+        andClauses.push(buildMatchCondition(targetRolls, targetStudentNos, false));
       }
     }
 
@@ -145,7 +235,7 @@ class EventStudentsService {
     if (query.search && query.search.trim()) {
       const safe = escapeRegex(query.search.trim());
       const searchRegex = { $regex: safe, $options: 'i' };
-      const searchFilter = {
+      andClauses.push({
         $or: [
           { name: searchRegex },
           { rollNo: searchRegex },
@@ -153,14 +243,10 @@ class EventStudentsService {
           { studentNo: searchRegex },
           { studentNumber: searchRegex },
         ],
-      };
-
-      if (Object.keys(filter).length > 0) {
-        filter.$and = [searchFilter];
-      } else {
-        Object.assign(filter, searchFilter);
-      }
+      });
     }
+
+    const filter = andClauses.length > 0 ? { $and: andClauses } : {};
 
     // 7. Server-side pagination & stable sorting
     const page = Math.max(1, parseInt(query.page, 10) || 1);
@@ -187,12 +273,16 @@ class EventStudentsService {
 
     // 8. Transform and merge attendance status with registrations
     const data = docs.map((doc) => {
-      const rollNo = doc.rollNo || doc.rollNumber || '';
-      const studentNo = doc.studentNo || doc.studentNumber || '';
-      const normRoll = String(rollNo).trim().toUpperCase();
-      const normStudentNo = String(studentNo).trim();
+      const rollNo = doc.rollNo !== undefined ? String(doc.rollNo).trim() : (doc.rollNumber !== undefined ? String(doc.rollNumber).trim() : '');
+      const studentNo = doc.studentNo !== undefined ? String(doc.studentNo).trim() : (doc.studentNumber !== undefined ? String(doc.studentNumber).trim() : '');
+      const email = doc.email !== undefined ? String(doc.email).trim().toLowerCase() : (doc.emailAddress !== undefined ? String(doc.emailAddress).trim().toLowerCase() : '');
+      const docId = doc._id ? String(doc._id) : '';
 
-      const attRecord = attendanceByRollNo.get(normRoll) || attendanceByStudentNo.get(normStudentNo) || null;
+      const attRecord = (rollNo ? attendanceByRollNo.get(rollNo.toUpperCase()) : null) ||
+        (studentNo ? attendanceByStudentNo.get(studentNo) : null) ||
+        (email ? attendanceByEmail.get(email) : null) ||
+        (docId ? attendanceByStudentId.get(docId) : null) ||
+        null;
 
       return {
         studentId: doc._id.toString(),

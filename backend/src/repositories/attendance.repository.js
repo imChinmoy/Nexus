@@ -44,10 +44,22 @@ class AttendanceRepository {
     return Attendance.findByIdAndUpdate(id, data, { new: true });
   }
 
+  async deleteById(id) {
+    return Attendance.findByIdAndDelete(id);
+  }
+
+  async deleteByEventAndStudent(eventId, studentId) {
+    return Attendance.deleteOne({ event: eventId, student: studentId });
+  }
+
   async getEventStats(eventId) {
+    const mongoose = require('mongoose');
+    const objId = mongoose.Types.ObjectId.isValid(eventId)
+      ? new mongoose.Types.ObjectId(eventId)
+      : eventId;
     return Attendance.aggregate([
-      { $match: { event: require('mongoose').Types.ObjectId.createFromHexString(eventId) } },
-      { $group: { _id: '$status', count: { $sum: 1 } } },
+      { $match: { event: objId } },
+      { $group: { _id: { $toLower: '$status' }, count: { $sum: 1 } } },
     ]);
   }
 

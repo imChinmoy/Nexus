@@ -13,8 +13,11 @@ const qrScanValidator = [
 
 const manualAttendanceValidator = [
   param('eventId').isMongoId().withMessage('Valid event ID is required'),
-  body('studentId').isMongoId().withMessage('Valid student ID is required'),
-  body('status').isIn(['present', 'absent', 'late', 'excused']).withMessage('Valid status required'),
+  body('studentId').trim().notEmpty().withMessage('Valid student ID is required'),
+  body('status')
+    .customSanitizer((val) => (typeof val === 'string' ? val.toLowerCase().trim() : val))
+    .isIn(['present', 'absent', 'late', 'excused', 'not_scanned', 'not_marked', 'unmarked'])
+    .withMessage('Valid status required (present, absent, late, excused, not_scanned)'),
   body('note').optional().isLength({ max: 500 }),
 ];
 

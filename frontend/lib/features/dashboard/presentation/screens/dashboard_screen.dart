@@ -30,7 +30,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
 
     final eventsAsync = ref.watch(eventsProvider);
     final user = ref.watch(currentUserProvider);
@@ -41,7 +42,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         bottom: false,
         child: RefreshIndicator(
           color: accent,
-          backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
+          backgroundColor:
+              isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
           onRefresh: () async {
             HapticFeedback.lightImpact();
             ref.invalidate(eventsProvider);
@@ -51,7 +53,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             await Future.delayed(const Duration(milliseconds: 500));
           },
           child: CustomScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
             slivers: [
               // 1. Minimal Header
               SliverToBoxAdapter(
@@ -62,7 +65,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               eventsAsync.when(
                 data: (events) {
                   final featuredEvent = _resolveFeaturedEvent(events);
-                  final otherEvents = events.where((e) => e.id != featuredEvent?.id).toList();
+                  final otherEvents =
+                      events.where((e) => e.id != featuredEvent?.id).toList();
 
                   return SliverList(
                     delegate: SliverChildListDelegate([
@@ -80,16 +84,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       // 3. Attendance Overview (Single Compact Horizontal Statistics Section)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: _buildAttendanceOverview(context, featuredEvent, isDark),
+                        child: _buildAttendanceOverview(
+                            context, featuredEvent, isDark),
                       ),
 
                       // 4. Recent Activity (Connected Timeline, hidden if no activity)
-                      _buildRecentActivityTimeline(context, featuredEvent, isDark),
+                      _buildRecentActivityTimeline(
+                          context, featuredEvent, isDark),
 
                       // 5. Upcoming Events (Image-Led Horizontal Carousel)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                        child: _buildUpcomingEventsCarousel(context, otherEvents, isDark),
+                        child: _buildUpcomingEventsCarousel(
+                            context, otherEvents, isDark),
                       ),
                     ]),
                   );
@@ -120,8 +127,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // 1. MINIMAL HEADER
   // ---------------------------------------------------------------------------
   Widget _buildMinimalHeader(BuildContext context, dynamic user, bool isDark) {
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     final hour = DateTime.now().hour;
@@ -132,7 +141,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             : 'Good evening';
 
     final displayName = user?.name.split(' ').first ?? 'Operator';
-    final currentDateFormatted = DateFormat('EEEE, MMM d').format(DateTime.now());
+    final currentDateFormatted =
+        DateFormat('EEEE, MMM d').format(DateTime.now());
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 10),
@@ -149,7 +159,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: accent.withValues(alpha: isDark ? 0.16 : 0.09),
                         borderRadius: BorderRadius.circular(6),
@@ -219,15 +230,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000),
+                        color: isDark
+                            ? const Color(0x1FFFFFFF)
+                            : const Color(0x0F000000),
                         width: 0.8,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.04),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -274,15 +290,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000),
+                        color: isDark
+                            ? const Color(0x1FFFFFFF)
+                            : const Color(0x0F000000),
                         width: 0.8,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.04),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -322,7 +343,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'N',
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : 'N',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -354,12 +377,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
-    final dateFormatted = DateFormat('EEE, MMM d • h:mm a').format(event.startDate);
+    final dateFormatted =
+        DateFormat('EEE, MMM d • h:mm a').format(event.startDate);
 
     return Semantics(
       label: 'Featured Event: ${event.title}',
       child: Container(
-        height: 250,
+        height: 270,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
@@ -435,7 +459,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     // Live Status Radar Beacon
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4.5),
                       decoration: BoxDecoration(
                         color: const Color(0xE6080B11),
                         borderRadius: BorderRadius.circular(20),
@@ -453,12 +478,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             width: 7,
                             height: 7,
                             decoration: BoxDecoration(
-                              color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white70,
+                              color: (event.isAttendanceOpen && !event.isPast)
+                                  ? successColor
+                                  : Colors.white70,
                               shape: BoxShape.circle,
-                              boxShadow: (event.isAttendanceOpen && !event.isPast)
+                              boxShadow: (event.isAttendanceOpen &&
+                                      !event.isPast)
                                   ? [
                                       BoxShadow(
-                                        color: successColor.withValues(alpha: 0.8),
+                                        color:
+                                            successColor.withValues(alpha: 0.8),
                                         blurRadius: 7,
                                         spreadRadius: 1.5,
                                       ),
@@ -475,7 +504,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
-                              color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white,
+                              color: (event.isAttendanceOpen && !event.isPast)
+                                  ? successColor
+                                  : Colors.white,
                             ),
                           ),
                         ],
@@ -488,7 +519,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       children: [
                         // Type Tag
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xE6080B11),
                             borderRadius: BorderRadius.circular(10),
@@ -529,7 +561,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             child: IconButton(
                               onPressed: () async {
                                 HapticFeedback.mediumImpact();
-                                final nextState = !(event.isAttendanceOpen && !event.isPast);
+                                final nextState =
+                                    !(event.isAttendanceOpen && !event.isPast);
                                 final result = await ref
                                     .read(eventRepositoryProvider)
                                     .toggleAttendance(event.id, nextState);
@@ -538,7 +571,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(failure.message),
-                                        backgroundColor: AppColors.errorOf(context),
+                                        backgroundColor:
+                                            AppColors.errorOf(context),
                                       ),
                                     );
                                   },
@@ -554,7 +588,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                         backgroundColor: nextState
                                             ? successColor
                                             : AppColors.surfaceOf(context),
-                                        duration: const Duration(milliseconds: 1500),
+                                        duration:
+                                            const Duration(milliseconds: 1500),
                                       ),
                                     );
                                   },
@@ -592,7 +627,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
                       decoration: BoxDecoration(
                         color: isDark
                             ? const Color(0xD90B0E17)
@@ -606,7 +642,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.35 : 0.08),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -623,7 +660,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.2,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.lightTextPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -640,9 +679,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     Icon(
                                       Icons.schedule_rounded,
                                       size: 11,
-                                      color: (event.isAttendanceOpen && !event.isPast)
+                                      color: (event.isAttendanceOpen &&
+                                              !event.isPast)
                                           ? successColor
-                                          : (isDark ? Colors.white60 : AppColors.lightTextSecondary),
+                                          : (isDark
+                                              ? Colors.white60
+                                              : AppColors.lightTextSecondary),
                                     ),
                                     const SizedBox(width: 4),
                                     Flexible(
@@ -651,18 +693,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                         style: GoogleFonts.inter(
                                           fontSize: 10.5,
                                           fontWeight: FontWeight.w500,
-                                          color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : AppColors.lightTextSecondary,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    if (event.venue != null && event.venue!.isNotEmpty) ...[
+                                    if (event.venue != null &&
+                                        event.venue!.isNotEmpty) ...[
                                       const SizedBox(width: 5),
                                       Text(
                                         '•',
                                         style: TextStyle(
-                                          color: isDark ? Colors.white30 : Colors.black26,
+                                          color: isDark
+                                              ? Colors.white30
+                                              : Colors.black26,
                                           fontSize: 9,
                                         ),
                                       ),
@@ -670,7 +717,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       Icon(
                                         Icons.place_outlined,
                                         size: 11,
-                                        color: isDark ? Colors.white60 : AppColors.lightTextSecondary,
+                                        color: isDark
+                                            ? Colors.white60
+                                            : AppColors.lightTextSecondary,
                                       ),
                                       const SizedBox(width: 3),
                                       Flexible(
@@ -679,7 +728,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                           style: GoogleFonts.inter(
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w500,
-                                            color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                                            color: isDark
+                                                ? Colors.white70
+                                                : AppColors.lightTextSecondary,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -695,9 +746,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ElevatedButton.icon(
                                 onPressed: () {
                                   HapticFeedback.mediumImpact();
-                                  context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                  context.push(
+                                      '${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
                                 },
-                                icon: const Icon(Icons.qr_code_scanner_rounded, size: 13.5),
+                                icon: const Icon(Icons.qr_code_scanner_rounded,
+                                    size: 13.5),
                                 label: Text(
                                   'Scan QR Pass',
                                   style: GoogleFonts.inter(
@@ -707,12 +760,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: (event.isAttendanceOpen && !event.isPast)
-                                      ? successColor
-                                      : accent,
+                                  backgroundColor:
+                                      (event.isAttendanceOpen && !event.isPast)
+                                          ? successColor
+                                          : accent,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 9, vertical: 5),
                                   minimumSize: const Size(0, 28),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
@@ -756,7 +811,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildEmptyFeaturedCard(BuildContext context, bool isDark) {
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Container(
       height: 170,
@@ -779,7 +835,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 4),
@@ -795,13 +853,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   // 3. ATTENDANCE OVERVIEW (COMPACT HORIZONTAL STATISTICS SECTION)
   // ---------------------------------------------------------------------------
-  Widget _buildAttendanceOverview(BuildContext context, EventEntity? featuredEvent, bool isDark) {
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+  Widget _buildAttendanceOverview(
+      BuildContext context, EventEntity? featuredEvent, bool isDark) {
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final borderColor = isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor =
+        isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
 
     // Dynamic metrics retrieval
     final allStudentsAsync = ref.watch(studentsProvider);
@@ -812,10 +875,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     int totalRegistered = 0;
     int presentCount = 0;
 
-    if (eventScopedAsync != null && eventScopedAsync.hasValue && eventScopedAsync.value != null) {
+    if (eventScopedAsync != null &&
+        eventScopedAsync.hasValue &&
+        eventScopedAsync.value != null) {
       totalRegistered = eventScopedAsync.value!.counts.total;
       presentCount = eventScopedAsync.value!.counts.present;
-    } else if (featuredEvent == null && allStudentsAsync.hasValue && allStudentsAsync.value != null) {
+    } else if (featuredEvent == null &&
+        allStudentsAsync.hasValue &&
+        allStudentsAsync.value != null) {
       final students = allStudentsAsync.value!;
       totalRegistered = students.length;
       presentCount = students.where((s) => s.isPresent).length;
@@ -825,7 +892,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? (presentCount / totalRegistered).clamp(0.0, 1.0)
         : 0.0;
     final int percentage = (progress * 100).round();
-    final int remaining = totalRegistered >= presentCount ? (totalRegistered - presentCount) : 0;
+    final int remaining =
+        totalRegistered >= presentCount ? (totalRegistered - presentCount) : 0;
 
     return Semantics(
       label: 'Attendance Operations Overview',
@@ -869,18 +937,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   onTap: () {
                     HapticFeedback.lightImpact();
                     if (featuredEvent != null) {
-                      ref.read(selectedEventIdProvider.notifier).state = featuredEvent.id;
+                      ref.read(selectedEventIdProvider.notifier).state =
+                          featuredEvent.id;
                     }
                     context.push(RouteConstants.students);
                   },
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          featuredEvent != null ? 'Event Scope' : 'All Students',
+                          featuredEvent != null
+                              ? 'Event Scope'
+                              : 'All Students',
                           style: GoogleFonts.inter(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
@@ -888,7 +960,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(width: 2),
-                        Icon(Icons.chevron_right_rounded, size: 14, color: accent),
+                        Icon(Icons.chevron_right_rounded,
+                            size: 14, color: accent),
                       ],
                     ),
                   ),
@@ -932,7 +1005,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Container(
                   width: 1,
                   height: 32,
-                  color: isDark ? AppColors.darkSeparator : AppColors.lightSeparator,
+                  color: isDark
+                      ? AppColors.darkSeparator
+                      : AppColors.lightSeparator,
                 ),
 
                 // 2. Total Registered
@@ -970,7 +1045,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Container(
                   width: 1,
                   height: 32,
-                  color: isDark ? AppColors.darkSeparator : AppColors.lightSeparator,
+                  color: isDark
+                      ? AppColors.darkSeparator
+                      : AppColors.lightSeparator,
                 ),
 
                 // 3. Attendance Rate / Remaining
@@ -1041,20 +1118,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   // 4. RECENT ACTIVITY (COMPACT CONNECTED TIMELINE)
   // ---------------------------------------------------------------------------
-  Widget _buildRecentActivityTimeline(BuildContext context, EventEntity? featuredEvent, bool isDark) {
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+  Widget _buildRecentActivityTimeline(
+      BuildContext context, EventEntity? featuredEvent, bool isDark) {
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final borderColor = isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor =
+        isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
 
     // Retrieve recent students (scoped to featured event if available, otherwise general)
     final allStudents = ref.watch(studentsProvider).value ?? [];
     final scopedStudents = featuredEvent != null
-        ? (ref.watch(eventScopedStudentsFamilyProvider(featuredEvent.id)).value?.students ?? [])
+        ? (ref
+                .watch(eventScopedStudentsFamilyProvider(featuredEvent.id))
+                .value
+                ?.students ??
+            [])
         : <StudentEntity>[];
 
-    final candidatePool = scopedStudents.isNotEmpty ? scopedStudents : allStudents;
+    final candidatePool =
+        scopedStudents.isNotEmpty ? scopedStudents : allStudents;
     final presentStudents = candidatePool.where((s) => s.isPresent).toList();
 
     // Sort by most recently marked/updated
@@ -1207,7 +1294,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Center(
                         child: Container(
                           width: 1.5,
-                          color: isDark ? AppColors.darkSeparator : AppColors.lightSeparator,
+                          color: isDark
+                              ? AppColors.darkSeparator
+                              : AppColors.lightSeparator,
                         ),
                       ),
                     ),
@@ -1256,9 +1345,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2.5),
                     decoration: BoxDecoration(
-                      color: successColor.withValues(alpha: isDark ? 0.16 : 0.10),
+                      color:
+                          successColor.withValues(alpha: isDark ? 0.16 : 0.10),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
@@ -1302,13 +1393,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-
-
   // ---------------------------------------------------------------------------
   // 5. UPCOMING EVENTS (IMAGE-LED HORIZONTAL CAROUSEL)
   // ---------------------------------------------------------------------------
-  Widget _buildUpcomingEventsCarousel(BuildContext context, List<EventEntity> events, bool isDark) {
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+  Widget _buildUpcomingEventsCarousel(
+      BuildContext context, List<EventEntity> events, bool isDark) {
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     // Filter upcoming or ongoing events
@@ -1339,7 +1430,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 if (displayEvents.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 1.5),
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -1394,14 +1486,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildCarouselCard(BuildContext context, EventEntity event, bool isDark) {
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final borderColor = isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
+  Widget _buildCarouselCard(
+      BuildContext context, EventEntity event, bool isDark) {
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor =
+        isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
-    final dateMonthDay = DateFormat('MMM d').format(event.startDate).toUpperCase();
+    final dateMonthDay =
+        DateFormat('MMM d').format(event.startDate).toUpperCase();
     final timeStr = DateFormat('h:mm a').format(event.startDate);
 
     return Semantics(
@@ -1438,12 +1536,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (event.banner != null && event.banner!.trim().isNotEmpty)
+                      if (event.banner != null &&
+                          event.banner!.trim().isNotEmpty)
                         CachedNetworkImage(
                           imageUrl: event.banner!.trim(),
                           fit: BoxFit.cover,
                           placeholder: (_, __) => _buildBannerFallback(isDark),
-                          errorWidget: (_, __, ___) => _buildBannerFallback(isDark),
+                          errorWidget: (_, __, ___) =>
+                              _buildBannerFallback(isDark),
                         )
                       else
                         _buildBannerFallback(isDark),
@@ -1468,11 +1568,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         top: 8,
                         left: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.65),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.white24, width: 0.5),
+                            border:
+                                Border.all(color: Colors.white24, width: 0.5),
                           ),
                           child: Text(
                             dateMonthDay,
@@ -1489,7 +1591,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         top: 8,
                         right: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
                             color: accent.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(8),
@@ -1529,7 +1632,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          Icon(Icons.access_time_rounded, size: 11, color: textSecondary),
+                          Icon(Icons.access_time_rounded,
+                              size: 11, color: textSecondary),
                           const SizedBox(width: 3),
                           Text(
                             timeStr,
@@ -1539,9 +1643,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               color: textSecondary,
                             ),
                           ),
-                          if (event.venue != null && event.venue!.isNotEmpty) ...[
+                          if (event.venue != null &&
+                              event.venue!.isNotEmpty) ...[
                             const SizedBox(width: 6),
-                            const Text('•', style: TextStyle(color: Colors.grey, fontSize: 8)),
+                            const Text('•',
+                                style:
+                                    TextStyle(color: Colors.grey, fontSize: 8)),
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
@@ -1570,8 +1677,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildEmptyEventsCarousel(bool isDark, Color textSecondary) {
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final borderColor = isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor =
+        isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
 
     return Container(
       width: double.infinity,
@@ -1599,8 +1708,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // SKELETON LOADING & ERROR STATES
   // ---------------------------------------------------------------------------
   Widget _buildSkeletonLoading(bool isDark) {
-    final baseColor = isDark ? const Color(0xFF1E1E22) : const Color(0xFFE5E5EA);
-    final highlightColor = isDark ? const Color(0xFF28282E) : const Color(0xFFF2F2F7);
+    final baseColor =
+        isDark ? const Color(0xFF1E1E22) : const Color(0xFFE5E5EA);
+    final highlightColor =
+        isDark ? const Color(0xFF28282E) : const Color(0xFFF2F2F7);
 
     return Shimmer.fromColors(
       baseColor: baseColor,
@@ -1659,14 +1770,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.error_outline_rounded, size: 40, color: isDark ? AppColors.errorDark : AppColors.error),
+            Icon(Icons.error_outline_rounded,
+                size: 40,
+                color: isDark ? AppColors.errorDark : AppColors.error),
             const SizedBox(height: 10),
             Text(
               'Unable to load operations dashboard',
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -1674,7 +1789,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               error,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1687,7 +1804,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: accent,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
               child: const Text('Retry'),
             ),
@@ -1704,7 +1822,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (events.isEmpty) return null;
     final sorted = EventEntity.sortChronologically(events);
     // If an active event has attendance open, prioritize it
-    final openEvent = sorted.where((e) => e.isAttendanceOpen && !e.isPast).firstOrNull;
+    final openEvent =
+        sorted.where((e) => e.isAttendanceOpen && !e.isPast).firstOrNull;
     if (openEvent != null) return openEvent;
     return EventEntity.findDefaultEvent(sorted);
   }

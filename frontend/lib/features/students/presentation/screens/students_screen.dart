@@ -13,6 +13,8 @@ import '../../../../shared/widgets/brl_glass_card.dart';
 import '../../../../shared/widgets/brl_text_field.dart';
 import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../../shared/widgets/neon_badge.dart';
+import '../../../../core/constants/route_constants.dart';
+import '../../../attendance/providers/attendance_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
 import '../../domain/entities/student_entity.dart';
@@ -210,6 +212,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       overline: 'NEXUS • STUDENT REGISTRY',
       counterText: activeFilterCount > 0 ? '$activeFilterCount filtered' : null,
       actions: [
+        if (selectedEvent != null)
+          BrlHeaderIconButton(
+            icon: Icons.edit_note_rounded,
+            tooltip: 'Manual Attendance Mode',
+            onTap: () {
+              context.push('${RouteConstants.attendance}/manual?eventId=${selectedEvent.id}');
+            },
+          ),
         BrlHeaderIconButton(
           icon: Icons.tune_rounded,
           tooltip: 'Filter Students',
@@ -902,6 +912,24 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               color: Colors.orange,
             ),
           ],
+          if (counts.absent > 0) ...[
+            const SizedBox(width: 8),
+            _buildStatCard(
+              context,
+              label: 'Absent',
+              value: '${counts.absent}',
+              color: AppColors.errorOf(context),
+            ),
+          ],
+          if (counts.excused > 0) ...[
+            const SizedBox(width: 8),
+            _buildStatCard(
+              context,
+              label: 'Excused',
+              value: '${counts.excused}',
+              color: Colors.blue,
+            ),
+          ],
         ],
       ),
     );
@@ -1038,10 +1066,25 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
                 itemCount: students.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, i) => _EventStudentListItem(
-                  student: students[i],
-                  onTap: () => context.push('/students/${students[i].rollNumber}'),
-                ),
+                itemBuilder: (context, i) {
+                  final st = students[i];
+                  final evId = event?.id ?? ref.read(selectedEventIdProvider) ?? '';
+                  return _EventStudentListItem(
+                    student: st,
+                    onTap: () {
+                      if (evId.isNotEmpty) {
+                        _showAttendanceOptionsSheet(context, st, evId);
+                      } else {
+                        context.push('/students/${st.rollNumber}');
+                      }
+                    },
+                    onStatusTap: () {
+                      if (evId.isNotEmpty) {
+                        _showAttendanceOptionsSheet(context, st, evId);
+                      }
+                    },
+                  );
+                },
               ),
             ),
 
@@ -1326,16 +1369,325 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       },
     );
   }
+
+  /// --------------------------------------------------------------------------
+  /// 8. ATTENDANCE OPTIONS SHEET: Manual marking modal for student attendance
+  /// --------------------------------------------------------------------------
+  void _showAttendanceOptionsSheet(BuildContext context, StudentEntity student, String eventId) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.accentOf(context);
+    final textSecondary = AppColors.textSecondaryOf(context);
+    final currentStatus = student.attendanceStatus?.toLowerCase() ?? 'not_scanned';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.96 : 0.98),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 38,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Header: Student Info & Close Button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Mark Attendance',
+                                style: AppTextStyles.headlineSm.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${student.name} • ${student.rollNumber}',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: textSecondary,
+                                  fontSize: 12.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close_rounded, size: 20, color: textSecondary),
+                          onPressed: () => Navigator.pop(sheetContext),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Status Actions
+                    _buildAttendanceActionTile(
+                      context: sheetContext,
+                      title: 'Present',
+                      subtitle: 'Mark attendee as present and checked in',
+                      icon: Icons.check_circle_rounded,
+                      color: AppColors.successOf(context),
+                      isSelected: currentStatus == 'present',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _updateStudentAttendance(student, eventId, 'present');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+
+                    _buildAttendanceActionTile(
+                      context: sheetContext,
+                      title: 'Absent',
+                      subtitle: 'Mark attendee as confirmed absent',
+                      icon: Icons.cancel_rounded,
+                      color: AppColors.errorOf(context),
+                      isSelected: currentStatus == 'absent',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _updateStudentAttendance(student, eventId, 'absent');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+
+                    _buildAttendanceActionTile(
+                      context: sheetContext,
+                      title: 'Not Scanned (Reset)',
+                      subtitle: 'Clear attendance record back to unverified / not scanned',
+                      icon: Icons.radio_button_unchecked_rounded,
+                      color: isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70),
+                      isSelected: currentStatus == 'not_scanned' || student.attendanceStatus == null,
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _updateStudentAttendance(student, eventId, 'not_scanned');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+
+                    _buildAttendanceActionTile(
+                      context: sheetContext,
+                      title: 'Late',
+                      subtitle: 'Mark attendee as arrived late after grace period',
+                      icon: Icons.access_time_filled_rounded,
+                      color: Colors.orange,
+                      isSelected: currentStatus == 'late',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _updateStudentAttendance(student, eventId, 'late');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+
+                    _buildAttendanceActionTile(
+                      context: sheetContext,
+                      title: 'Excused',
+                      subtitle: 'Mark attendee with official authorized absence',
+                      icon: Icons.info_rounded,
+                      color: Colors.blue,
+                      isSelected: currentStatus == 'excused',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        _updateStudentAttendance(student, eventId, 'excused');
+                      },
+                    ),
+
+                    const SizedBox(height: 14),
+                    Divider(color: AppColors.borderOf(context), height: 1),
+                    const SizedBox(height: 10),
+
+                    // Quick View Full Profile Button
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        context.push('/students/${student.rollNumber}');
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.person_outline_rounded, size: 18, color: accent),
+                            const SizedBox(width: 8),
+                            Text(
+                              'View Full Student Profile',
+                              style: TextStyle(
+                                color: accent,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAttendanceActionTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: isDark ? 0.20 : 0.12)
+              : (isDark ? const Color(0xFF1E1E22) : const Color(0xFFF2F2F7)),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? color : AppColors.borderOf(context),
+            width: isSelected ? 1.2 : 0.6,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: isDark ? 0.22 : 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected ? color : AppColors.textPrimaryOf(context),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondaryOf(context),
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_rounded, color: color, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateStudentAttendance(StudentEntity student, String eventId, String status) async {
+    try {
+      final attendanceRepo = ref.read(attendanceRepositoryProvider);
+      final targetId = student.id.isNotEmpty ? student.id : student.rollNumber;
+      final result = await attendanceRepo.markManual(
+        eventId: eventId,
+        studentId: targetId,
+        status: status,
+      );
+
+      if (!mounted) return;
+
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update: ${failure.message}'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+        (_) {
+          final displayLabel = status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${student.name} marked as $displayLabel'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          ref.invalidate(eventStudentsProvider);
+          ref.invalidate(eventScopedStudentsFamilyProvider(eventId));
+          ref.invalidate(eventAttendanceProvider(eventId));
+          ref.invalidate(studentsProvider);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
+  }
 }
 
 /// --------------------------------------------------------------------------
-/// 8. STUDENT ROW: Spacious, balanced Apple-style student identity item
+/// 9. STUDENT ROW: Spacious, balanced Apple-style student identity item
 /// --------------------------------------------------------------------------
 class _EventStudentListItem extends StatelessWidget {
   final StudentEntity student;
   final VoidCallback onTap;
+  final VoidCallback? onStatusTap;
 
-  const _EventStudentListItem({required this.student, required this.onTap});
+  const _EventStudentListItem({
+    required this.student,
+    required this.onTap,
+    this.onStatusTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1472,27 +1824,37 @@ class _EventStudentListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 0.6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, size: 12, color: statusColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusLabel,
-                        style: AppTextStyles.caption.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10.5,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onStatusTap ?? onTap,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 0.6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, size: 12, color: statusColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          statusLabel,
+                          style: AppTextStyles.caption.copyWith(
+                            color: statusColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10.5,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 3),
+                        Icon(
+                          Icons.arrow_drop_down_rounded,
+                          size: 14,
+                          color: statusColor.withValues(alpha: 0.8),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 if (markedTimeStr != null) ...[

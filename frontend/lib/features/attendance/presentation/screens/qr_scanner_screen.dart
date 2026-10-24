@@ -574,6 +574,20 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                         ),
                     ],
                   ),
+                  const SizedBox(width: 6),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                      tooltip: 'Manual Attendance Entry',
+                      onPressed: () {
+                        context.push('${RouteConstants.attendance}/manual?eventId=$effectiveEventId');
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

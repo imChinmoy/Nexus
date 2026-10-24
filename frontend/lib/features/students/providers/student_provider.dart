@@ -94,7 +94,7 @@ final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) a
 final eventScopedStudentsFamilyProvider = FutureProvider.family<EventStudentsResultEntity?, String>((ref, eventId) async {
   if (eventId.trim().isEmpty) return null;
   final repository = ref.watch(studentRepositoryProvider);
-  final result = await repository.getStudentsByEvent(eventId, limit: 50);
+  final result = await repository.getStudentsByEvent(eventId, limit: 100);
   return result.fold(
     (failure) => null,
     (res) => res,

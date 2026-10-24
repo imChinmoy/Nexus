@@ -66,7 +66,7 @@ class StudentModel {
 
     if (json['attendance'] is Map) {
       final attMap = json['attendance'] as Map<String, dynamic>;
-      attStatus = attMap['status'] as String?;
+      attStatus = (attMap['status'] as String?)?.toLowerCase().trim();
       markedAt = attMap['markedAt'] != null ? DateTime.tryParse(attMap['markedAt'].toString()) : null;
       markedMethod = attMap['method'] as String?;
       isPresent = attStatus == 'present' || attStatus == 'late';

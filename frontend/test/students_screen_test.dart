@@ -18,8 +18,8 @@ class MockEventRepository implements EventRepository {
     EventEntity(
       id: 'event-1',
       title: 'Expert Seminar 2026',
-      startDate: DateTime(2026, 10, 24, 10, 0),
-      endDate: DateTime(2026, 10, 24, 12, 0),
+      startDate: DateTime.now().subtract(const Duration(hours: 1)),
+      endDate: DateTime.now().add(const Duration(hours: 3)),
       type: 'seminar',
       capacity: 100,
       status: 'ongoing',
@@ -28,8 +28,8 @@ class MockEventRepository implements EventRepository {
     EventEntity(
       id: 'event-2',
       title: 'Reload Hackathon',
-      startDate: DateTime(2026, 11, 1, 9, 0),
-      endDate: DateTime(2026, 11, 2, 17, 0),
+      startDate: DateTime.now().add(const Duration(days: 7)),
+      endDate: DateTime.now().add(const Duration(days: 8)),
       type: 'hackathon',
       capacity: 200,
       status: 'upcoming',
