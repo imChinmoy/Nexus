@@ -129,6 +129,27 @@ describe('QR Resolver Service Integration Tests', () => {
     expect(regCheck.name).toBe('Charlie External');
   });
 
+  test('Resolves student from external registration even with sparse fields (no domain, phone, or rollNumber field name)', async () => {
+    // External seminar registration in raw collection with no domain, phone, or email
+    const mongoose = require('mongoose');
+    const rawCol = mongoose.connection.collection('registrations');
+    await rawCol.insertOne({
+      name: 'Seminar Attendee Without Domain',
+      rollNumber: '2400270120004',
+      studentNumber: '2412089',
+      branch: 'CS',
+      gender: 'Male',
+    });
+
+    const resolved = await qrResolverService.resolveStudent('2400270120004');
+    expect(resolved).toBeDefined();
+    expect(resolved.name).toBe('Seminar Attendee Without Domain');
+    expect(resolved.rollNo).toBe('2400270120004');
+    expect(resolved.domain).toBe('General');
+    expect(resolved.phone).toBe('0000000000');
+    expect(resolved.email).toBe('2400270120004@akgec.ac.in');
+  });
+
   test('Returns null for empty or non-existent student QR', async () => {
     const emptyResult = await qrResolverService.resolveStudent('');
     expect(emptyResult).toBeNull();

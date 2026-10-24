@@ -69,7 +69,10 @@ class AttendanceService {
           }
           query.push({ rollNo: String(studentOrRegId).trim().toUpperCase() });
           query.push({ rollNo: String(studentOrRegId).trim() });
+          query.push({ rollNumber: String(studentOrRegId).trim().toUpperCase() });
+          query.push({ rollNumber: String(studentOrRegId).trim() });
           query.push({ studentNo: String(studentOrRegId).trim() });
+          query.push({ studentNumber: String(studentOrRegId).trim() });
 
           const externalDoc = await collection.findOne({ $or: query });
           if (externalDoc) {

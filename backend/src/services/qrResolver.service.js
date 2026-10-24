@@ -109,9 +109,13 @@ class QrResolverService {
     }
     regQuery.push({ rollNo: identifier.toUpperCase() });
     regQuery.push({ rollNo: identifier });
+    regQuery.push({ rollNumber: identifier.toUpperCase() });
+    regQuery.push({ rollNumber: identifier });
     regQuery.push({ studentNo: identifier });
+    regQuery.push({ studentNumber: identifier });
     if (identifier.includes('@')) {
       regQuery.push({ email: identifier.toLowerCase() });
+      regQuery.push({ emailAddress: identifier.toLowerCase() });
     }
 
     // If event has a configured registration source, check that source collection
@@ -126,7 +130,7 @@ class QrResolverService {
             return student;
           }
         } catch (err) {
-          logger.warn('Failed querying event registration source in resolveStudent', { error: err.message });
+          logger.warn('Failed querying event registration source in resolveStudent', { error: err.message, stack: err.stack });
         }
       }
     }
@@ -138,9 +142,13 @@ class QrResolverService {
     }
     localRegQuery.push({ rollNo: identifier.toUpperCase() });
     localRegQuery.push({ rollNo: identifier });
+    localRegQuery.push({ rollNumber: identifier.toUpperCase() });
+    localRegQuery.push({ rollNumber: identifier });
     localRegQuery.push({ studentNo: identifier });
+    localRegQuery.push({ studentNumber: identifier });
     if (identifier.includes('@')) {
       localRegQuery.push({ email: identifier.toLowerCase() });
+      localRegQuery.push({ emailAddress: identifier.toLowerCase() });
     }
 
     const registration = await Registration.findOne({ $or: localRegQuery }).exec();
@@ -160,21 +168,56 @@ class QrResolverService {
 
   /**
    * Helper to map an external registration document into a local Student attendance record
-   * without mutating external registration data or repeatedly overwriting profiles.
+   * without mutating external registration data or failing validation on missing seminar fields.
    */
   async _getOrCreateStudentFromRegistration(reg) {
-    let student = await Student.findOne({ rollNo: reg.rollNo }).exec();
+    const raw = (reg && typeof reg === 'object' && reg._doc) ? { ...reg._doc, ...reg } : (reg || {});
+    const rollNo = String(raw.rollNo || raw.rollNumber || (reg && reg.get && typeof reg.get === 'function' ? reg.get('rollNumber') : '') || '').trim();
+    const studentNo = String(raw.studentNo || raw.studentNumber || (reg && reg.get && typeof reg.get === 'function' ? reg.get('studentNumber') : '') || '').trim();
+
+    // Check if student already exists by rollNo, studentNo, or email
+    const lookupQueries = [];
+    if (rollNo) {
+      lookupQueries.push({ rollNo: rollNo.toUpperCase() });
+      lookupQueries.push({ rollNo });
+    }
+    if (studentNo) {
+      lookupQueries.push({ studentNo });
+    }
+    const regEmail = (reg.email || reg.emailAddress || '').trim().toLowerCase();
+    if (regEmail) {
+      lookupQueries.push({ email: regEmail });
+    }
+
+    let student = lookupQueries.length > 0
+      ? await Student.findOne({ $or: lookupQueries }).exec()
+      : null;
+
     if (!student) {
+      let gender = 'Other';
+      if (reg.gender) {
+        const g = String(reg.gender).trim().toLowerCase();
+        if (g === 'male' || g === 'm') gender = 'Male';
+        else if (g === 'female' || g === 'f') gender = 'Female';
+      }
+
+      const effectiveRollNo = rollNo || (reg._id ? reg._id.toString() : `REG_${Date.now()}`);
+      const effectiveStudentNo = studentNo || effectiveRollNo;
+      const effectiveEmail = regEmail || `${effectiveRollNo.toLowerCase()}@akgec.ac.in`;
+      const effectivePhone = (reg.phone || reg.contact || reg.mobile || reg.phoneNumber || '0000000000').trim() || '0000000000';
+      const effectiveDomain = (reg.domain || '').trim() || 'General';
+      const effectiveBranch = (reg.branch || '').trim() || 'General';
+
       student = await Student.create({
-        name: reg.name,
-        rollNo: reg.rollNo,
-        studentNo: reg.studentNo,
-        email: reg.email,
-        phone: reg.phone,
-        domain: reg.domain,
-        branch: reg.branch,
-        gender: reg.gender,
-        hosteller: reg.hosteller,
+        name: (reg.name || 'Registered Attendee').trim(),
+        rollNo: effectiveRollNo,
+        studentNo: effectiveStudentNo,
+        email: effectiveEmail,
+        phone: effectivePhone,
+        domain: effectiveDomain,
+        branch: effectiveBranch,
+        gender,
+        hosteller: Boolean(reg.hosteller),
         isActive: true,
       });
     }

@@ -60,6 +60,7 @@ class ApiConstants {
   static const String analytics = '/analytics';
   static const String analyticsOverview = '/analytics/overview';
   static const String analyticsTrends = '/analytics/trends';
+  static const String analyticsHeatmap = '/analytics/activity-heatmap';
 
   // Settings
   static const String settings = '/settings';

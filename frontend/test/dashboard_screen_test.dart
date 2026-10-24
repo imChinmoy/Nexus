@@ -13,6 +13,9 @@ import 'package:brl_nexus/features/events/providers/event_provider.dart';
 import 'package:brl_nexus/features/students/domain/entities/student_entity.dart';
 import 'package:brl_nexus/features/students/domain/repositories/student_repository.dart';
 import 'package:brl_nexus/features/students/providers/student_provider.dart';
+import 'package:brl_nexus/features/analytics/domain/entities/activity_heatmap_entity.dart';
+import 'package:brl_nexus/features/analytics/domain/repositories/analytics_repository.dart';
+import 'package:brl_nexus/features/analytics/providers/analytics_provider.dart';
 import 'package:brl_nexus/shared/widgets/brl_bottom_nav.dart';
 
 class MockEventRepository implements EventRepository {
@@ -27,8 +30,8 @@ class MockEventRepository implements EventRepository {
                 description: 'Annual technical operations flagship conference',
                 venue: 'Main Auditorium, Campus North',
                 banner: 'https://example.com/banner1.jpg',
-                startDate: DateTime(2026, 10, 24, 10, 0),
-                endDate: DateTime(2026, 10, 24, 16, 0),
+                startDate: DateTime.now().subtract(const Duration(hours: 2)),
+                endDate: DateTime.now().add(const Duration(hours: 4)),
                 type: 'summit',
                 capacity: 250,
                 status: 'ongoing',
@@ -173,6 +176,23 @@ class MockStudentRepository implements StudentRepository {
       throw UnimplementedError();
 }
 
+class MockDashboardAnalyticsRepository implements AnalyticsRepository {
+  @override
+  Future<Either<Failure, ActivityHeatmapEntity>> getActivityHeatmap({
+    required int year,
+    required String metric,
+    String? timezone,
+  }) async {
+    return Right(ActivityHeatmapEntity(
+      year: year,
+      metric: metric,
+      timezone: 'Asia/Kolkata',
+      stats: const HeatmapStatsEntity(totalCount: 0, activeDays: 0, busiestPeriod: 'None'),
+      daysMap: const {},
+    ));
+  }
+}
+
 Widget createTestDashboard({
   required MockEventRepository eventRepo,
   required MockStudentRepository studentRepo,
@@ -182,6 +202,7 @@ Widget createTestDashboard({
     overrides: [
       eventRepositoryProvider.overrideWithValue(eventRepo),
       studentRepositoryProvider.overrideWithValue(studentRepo),
+      analyticsRepositoryProvider.overrideWithValue(MockDashboardAnalyticsRepository()),
       currentUserProvider.overrideWith(
         (ref) => UserEntity(
           id: 'user-ops-1',

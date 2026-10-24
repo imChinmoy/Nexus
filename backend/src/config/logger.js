@@ -4,8 +4,10 @@ const path = require('path');
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
+const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
+  const metaEntries = Object.keys(meta).filter((k) => k !== 'service');
+  const metaStr = metaEntries.length ? ` ${JSON.stringify(metaEntries.reduce((acc, k) => ({ ...acc, [k]: meta[k] }), {}))}` : '';
+  return `${timestamp} [${level.toUpperCase()}]: ${stack || message}${metaStr}`;
 });
 
 const transports = [

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,8 @@ import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
 import '../../../students/domain/entities/student_entity.dart';
 import '../../../students/providers/student_provider.dart';
+import '../../../analytics/presentation/widgets/society_activity_heatmap_card.dart';
+import '../../../analytics/providers/analytics_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -44,6 +47,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ref.invalidate(eventsProvider);
             ref.invalidate(studentsProvider);
             ref.invalidate(eventScopedStudentsFamilyProvider);
+            ref.invalidate(activityHeatmapProvider);
             await Future.delayed(const Duration(milliseconds: 500));
           },
           child: CustomScrollView(
@@ -84,7 +88,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                       // 5. Upcoming Events (Image-Led Horizontal Carousel)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                         child: _buildUpcomingEventsCarousel(context, otherEvents, isDark),
                       ),
                     ]),
@@ -95,6 +99,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 error: (error, _) => SliverToBoxAdapter(
                   child: _buildErrorState(context, error.toString(), isDark),
+                ),
+              ),
+
+              // 6. Annual Society Activity Heatmap
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 36),
+                  child: SocietyActivityHeatmapCard(),
                 ),
               ),
             ],
@@ -347,27 +359,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Semantics(
       label: 'Featured Event: ${event.title}',
       child: Container(
-        height: 220,
+        height: 250,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isDark ? const Color(0x2EFFFFFF) : const Color(0x14000000),
-            width: 0.8,
+            color: (event.isAttendanceOpen && !event.isPast)
+                ? successColor.withValues(alpha: isDark ? 0.45 : 0.6)
+                : (isDark ? const Color(0x2EFFFFFF) : const Color(0x18000000)),
+            width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
-              blurRadius: 14,
+              color: (event.isAttendanceOpen && !event.isPast)
+                  ? successColor.withValues(alpha: isDark ? 0.16 : 0.10)
+                  : Colors.black.withValues(alpha: isDark ? 0.35 : 0.07),
+              blurRadius: 18,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Banner Background Image
+              // 1. Full-Bleed Artwork Viewport
               if (event.banner != null && event.banner!.trim().isNotEmpty)
                 CachedNetworkImage(
                   imageUrl: event.banner!.trim(),
@@ -378,23 +394,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               else
                 _buildBannerFallback(isDark),
 
-              // Readability Gradient (Dark layered scrim ensuring clear text in both light & dark modes)
+              // 2. High-Tech Scrim Gradients (Top beacon contrast & bottom dock fade)
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.25),
-                      Colors.black.withValues(alpha: 0.50),
-                      Colors.black.withValues(alpha: 0.92),
+                      Colors.black.withValues(alpha: 0.65),
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.35),
+                      Colors.black.withValues(alpha: 0.85),
                     ],
-                    stops: const [0.0, 0.42, 1.0],
+                    stops: const [0.0, 0.35, 0.65, 1.0],
                   ),
                 ),
               ),
 
-              // Interactive Card Body
+              // 3. Card Tap Surface (Navigates to Event Details)
               Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -404,262 +421,308 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   },
                   splashColor: Colors.white.withValues(alpha: 0.08),
                   highlightColor: Colors.white.withValues(alpha: 0.04),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: const SizedBox.expand(),
+                ),
+              ),
+
+              // 4. Top Operational Beacon Strip
+              Positioned(
+                top: 10,
+                left: 12,
+                right: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Live Status Radar Beacon
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xE6080B11),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: (event.isAttendanceOpen && !event.isPast)
+                              ? successColor.withValues(alpha: 0.85)
+                              : Colors.white.withValues(alpha: 0.25),
+                          width: 0.9,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white70,
+                              shape: BoxShape.circle,
+                              boxShadow: (event.isAttendanceOpen && !event.isPast)
+                                  ? [
+                                      BoxShadow(
+                                        color: successColor.withValues(alpha: 0.8),
+                                        blurRadius: 7,
+                                        spreadRadius: 1.5,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            (event.isAttendanceOpen && !event.isPast)
+                                ? 'LIVE CHECK-IN OPEN'
+                                : event.effectiveStatus.toUpperCase(),
+                            style: GoogleFonts.inter(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Right Actions: Type Tag & Admin Quick Toggle
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Top Header Row: Status badge & Event Type
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Operational Status Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                              decoration: BoxDecoration(
+                        // Type Tag
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xE6080B11),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.22),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            event.type.toUpperCase(),
+                            style: GoogleFonts.inter(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+
+                        // Admin Quick Toggle
+                        if (isAdmin) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            height: 28,
+                            width: 28,
+                            decoration: BoxDecoration(
+                              color: (event.isAttendanceOpen && !event.isPast)
+                                  ? successColor.withValues(alpha: 0.22)
+                                  : const Color(0xE6080B11),
+                              shape: BoxShape.circle,
+                              border: Border.all(
                                 color: (event.isAttendanceOpen && !event.isPast)
-                                    ? successColor.withValues(alpha: 0.25)
-                                    : Colors.black.withValues(alpha: 0.45),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: (event.isAttendanceOpen && !event.isPast)
-                                      ? successColor.withValues(alpha: 0.8)
-                                      : Colors.white.withValues(alpha: 0.25),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: BoxDecoration(
-                                      color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white70,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    (event.isAttendanceOpen && !event.isPast)
-                                        ? 'LIVE CHECK-IN OPEN'
-                                        : event.effectiveStatus.toUpperCase(),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: (event.isAttendanceOpen && !event.isPast) ? successColor : Colors.white,
-                                    ),
-                                  ),
-                                ],
+                                    ? successColor.withValues(alpha: 0.8)
+                                    : Colors.white24,
+                                width: 0.8,
                               ),
                             ),
-
-                            // Type Capsule
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  width: 0.6,
-                                ),
-                              ),
-                              child: Text(
-                                event.type.toUpperCase(),
-                                style: GoogleFonts.inter(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.4,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // Bottom Section: Title, Info, and Scan Action
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              event.title,
-                              style: GoogleFonts.inter(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3,
-                                color: Colors.white,
-                                height: 1.25,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 5),
-
-                            // Date & Venue Details
-                            Row(
-                              children: [
-                                const Icon(Icons.schedule_rounded, size: 13, color: Colors.white70),
-                                const SizedBox(width: 4),
-                                Text(
-                                  dateFormatted,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                                if (event.venue != null && event.venue!.isNotEmpty) ...[
-                                  const SizedBox(width: 8),
-                                  const Text('•', style: TextStyle(color: Colors.white38, fontSize: 10)),
-                                  const SizedBox(width: 8),
-                                  const Icon(Icons.place_outlined, size: 13, color: Colors.white70),
-                                  const SizedBox(width: 3),
-                                  Flexible(
-                                    child: Text(
-                                      event.venue!,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white70,
+                            child: IconButton(
+                              onPressed: () async {
+                                HapticFeedback.mediumImpact();
+                                final nextState = !(event.isAttendanceOpen && !event.isPast);
+                                final result = await ref
+                                    .read(eventRepositoryProvider)
+                                    .toggleAttendance(event.id, nextState);
+                                result.fold(
+                                  (failure) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(failure.message),
+                                        backgroundColor: AppColors.errorOf(context),
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Prominent Scan QR Action Row
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      HapticFeedback.mediumImpact();
-                                      context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
-                                    },
-                                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
-                                    label: Text(
-                                      'Scan QR Pass',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.1,
-                                      ),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: (event.isAttendanceOpen && !event.isPast) ? successColor : accent,
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(11),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                // Admin Quick Attendance Toggle
-                                if (isAdmin) ...[
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: (event.isAttendanceOpen && !event.isPast)
-                                          ? successColor.withValues(alpha: 0.25)
-                                          : Colors.white.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(11),
-                                      border: Border.all(
-                                        color: (event.isAttendanceOpen && !event.isPast)
-                                            ? successColor.withValues(alpha: 0.8)
-                                            : Colors.white.withValues(alpha: 0.25),
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    child: IconButton(
-                                      onPressed: () async {
-                                        HapticFeedback.mediumImpact();
-                                        final nextState = !(event.isAttendanceOpen && !event.isPast);
-                                        final result = await ref
-                                            .read(eventRepositoryProvider)
-                                            .toggleAttendance(event.id, nextState);
-                                        result.fold(
-                                          (failure) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(failure.message),
-                                                backgroundColor: AppColors.errorOf(context),
-                                              ),
-                                            );
-                                          },
-                                          (_) {
-                                            ref.invalidate(eventsProvider);
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  nextState
-                                                      ? 'Attendance check-in opened'
-                                                      : 'Attendance check-in closed',
-                                                ),
-                                                backgroundColor: nextState
-                                                    ? successColor
-                                                    : AppColors.surfaceOf(context),
-                                                duration: const Duration(milliseconds: 1500),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                      icon: Icon(
-                                        (event.isAttendanceOpen && !event.isPast)
-                                            ? Icons.how_to_reg_rounded
-                                            : Icons.person_off_outlined,
-                                        size: 18,
-                                        color: (event.isAttendanceOpen && !event.isPast)
+                                    );
+                                  },
+                                  (_) {
+                                    ref.invalidate(eventsProvider);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          nextState
+                                              ? 'Attendance check-in opened'
+                                              : 'Attendance check-in closed',
+                                        ),
+                                        backgroundColor: nextState
                                             ? successColor
-                                            : Colors.white,
+                                            : AppColors.surfaceOf(context),
+                                        duration: const Duration(milliseconds: 1500),
                                       ),
-                                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                                      padding: EdgeInsets.zero,
-                                      tooltip: (event.isAttendanceOpen && !event.isPast)
-                                          ? 'Close Attendance'
-                                          : 'Open Attendance',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
+                                    );
+                                  },
+                                );
+                              },
+                              icon: Icon(
+                                (event.isAttendanceOpen && !event.isPast)
+                                    ? Icons.how_to_reg_rounded
+                                    : Icons.person_off_outlined,
+                                size: 14,
+                                color: (event.isAttendanceOpen && !event.isPast)
+                                    ? successColor
+                                    : Colors.white70,
+                              ),
+                              padding: EdgeInsets.zero,
+                              tooltip: (event.isAttendanceOpen && !event.isPast)
+                                  ? 'Close Attendance'
+                                  : 'Open Attendance',
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
 
-                                // Secondary Info / Details Button
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(11),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.25),
-                                      width: 0.8,
+              // 5. Floating Cyber HUD Command Dock (Compact micro-dock)
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xD90B0E17)
+                            : Colors.white.withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: (event.isAttendanceOpen && !event.isPast)
+                              ? successColor.withValues(alpha: 0.45)
+                              : (isDark ? Colors.white12 : Colors.black12),
+                          width: 0.8,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Event Title (Crisp, compact)
+                          Text(
+                            event.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+
+                          // Compact Info & Action Strip
+                          Row(
+                            children: [
+                              // Date & Venue Details
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.schedule_rounded,
+                                      size: 11,
+                                      color: (event.isAttendanceOpen && !event.isPast)
+                                          ? successColor
+                                          : (isDark ? Colors.white60 : AppColors.lightTextSecondary),
                                     ),
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      HapticFeedback.lightImpact();
-                                      context.push('${RouteConstants.events}/${event.id}');
-                                    },
-                                    icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
-                                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                                    padding: EdgeInsets.zero,
-                                    tooltip: 'Event Details',
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        dateFormatted,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (event.venue != null && event.venue!.isNotEmpty) ...[
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white30 : Colors.black26,
+                                          fontSize: 9,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Icon(
+                                        Icons.place_outlined,
+                                        size: 11,
+                                        color: isDark ? Colors.white60 : AppColors.lightTextSecondary,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Flexible(
+                                        child: Text(
+                                          event.venue!,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Glowing "Scan QR Pass" Cyber Action Pill
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  HapticFeedback.mediumImpact();
+                                  context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                },
+                                icon: const Icon(Icons.qr_code_scanner_rounded, size: 13.5),
+                                label: Text(
+                                  'Scan QR Pass',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.1,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: (event.isAttendanceOpen && !event.isPast)
+                                      ? successColor
+                                      : accent,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                  minimumSize: const Size(0, 28),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

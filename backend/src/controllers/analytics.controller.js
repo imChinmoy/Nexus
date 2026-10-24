@@ -21,3 +21,9 @@ exports.getYearWise = asyncHandler(async (req, res) => {
   const data = await analyticsService.getYearWise();
   sendSuccess(res, 'Year-wise analytics fetched', data);
 });
+
+exports.getActivityHeatmap = asyncHandler(async (req, res) => {
+  const { year, metric, timezone } = req.query;
+  const data = await analyticsService.getActivityHeatmap({ year, metric, timezone });
+  sendSuccess(res, 'Activity heatmap fetched successfully', data);
+});
