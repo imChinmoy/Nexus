@@ -186,6 +186,8 @@ class EventDeckCard extends StatelessWidget {
                   CachedNetworkImage(
                     imageUrl: event.banner!,
                     fit: BoxFit.cover,
+                    memCacheWidth: (width * 1.8).round().clamp(300, 1200),
+                    memCacheHeight: (height * 1.8).round().clamp(400, 1600),
                     placeholder: (context, url) =>
                         _buildFallbackBanner(context, isDark),
                     errorWidget: (context, url, error) =>

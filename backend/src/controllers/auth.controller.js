@@ -14,6 +14,22 @@ exports.login = asyncHandler(async (req, res) => {
   sendSuccess(res, 'Login successful', { user, accessToken, refreshToken });
 });
 
+exports.register = asyncHandler(async (req, res) => {
+  const { name, email, password, secretKey, year, domain, phone } = req.body;
+  const { user, accessToken, refreshToken } = await authService.register(
+    { name, email, password, year, domain, phone },
+    secretKey,
+    req.ip,
+  );
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+  sendCreated(res, 'Account created successfully', { user, accessToken, refreshToken });
+});
+
 exports.refresh = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken || req.body.refreshToken;
   if (!token) return sendError(res, 'Refresh token required', 401);

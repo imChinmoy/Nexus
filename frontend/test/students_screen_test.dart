@@ -226,7 +226,8 @@ void main() {
   }
 
   group('StudentsScreen Widget Tests', () {
-    testWidgets('Displays initial guide state when no event is selected', (tester) async {
+    testWidgets('Displays initial guide state when no events exist in repository', (tester) async {
+      mockEventRepo.mockEvents.clear();
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -237,45 +238,39 @@ void main() {
       expect(find.text('CHOOSE EVENT'), findsOneWidget);
     });
 
-    testWidgets('Tapping CHOOSE EVENT opens bottom sheet with real events from Nexus API', (tester) async {
+    testWidgets('Automatically defaults to ongoing or closest upcoming event and loads registrations', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('CHOOSE EVENT'));
-      await tester.pumpAndSettle();
-
-      // Bottom sheet displays real events
-      expect(find.text('Select Event'), findsOneWidget);
+      // Automatically selected Expert Seminar 2026 (ongoing)
       expect(find.text('Expert Seminar 2026'), findsOneWidget);
-      expect(find.text('Reload Hackathon'), findsOneWidget);
+      expect(find.text('Alice Sharma'), findsOneWidget);
+      expect(find.text('Bob Verma'), findsOneWidget);
+      expect(find.text('David Miller'), findsNothing);
+      expect(find.text('Present'), findsWidgets);
+      expect(find.text('Not Scanned'), findsWidgets);
+      expect(find.text('Total'), findsOneWidget);
     });
 
-    testWidgets('Selecting an event loads its registrations and attendance status', (tester) async {
+    testWidgets('Tapping event card opens bottom sheet with events sorted chronologically and allows switching', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Open sheet and select event 1
-      await tester.tap(find.text('Select an Event to View Students'));
-      await tester.pumpAndSettle();
-
+      // Open bottom sheet
       await tester.tap(find.text('Expert Seminar 2026'));
       await tester.pumpAndSettle();
 
-      // Selector updates
-      expect(find.text('Expert Seminar 2026'), findsOneWidget);
+      expect(find.text('Select Event'), findsOneWidget);
+      expect(find.text('Expert Seminar 2026'), findsWidgets);
+      expect(find.text('Reload Hackathon'), findsOneWidget);
 
-      // Students from event 1 are displayed
-      expect(find.text('Alice Sharma'), findsOneWidget);
-      expect(find.text('Bob Verma'), findsOneWidget);
-      // Students from event 2 are NOT displayed
-      expect(find.text('David Miller'), findsNothing);
+      // Select Reload Hackathon
+      await tester.tap(find.text('Reload Hackathon'));
+      await tester.pumpAndSettle();
 
-      // Attendance statuses
-      expect(find.text('Present'), findsWidgets); // Pill and filter
-      expect(find.text('Not Scanned'), findsWidgets); // Pill and filter
-
-      // Metric counts bar
-      expect(find.text('Total'), findsOneWidget);
+      expect(find.text('Reload Hackathon'), findsOneWidget);
+      expect(find.text('David Miller'), findsOneWidget);
+      expect(find.text('Alice Sharma'), findsNothing);
     });
 
     testWidgets('Switching events switches the registrations dataset and resets filters', (tester) async {
@@ -340,6 +335,64 @@ void main() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
+    });
+
+    testWidgets('Primary segmented attendance filters toggle attendance state cleanly', (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(initialEventId: 'event-1'));
+      await tester.pumpAndSettle();
+
+      // Initially 'All' is active, both students visible
+      expect(find.text('Alice Sharma'), findsOneWidget);
+      expect(find.text('Bob Verma'), findsOneWidget);
+
+      // Tap 'Present' segmented option
+      await tester.tap(find.text('Present').first);
+      await tester.pumpAndSettle();
+
+      expect(mockStudentRemote.lastAttendanceStatus, 'present');
+      expect(find.text('Alice Sharma'), findsOneWidget);
+      expect(find.text('Bob Verma'), findsNothing);
+
+      // Tap 'Not Scanned' segmented option
+      await tester.tap(find.text('Not Scanned').first);
+      await tester.pumpAndSettle();
+
+      expect(mockStudentRemote.lastAttendanceStatus, 'not_marked');
+      expect(find.text('Bob Verma'), findsOneWidget);
+      expect(find.text('Alice Sharma'), findsNothing);
+
+      // Tap 'All' segmented option
+      await tester.tap(find.text('All').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alice Sharma'), findsOneWidget);
+      expect(find.text('Bob Verma'), findsOneWidget);
+    });
+
+    testWidgets('Secondary filters sheet allows filtering by branch with active badge indicator', (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(initialEventId: 'event-1'));
+      await tester.pumpAndSettle();
+
+      // Open secondary filters sheet via filter icon button
+      await tester.tap(find.byTooltip('Filter Students'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filter Students'), findsOneWidget);
+      expect(find.text('ACADEMIC BRANCH'), findsOneWidget);
+      expect(find.text('ATTENDANCE STATUS'), findsOneWidget);
+
+      // Tap 'CSE' branch chip in filter sheet
+      await tester.tap(find.text('CSE').last);
+      await tester.pumpAndSettle();
+
+      // Tap 'Apply Filters'
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      // Results filtered by branch CSE
+      expect(mockStudentRemote.lastBranch, 'CSE');
+      expect(find.text('Alice Sharma'), findsOneWidget);
+      expect(find.text('Bob Verma'), findsNothing);
     });
   });
 }

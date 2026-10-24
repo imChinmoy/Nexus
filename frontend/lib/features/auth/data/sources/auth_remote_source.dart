@@ -7,6 +7,12 @@ import '../models/user_model.dart';
 
 abstract interface class AuthRemoteSource {
   Future<AuthResponseModel> login({required String email, required String password});
+  Future<AuthResponseModel> register({
+    required String name,
+    required String email,
+    required String password,
+    required String secretKey,
+  });
   Future<void> logout(String? refreshToken);
   Future<UserModel> getCurrentUser();
   Future<String> refreshToken(String token);
@@ -35,11 +41,41 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       return AuthResponseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       if (e.error is AppException) throw e.error as AppException;
-      throw ServerException('Login failed: ${e.message}');
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw ServerException(serverMsg ?? 'Login failed: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {
       throw ServerException('Login failed: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> register({
+    required String name,
+    required String email,
+    required String password,
+    required String secretKey,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.register,
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'secretKey': secretKey,
+        },
+      );
+      return AuthResponseModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      if (e.error is AppException) throw e.error as AppException;
+      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      throw ServerException(serverMsg ?? 'Registration failed: ${e.message}');
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException('Registration failed: ${e.toString()}');
     }
   }
 

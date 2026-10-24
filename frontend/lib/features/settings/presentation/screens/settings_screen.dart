@@ -112,7 +112,7 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.info_outline_rounded,
                     title: 'Version',
                     trailing: Text(
-                      '2.0.0 (Apple UI)',
+                      '2.0.0 (Kaiser)',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textSecondaryOf(context),
                         fontFeatures: const [FontFeature.tabularFigures()],
@@ -127,17 +127,22 @@ class SettingsScreen extends ConsumerWidget {
             // Logout Button
             BrlGlassCard(
               padding: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(Icons.logout_rounded, color: AppColors.errorOf(context), size: 20),
-                title: Text(
-                  'Log Out',
-                  style: AppTextStyles.bodyMd.copyWith(
-                    color: AppColors.errorOf(context),
-                    fontWeight: FontWeight.w600,
+              child: Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: Icon(Icons.logout_rounded,
+                      color: AppColors.errorOf(context), size: 20),
+                  title: Text(
+                    'Log Out',
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: AppColors.errorOf(context),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  trailing: Icon(Icons.chevron_right,
+                      color: AppColors.textTertiaryOf(context), size: 18),
+                  onTap: () => _confirmLogout(context, ref),
                 ),
-                trailing: Icon(Icons.chevron_right, color: AppColors.textTertiaryOf(context), size: 18),
-                onTap: () => _confirmLogout(context, ref),
               ),
             ),
             const SizedBox(height: 40),
@@ -165,7 +170,13 @@ class SettingsScreen extends ConsumerWidget {
     final accent = AppColors.accentOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = user?.name.isNotEmpty == true
-        ? user!.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? user!.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : 'U';
 
     return GestureDetector(
@@ -180,7 +191,8 @@ class SettingsScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: accent.withValues(alpha: isDark ? 0.2 : 0.12),
-                border: Border.all(color: accent.withValues(alpha: 0.3), width: 1),
+                border:
+                    Border.all(color: accent.withValues(alpha: 0.3), width: 1),
               ),
               child: ClipOval(
                 child: (user?.avatar != null && user!.avatar!.isNotEmpty)
@@ -190,14 +202,16 @@ class SettingsScreen extends ConsumerWidget {
                         errorWidget: (context, url, error) => Center(
                           child: Text(
                             initials,
-                            style: AppTextStyles.headlineSm.copyWith(color: accent, fontWeight: FontWeight.bold),
+                            style: AppTextStyles.headlineSm.copyWith(
+                                color: accent, fontWeight: FontWeight.bold),
                           ),
                         ),
                       )
                     : Center(
                         child: Text(
                           initials,
-                          style: AppTextStyles.headlineSm.copyWith(color: accent, fontWeight: FontWeight.bold),
+                          style: AppTextStyles.headlineSm.copyWith(
+                              color: accent, fontWeight: FontWeight.bold),
                         ),
                       ),
               ),
@@ -209,16 +223,19 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     user?.name ?? 'Nexus User',
-                    style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+                    style: AppTextStyles.headlineSm
+                        .copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     user?.email ?? 'member@society.org',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textSecondaryOf(context)),
                   ),
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
@@ -235,14 +252,16 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.textTertiaryOf(context), size: 20),
+            Icon(Icons.chevron_right,
+                color: AppColors.textTertiaryOf(context), size: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAppearanceSelector(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+  Widget _buildAppearanceSelector(
+      BuildContext context, WidgetRef ref, ThemeMode currentMode) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BrlGlassCard(
@@ -252,11 +271,13 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.palette_outlined, size: 16, color: AppColors.accentOf(context)),
+              Icon(Icons.palette_outlined,
+                  size: 16, color: AppColors.accentOf(context)),
               const SizedBox(width: 8),
               Text(
                 'Interface Theme',
-                style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
+                style:
+                    AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -268,6 +289,7 @@ class SettingsScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: _buildThemeSegment(
@@ -287,6 +309,7 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.light_mode_outlined,
                     mode: ThemeMode.light,
                     isSelected: currentMode == ThemeMode.light,
+                    badge: 'BETA',
                   ),
                 ),
                 Expanded(
@@ -314,21 +337,21 @@ class SettingsScreen extends ConsumerWidget {
     required IconData icon,
     required ThemeMode mode,
     required bool isSelected,
+    String? badge,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = AppColors.accentOf(context);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         ref.read(appearanceProvider.notifier).setThemeMode(mode);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.surfaceOf(context)
-              : Colors.transparent,
+          color: isSelected ? AppColors.surfaceOf(context) : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           boxShadow: isSelected
               ? [
@@ -340,22 +363,60 @@ class SettingsScreen extends ConsumerWidget {
                 ]
               : null,
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 15,
-              color: isSelected ? accent : AppColors.textSecondaryOf(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 15,
+                  color:
+                      isSelected ? accent : AppColors.textSecondaryOf(context),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  title,
+                  style: AppTextStyles.caption.copyWith(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected
+                        ? AppColors.textPrimaryOf(context)
+                        : AppColors.textSecondaryOf(context),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: AppTextStyles.caption.copyWith(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.textPrimaryOf(context) : AppColors.textSecondaryOf(context),
+            if (badge != null) ...[
+              const SizedBox(height: 3),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color:
+                      (isDark ? Colors.amber.shade400 : Colors.amber.shade700)
+                          .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color:
+                        (isDark ? Colors.amber.shade400 : Colors.amber.shade700)
+                            .withValues(alpha: 0.35),
+                    width: 0.5,
+                  ),
+                ),
+                child: Text(
+                  badge,
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color:
+                        isDark ? Colors.amber.shade300 : Colors.amber.shade800,
+                  ),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -393,19 +454,23 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w500),
+                    style: AppTextStyles.bodyMd
+                        .copyWith(fontWeight: FontWeight.w500),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.textSecondaryOf(context)),
                     ),
                   ],
                 ],
               ),
             ),
-            trailing ?? Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiaryOf(context)),
+            trailing ??
+                Icon(Icons.chevron_right,
+                    size: 18, color: AppColors.textTertiaryOf(context)),
           ],
         ),
       ),
@@ -418,14 +483,17 @@ class SettingsScreen extends ConsumerWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceOf(context),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             'Log Out of Nexus?',
-            style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+            style:
+                AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
           ),
           content: Text(
             'You will need to sign in again with your email and password to access society operations.',
-            style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context)),
+            style: AppTextStyles.bodySm
+                .copyWith(color: AppColors.textSecondaryOf(context)),
           ),
           actions: [
             TextButton(

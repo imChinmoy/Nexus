@@ -23,4 +23,18 @@ const updateProfileValidator = [
   body('name').optional().isString().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
 ];
 
-module.exports = { loginValidator, forgotPasswordValidator, resetPasswordValidator, changePasswordValidator, updateProfileValidator };
+const registerValidator = [
+  body('name').trim().notEmpty().withMessage('Name is required').isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  body('secretKey').trim().notEmpty().withMessage('Society secret passkey is required'),
+];
+
+module.exports = {
+  loginValidator,
+  registerValidator,
+  forgotPasswordValidator,
+  resetPasswordValidator,
+  changePasswordValidator,
+  updateProfileValidator,
+};

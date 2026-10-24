@@ -11,6 +11,8 @@ import 'package:brl_nexus/features/events/presentation/screens/events_screen.dar
 import 'package:brl_nexus/features/events/presentation/widgets/event_deck_card.dart';
 import 'package:brl_nexus/features/events/presentation/widgets/event_filter_bar.dart';
 import 'package:brl_nexus/features/events/presentation/widgets/event_swipe_deck.dart';
+import 'package:brl_nexus/features/events/presentation/widgets/event_timeline_chain.dart';
+import 'package:brl_nexus/features/events/presentation/widgets/events_header_bar.dart';
 import 'package:brl_nexus/features/events/providers/event_provider.dart';
 import 'package:brl_nexus/shared/widgets/empty_state_widget.dart';
 
@@ -49,16 +51,16 @@ class MockEventRepository implements EventRepository {
                 isAttendanceOpen: false,
               ),
               EventEntity(
-                id: 'event-completed-3',
+                id: 'event-upcoming-3',
                 title: 'DeFi Architecture Workshop',
                 description: 'Hands-on AMM and liquidity protocols workshop',
                 venue: 'Computer Center Lab 3',
                 banner: '', // Test fallback banner
-                startDate: DateTime.now().subtract(const Duration(days: 5)),
-                endDate: DateTime.now().subtract(const Duration(days: 4)),
+                startDate: DateTime.now().add(const Duration(days: 7)),
+                endDate: DateTime.now().add(const Duration(days: 8)),
                 type: 'workshop',
                 capacity: 80,
-                status: 'completed',
+                status: 'upcoming',
                 isAttendanceOpen: false,
               ),
             ];
@@ -301,6 +303,146 @@ void main() {
       expect(archivedEvent.matchesFilter('archived', baseTime), true);
       expect(archivedEvent.matchesFilter('upcoming', baseTime), false);
     });
+
+    test('Sorts events chronologically by year, date, and time', () {
+      final e1 = EventEntity(
+        id: 'e1',
+        title: 'Event 2027',
+        startDate: DateTime(2027, 1, 10, 10, 0),
+        endDate: DateTime(2027, 1, 10, 12, 0),
+        type: 'summit',
+        capacity: 100,
+        status: 'upcoming',
+      );
+      final e2 = EventEntity(
+        id: 'e2',
+        title: 'Event 2026 Morning',
+        startDate: DateTime(2026, 11, 5, 9, 0),
+        endDate: DateTime(2026, 11, 5, 11, 0),
+        type: 'workshop',
+        capacity: 50,
+        status: 'upcoming',
+      );
+      final e3 = EventEntity(
+        id: 'e3',
+        title: 'Event 2026 Afternoon',
+        startDate: DateTime(2026, 11, 5, 14, 0),
+        endDate: DateTime(2026, 11, 5, 16, 0),
+        type: 'seminar',
+        capacity: 80,
+        status: 'upcoming',
+      );
+      final e4 = EventEntity(
+        id: 'e4',
+        title: 'Event 2025 Past',
+        startDate: DateTime(2025, 5, 1, 10, 0),
+        endDate: DateTime(2025, 5, 1, 12, 0),
+        type: 'recruitment',
+        capacity: 200,
+        status: 'completed',
+      );
+
+      final unsorted = [e1, e3, e4, e2];
+      final sorted = EventEntity.sortChronologically(unsorted);
+
+      expect(sorted.map((e) => e.id).toList(), ['e4', 'e2', 'e3', 'e1']);
+    });
+
+    test('findDefaultEventIndex picks ongoing event over upcoming and past events', () {
+      final now = DateTime(2026, 10, 24, 12, 0);
+      final past = EventEntity(
+        id: 'past',
+        title: 'Past Event',
+        startDate: DateTime(2026, 10, 20, 10, 0),
+        endDate: DateTime(2026, 10, 20, 12, 0),
+        type: 'workshop',
+        capacity: 50,
+        status: 'completed',
+      );
+      final ongoing = EventEntity(
+        id: 'ongoing',
+        title: 'Ongoing Event',
+        startDate: DateTime(2026, 10, 24, 10, 0),
+        endDate: DateTime(2026, 10, 24, 18, 0),
+        type: 'hackathon',
+        capacity: 100,
+        status: 'ongoing',
+      );
+      final upcoming = EventEntity(
+        id: 'upcoming',
+        title: 'Upcoming Event',
+        startDate: DateTime(2026, 10, 28, 10, 0),
+        endDate: DateTime(2026, 10, 28, 12, 0),
+        type: 'seminar',
+        capacity: 80,
+        status: 'upcoming',
+      );
+
+      final list = [past, ongoing, upcoming];
+      expect(EventEntity.findDefaultEventIndex(list, now), 1);
+      expect(EventEntity.findDefaultEvent(list, now)?.id, 'ongoing');
+    });
+
+    test('findDefaultEventIndex picks closest upcoming event when no ongoing event exists', () {
+      final now = DateTime(2026, 10, 24, 12, 0);
+      final past = EventEntity(
+        id: 'past',
+        title: 'Past Event',
+        startDate: DateTime(2026, 10, 20, 10, 0),
+        endDate: DateTime(2026, 10, 20, 12, 0),
+        type: 'workshop',
+        capacity: 50,
+        status: 'completed',
+      );
+      final upcomingFar = EventEntity(
+        id: 'far',
+        title: 'Far Upcoming Event',
+        startDate: DateTime(2026, 11, 10, 10, 0),
+        endDate: DateTime(2026, 11, 10, 12, 0),
+        type: 'hackathon',
+        capacity: 100,
+        status: 'upcoming',
+      );
+      final upcomingClose = EventEntity(
+        id: 'close',
+        title: 'Close Upcoming Event',
+        startDate: DateTime(2026, 10, 26, 10, 0),
+        endDate: DateTime(2026, 10, 26, 12, 0),
+        type: 'seminar',
+        capacity: 80,
+        status: 'upcoming',
+      );
+
+      final list = [past, upcomingClose, upcomingFar];
+      expect(EventEntity.findDefaultEventIndex(list, now), 1);
+      expect(EventEntity.findDefaultEvent(list, now)?.id, 'close');
+    });
+
+    test('findDefaultEventIndex falls back to most recent ended event when all events have completed', () {
+      final now = DateTime(2026, 10, 24, 12, 0);
+      final pastOld = EventEntity(
+        id: 'old',
+        title: 'Old Past Event',
+        startDate: DateTime(2026, 9, 1, 10, 0),
+        endDate: DateTime(2026, 9, 1, 12, 0),
+        type: 'workshop',
+        capacity: 50,
+        status: 'completed',
+      );
+      final pastRecent = EventEntity(
+        id: 'recent',
+        title: 'Recent Past Event',
+        startDate: DateTime(2026, 10, 23, 10, 0),
+        endDate: DateTime(2026, 10, 23, 18, 0),
+        type: 'seminar',
+        capacity: 80,
+        status: 'completed',
+      );
+
+      final list = [pastOld, pastRecent];
+      expect(EventEntity.findDefaultEventIndex(list, now), 1);
+      expect(EventEntity.findDefaultEvent(list, now)?.id, 'recent');
+    });
   });
 
   group('EventsScreen Swipeable Event Deck UI/UX Tests', () {
@@ -469,7 +611,7 @@ void main() {
       expect(find.text('Smart Contract Security Seminar'), findsOneWidget);
       expect(find.text('Global Web3 Hackathon 2026'), findsNothing);
       expect(find.text('01'), findsOneWidget);
-      expect(find.text(' / 01'), findsOneWidget);
+      expect(find.text(' / 02'), findsOneWidget);
     });
 
     testWidgets(
@@ -665,6 +807,138 @@ void main() {
       await tester.tap(find.byIcon(Icons.edit_outlined));
       await tester.pumpAndSettle();
       expect(editEvent?.id, 'event-ongoing-1');
+    });
+
+    testWidgets('EventTimelineChain renders connected nodes and tapping a node jumps deck directly to that event', (tester) async {
+      final repo = MockEventRepository();
+      await tester.pumpWidget(createEventsScreenHarness(repository: repo));
+      await tester.pumpAndSettle();
+
+      // Timeline chain is rendered with nodes
+      expect(find.byType(EventTimelineChain), findsOneWidget);
+
+      // Event 1 is currently active
+      expect(find.text('Global Web3 Hackathon 2026'), findsOneWidget);
+      expect(find.text('01'), findsOneWidget);
+
+      // Tap the 3rd node on the timeline chain
+      final node3 = find.bySemanticsLabel(RegExp(r'Timeline node 3: DeFi Architecture Workshop'));
+      expect(node3, findsOneWidget);
+      await tester.tap(node3);
+      await tester.pumpAndSettle();
+
+      // Deck jumps directly to event 3
+      expect(find.text('DeFi Architecture Workshop'), findsOneWidget);
+      expect(find.text('03'), findsOneWidget);
+      expect(find.text(' / 03'), findsOneWidget);
+    });
+
+    testWidgets('EventsHeaderBar renders overline mark, counter pill, search and create button', (tester) async {
+      final repo = MockEventRepository();
+      await tester.pumpWidget(createEventsScreenHarness(repository: repo));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EventsHeaderBar), findsOneWidget);
+      expect(find.text('NEXUS • EVENT DECK'), findsOneWidget);
+      expect(find.text('3 in deck'), findsOneWidget);
+      expect(find.text('Create'), findsOneWidget);
+      expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
+    });
+
+    testWidgets('Timeline chain and deck sort past, ongoing, and upcoming events chronologically and land on ongoing event', (tester) async {
+      final repo = MockEventRepository(events: [
+        EventEntity(
+          id: 'upcoming-far',
+          title: 'Far Summit 2027',
+          startDate: DateTime.now().add(const Duration(days: 30)),
+          endDate: DateTime.now().add(const Duration(days: 31)),
+          type: 'summit',
+          capacity: 100,
+          status: 'upcoming',
+        ),
+        EventEntity(
+          id: 'past-event',
+          title: 'Past Bootcamp 2025',
+          startDate: DateTime.now().subtract(const Duration(days: 10)),
+          endDate: DateTime.now().subtract(const Duration(days: 9)),
+          type: 'workshop',
+          capacity: 80,
+          status: 'completed',
+        ),
+        EventEntity(
+          id: 'ongoing-event',
+          title: 'Active Hackathon Today',
+          startDate: DateTime.now().subtract(const Duration(hours: 1)),
+          endDate: DateTime.now().add(const Duration(hours: 5)),
+          type: 'hackathon',
+          capacity: 150,
+          status: 'ongoing',
+        ),
+      ]);
+
+      await tester.pumpWidget(createEventsScreenHarness(repository: repo));
+      await tester.pumpAndSettle();
+
+      // Deck lands on ongoing event (Active Hackathon Today) at index 1
+      expect(find.text('Active Hackathon Today'), findsOneWidget);
+      expect(find.text('02'), findsOneWidget);
+      expect(find.text(' / 03'), findsOneWidget);
+
+      // Node 1 in timeline is Past Bootcamp 2025
+      final node1 = find.bySemanticsLabel(RegExp(r'Timeline node 1: Past Bootcamp 2025'));
+      expect(node1, findsOneWidget);
+
+      // Node 2 is Active Hackathon Today
+      final node2 = find.bySemanticsLabel(RegExp(r'Timeline node 2: Active Hackathon Today'));
+      expect(node2, findsOneWidget);
+
+      // Node 3 is Far Summit 2027
+      final node3 = find.bySemanticsLabel(RegExp(r'Timeline node 3: Far Summit 2027'));
+      expect(node3, findsOneWidget);
+    });
+
+    testWidgets('Deck lands on closest upcoming event by default when no ongoing event exists', (tester) async {
+      final repo = MockEventRepository(events: [
+        EventEntity(
+          id: 'far-upcoming',
+          title: 'Summer Conference 2027',
+          startDate: DateTime.now().add(const Duration(days: 60)),
+          endDate: DateTime.now().add(const Duration(days: 61)),
+          type: 'summit',
+          capacity: 200,
+          status: 'upcoming',
+        ),
+        EventEntity(
+          id: 'past-event',
+          title: 'Spring Orientation',
+          startDate: DateTime.now().subtract(const Duration(days: 20)),
+          endDate: DateTime.now().subtract(const Duration(days: 19)),
+          type: 'meeting',
+          capacity: 50,
+          status: 'completed',
+        ),
+        EventEntity(
+          id: 'closest-upcoming',
+          title: 'Next Week Seminar',
+          startDate: DateTime.now().add(const Duration(days: 4)),
+          endDate: DateTime.now().add(const Duration(days: 4, hours: 3)),
+          type: 'seminar',
+          capacity: 100,
+          status: 'upcoming',
+        ),
+      ]);
+
+      await tester.pumpWidget(createEventsScreenHarness(repository: repo));
+      await tester.pumpAndSettle();
+
+      // Chronological order:
+      // Index 0: Spring Orientation (past)
+      // Index 1: Next Week Seminar (closest upcoming)
+      // Index 2: Summer Conference 2027 (far upcoming)
+      // Must land on Next Week Seminar (index 1)
+      expect(find.text('Next Week Seminar'), findsOneWidget);
+      expect(find.text('02'), findsOneWidget);
+      expect(find.text(' / 03'), findsOneWidget);
     });
   });
 }

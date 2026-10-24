@@ -23,6 +23,8 @@ final authNotifierProvider =
   return AuthNotifier(ref.watch(authRepositoryProvider));
 });
 
+final splashAnimationCompletedProvider = StateProvider<bool>((ref) => false);
+
 final myPermissionsProvider = FutureProvider<List<String>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return [];
@@ -73,6 +75,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return true;
       },
     );
+  }
+
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    required String secretKey,
+  }) async {
+    state = const AuthState.loading();
+    final result = await _repo.register(
+      name: name,
+      email: email,
+      password: password,
+      secretKey: secretKey,
+    );
+    return result.fold(
+      (failure) {
+        state = AuthState.error(failure.message);
+        return false;
+      },
+      (data) {
+        state = AuthState.authenticated(data.user);
+        return true;
+      },
+    );
+  }
+
+  void clearError() {
+    if (state is AuthError) {
+      state = const AuthState.unauthenticated();
+    }
   }
 
   Future<void> logout() async {

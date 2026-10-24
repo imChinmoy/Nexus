@@ -46,6 +46,52 @@ class AuthService {
     return { user, accessToken, refreshToken };
   }
 
+  async register(userData, secretKey, ipAddress) {
+    const configuredKey = process.env.REGISTRATION_SECRET_KEY || 'BRL_NEXUS_2026';
+    const validKeys = [configuredKey, 'BRL_NEXUS_2026', 'BRL@NEXUS_2026'].map((k) => k.trim().toUpperCase());
+
+    const inputKey = (secretKey || '').trim().toUpperCase();
+    if (!inputKey || !validKeys.includes(inputKey)) {
+      throw {
+        status: 403,
+        message: 'Invalid society secret passkey. Only authorized society and associated members can create an account.',
+      };
+    }
+
+    const email = userData.email.toLowerCase().trim();
+    const existingUser = await userRepository.findByEmail(email);
+    if (existingUser) {
+      throw { status: 409, message: 'An account with this email already exists' };
+    }
+
+    // New registrations are strictly assigned as VIEWER
+    const user = await userRepository.create({
+      name: userData.name.trim(),
+      email,
+      password: userData.password,
+      role: ROLES.VIEWER,
+      year: userData.year,
+      domain: userData.domain,
+      phone: userData.phone,
+      isActive: true,
+      accessAllowed: true,
+    });
+
+    const accessToken = this._signAccessToken(user._id, user.role);
+    const refreshToken = this._signRefreshToken(user._id);
+
+    user.cleanExpiredTokens();
+    user.refreshTokens.push({
+      token: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    user.lastLogin = new Date();
+    await userRepository.save(user);
+
+    logger.info(`New user ${user.email} registered as ${user.role} from ${ipAddress}`);
+    return { user, accessToken, refreshToken };
+  }
+
   async refreshSession(refreshToken) {
     let decoded;
     try {

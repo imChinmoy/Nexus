@@ -5,6 +5,9 @@ import '../data/sources/student_remote_source.dart';
 import '../domain/entities/student_entity.dart';
 import '../domain/repositories/student_repository.dart';
 
+import '../../events/domain/entities/event_entity.dart';
+import '../../events/providers/event_provider.dart';
+
 final studentRepositoryProvider = Provider<StudentRepository>((ref) {
   final dio = ref.watch(dioClientProvider);
   return StudentRepositoryImpl(StudentRemoteSourceImpl(dio));
@@ -18,7 +21,18 @@ final studentPageProvider = StateProvider<int>((ref) => 1);
 
 /// Event-scoped students provider with server-side search, filtering, and pagination.
 final eventStudentsProvider = FutureProvider.autoDispose<EventStudentsResultEntity?>((ref) async {
-  final eventId = ref.watch(selectedEventIdProvider);
+  String? eventId = ref.watch(selectedEventIdProvider);
+  if (eventId == null || eventId.trim().isEmpty) {
+    final eventsAsync = ref.watch(eventsProvider);
+    final events = eventsAsync.valueOrNull;
+    if (events != null && events.isNotEmpty) {
+      final sorted = EventEntity.sortChronologically(events);
+      final defaultEvent = EventEntity.findDefaultEvent(sorted);
+      if (defaultEvent != null) {
+        eventId = defaultEvent.id;
+      }
+    }
+  }
   if (eventId == null || eventId.trim().isEmpty) {
     return null;
   }

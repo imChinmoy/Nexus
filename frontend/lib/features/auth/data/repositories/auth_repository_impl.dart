@@ -44,6 +44,43 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, ({UserEntity user, String accessToken, String refreshToken})>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String secretKey,
+  }) async {
+    try {
+      final result = await _remote.register(
+        name: name,
+        email: email,
+        password: password,
+        secretKey: secretKey,
+      );
+      await _local.saveTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      );
+      await _local.saveUser(result.user);
+      return Right((
+        user: result.user.toEntity(),
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      ));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(e.message, statusCode: e.statusCode));
+    } on ValidationException catch (e) {
+      return Left(ValidationFailure(e.message, fieldErrors: e.fieldErrors));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> logout() async {
     try {
       final refreshToken = await _local.getRefreshToken();

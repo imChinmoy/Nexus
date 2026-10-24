@@ -41,9 +41,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: listenable,
     redirect: (context, state) {
       final authState = ref.read(authNotifierProvider);
+      final isSplashCompleted = ref.read(splashAnimationCompletedProvider);
       final isAuthRoute = state.matchedLocation == RouteConstants.login ||
           state.matchedLocation == RouteConstants.forgotPassword;
       final isSplashRoute = state.matchedLocation == RouteConstants.splash;
+
+      // Hold on splash screen until the splash animation has completed
+      if (!isSplashCompleted && isSplashRoute) {
+        return null;
+      }
 
       return authState.when(
         initial: () => isSplashRoute ? null : RouteConstants.splash,
@@ -230,5 +236,6 @@ class RouterNotifier extends ChangeNotifier {
 
   RouterNotifier(this._ref) {
     _ref.listen(authNotifierProvider, (_, __) => notifyListeners());
+    _ref.listen(splashAnimationCompletedProvider, (_, __) => notifyListeners());
   }
 }

@@ -15,6 +15,6 @@ final eventsProvider = FutureProvider<List<EventEntity>>((ref) async {
   final result = await repository.getEvents();
   return result.fold(
     (failure) => throw failure.message,
-    (events) => events,
+    (events) => EventEntity.sortChronologically(events),
   );
 });

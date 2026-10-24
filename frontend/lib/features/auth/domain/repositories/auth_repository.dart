@@ -9,6 +9,13 @@ abstract interface class AuthRepository {
     required String password,
   });
 
+  Future<Either<Failure, ({UserEntity user, String accessToken, String refreshToken})>> register({
+    required String name,
+    required String email,
+    required String password,
+    required String secretKey,
+  });
+
   Future<Either<Failure, void>> logout();
 
   Future<Either<Failure, UserEntity>> getCurrentUser();
