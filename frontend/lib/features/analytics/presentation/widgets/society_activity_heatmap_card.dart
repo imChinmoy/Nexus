@@ -395,14 +395,15 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
         HeatmapCalendarGrid(
           heatmap: heatmap,
           selectedDateKey: selectedDateKey,
-          onDaySelected: (day, dayData) {
+          onDaySelected: (day, dayData) async {
             ref.read(selectedHeatmapDateKeyProvider.notifier).state = day.dateKey;
-            HeatmapDayDetailsSheet.show(
+            await HeatmapDayDetailsSheet.show(
               context,
               day: day,
               dayData: dayData,
               metric: metric,
             );
+            ref.read(selectedHeatmapDateKeyProvider.notifier).state = null;
           },
         ),
         const SizedBox(height: 12),

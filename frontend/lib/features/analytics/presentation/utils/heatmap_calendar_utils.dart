@@ -24,6 +24,26 @@ class HeatmapMonthHeader {
   });
 }
 
+class HeatmapMonthData {
+  final int month; // 1 to 12
+  final String name; // e.g. "January"
+  final String shortName; // e.g. "Jan"
+  final int year;
+  final int daysInMonth;
+  final int startColumnIndex;
+  final List<List<HeatmapCalendarDay?>> columns;
+
+  const HeatmapMonthData({
+    required this.month,
+    required this.name,
+    required this.shortName,
+    required this.year,
+    required this.daysInMonth,
+    required this.startColumnIndex,
+    required this.columns,
+  });
+}
+
 class HeatmapCalendarGridData {
   final int year;
   final bool isLeapYear;
@@ -32,6 +52,7 @@ class HeatmapCalendarGridData {
   /// 2D grid: columns[columnIndex][weekdayRowIndex (0..6)]
   final List<List<HeatmapCalendarDay?>> columns;
   final List<HeatmapMonthHeader> monthHeaders;
+  final List<HeatmapMonthData> months;
 
   const HeatmapCalendarGridData({
     required this.year,
@@ -40,6 +61,7 @@ class HeatmapCalendarGridData {
     required this.totalColumns,
     required this.columns,
     required this.monthHeaders,
+    this.months = const [],
   });
 }
 
@@ -59,70 +81,77 @@ class HeatmapCalendarUtils {
     return '$y-$m-$d';
   }
 
-  /// Builds a complete 53-week GitHub-style calendar grid for the requested [year].
+  /// Builds a segregated 12-month calendar grid for the requested [year].
   /// Weekday rows: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat.
+  /// Each month is strictly isolated into its own columns without cross-month merging.
   static HeatmapCalendarGridData generateGrid(int year) {
     final leap = isLeapYear(year);
     final totalDays = leap ? 366 : 365;
 
-    final List<List<HeatmapCalendarDay?>> columns = [];
+    final List<HeatmapMonthData> months = [];
+    final List<List<HeatmapCalendarDay?>> allColumns = [];
     final List<HeatmapMonthHeader> monthHeaders = [];
 
-    final jan1 = DateTime(year, 1, 1);
-    final dec31 = DateTime(year, 12, 31);
+    int globalColIndex = 0;
 
-    int currentColIndex = 0;
-    List<HeatmapCalendarDay?> currentCol = List.filled(7, null);
+    for (int m = 1; m <= 12; m++) {
+      final firstDay = DateTime(year, m, 1);
+      final daysInMonth = m == 12
+          ? 31
+          : DateTime(year, m + 1, 1).subtract(const Duration(days: 1)).day;
+      final monthName = DateFormat('MMMM').format(firstDay);
+      final shortName = DateFormat('MMM').format(firstDay);
 
-    int lastRecordedMonth = 0;
+      monthHeaders.add(HeatmapMonthHeader(
+        label: shortName,
+        columnIndex: globalColIndex,
+      ));
 
-    DateTime current = jan1;
-    while (!current.isAfter(dec31)) {
-      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      final weekdayIndex = current.weekday % 7;
+      final List<List<HeatmapCalendarDay?>> monthColumns = [];
+      List<HeatmapCalendarDay?> currentCol = List.filled(7, null);
 
-      // When day is the 1st of a month, record month header column
-      if (current.month != lastRecordedMonth) {
-        lastRecordedMonth = current.month;
-        final monthName = DateFormat('MMM').format(current);
-        monthHeaders.add(HeatmapMonthHeader(
-          label: monthName,
-          columnIndex: currentColIndex,
-        ));
+      for (int d = 1; d <= daysInMonth; d++) {
+        final date = DateTime(year, m, d);
+        final weekdayIndex = date.weekday % 7; // 0=Sun, 1=Mon, ..., 6=Sat
+        final dateKey = formatDateKey(date);
+
+        final dayData = HeatmapCalendarDay(
+          date: date,
+          dateKey: dateKey,
+          weekdayIndex: weekdayIndex,
+          columnIndex: globalColIndex,
+        );
+
+        currentCol[weekdayIndex] = dayData;
+
+        // If Saturday (6) is reached or it's the last day of the month
+        if (weekdayIndex == 6 || d == daysInMonth) {
+          monthColumns.add(currentCol);
+          allColumns.add(currentCol);
+          globalColIndex++;
+          currentCol = List.filled(7, null);
+        }
       }
 
-      final dateKey = formatDateKey(current);
-      final dayData = HeatmapCalendarDay(
-        date: current,
-        dateKey: dateKey,
-        weekdayIndex: weekdayIndex,
-        columnIndex: currentColIndex,
-      );
-
-      currentCol[weekdayIndex] = dayData;
-
-      // If Saturday reached, finalize this column and move to the next
-      if (weekdayIndex == 6) {
-        columns.add(currentCol);
-        currentColIndex++;
-        currentCol = List.filled(7, null);
-      }
-
-      current = current.add(const Duration(days: 1));
-    }
-
-    // If the last column had any days, add it
-    if (currentCol.any((d) => d != null)) {
-      columns.add(currentCol);
+      months.add(HeatmapMonthData(
+        month: m,
+        name: monthName,
+        shortName: shortName,
+        year: year,
+        daysInMonth: daysInMonth,
+        startColumnIndex: globalColIndex - monthColumns.length,
+        columns: monthColumns,
+      ));
     }
 
     return HeatmapCalendarGridData(
       year: year,
       isLeapYear: leap,
       totalDays: totalDays,
-      totalColumns: columns.length,
-      columns: columns,
+      totalColumns: allColumns.length,
+      columns: allColumns,
       monthHeaders: monthHeaders,
+      months: months,
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors/failures.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/dio_client.dart';
 import '../data/repositories/auth_repository_impl.dart';
@@ -50,16 +52,56 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> checkAuthStatus() async {
     state = const AuthState.loading();
-    final isLoggedIn = await _repo.isLoggedIn();
-    if (!isLoggedIn) {
+    try {
+      final isLoggedIn = await _repo.isLoggedIn();
+      if (!isLoggedIn) {
+        state = const AuthState.unauthenticated();
+        return;
+      }
+
+      // 1. Instant Cache-First Session Restoration:
+      // If we have a cached user profile saved locally, authenticate immediately.
+      // This eliminates network blocking during splash screen so the app launches instantaneously.
+      final cachedUser = await _repo.getCachedUser();
+      if (cachedUser != null) {
+        state = AuthState.authenticated(cachedUser);
+        // Revalidate profile in background without blocking splash or app launch
+        _revalidateSession();
+        return;
+      }
+
+      // 2. Fallback if no cached user profile found: fetch with a quick 4-second timeout
+      final result = await _repo.getCurrentUser().timeout(
+        const Duration(seconds: 4),
+        onTimeout: () => const Left(NetworkFailure('Auth verification timeout')),
+      );
+      result.fold(
+        (failure) => state = const AuthState.unauthenticated(),
+        (user) => state = AuthState.authenticated(user),
+      );
+    } catch (_) {
       state = const AuthState.unauthenticated();
-      return;
     }
-    final result = await _repo.getCurrentUser();
-    result.fold(
-      (failure) => state = const AuthState.unauthenticated(),
-      (user) => state = AuthState.authenticated(user),
-    );
+  }
+
+  Future<void> _revalidateSession() async {
+    try {
+      final result = await _repo.getCurrentUser();
+      result.fold(
+        (failure) {
+          if (failure is UnauthorizedFailure) {
+            logout();
+          }
+        },
+        (user) {
+          if (mounted) {
+            state = AuthState.authenticated(user);
+          }
+        },
+      );
+    } catch (_) {
+      // Retain cached session if background revalidation fails
+    }
   }
 
   Future<bool> login({required String email, required String password}) async {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
@@ -38,10 +40,45 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
         ),
         body: studentsAsync.maybeWhen(
           data: (students) {
-            final student = students.firstWhere(
+            final student = students.where(
               (s) => s.rollNumber == widget.studentId || s.id == widget.studentId,
-              orElse: () => throw Exception('Student not found'),
-            );
+            ).firstOrNull;
+            if (student == null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person_off_rounded,
+                          size: 48, color: AppColors.errorOf(context)),
+                      const SizedBox(height: 12),
+                      Text('Student Not Found', style: AppTextStyles.headlineSm),
+                      const SizedBox(height: 6),
+                      Text(
+                        'The requested student record is not available in the current scope.',
+                        style: AppTextStyles.bodySm.copyWith(
+                          color: AppColors.textSecondaryOf(context),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          if (GoRouter.maybeOf(context)?.canPop() ?? false) {
+                            context.pop();
+                          } else {
+                            context.go(RouteConstants.students);
+                          }
+                        },
+                        icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                        label: const Text('Go Back'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
             return RefreshIndicator(
               color: accent,

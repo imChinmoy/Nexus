@@ -33,16 +33,16 @@ class HeatmapCell extends StatelessWidget {
     if (isDark) {
       switch (intensityLevel) {
         case 1:
-          return const Color(0xFF0F3B5F); // subtle navy
+          return const Color(0xFF144A75); // visible cool blue
         case 2:
-          return const Color(0xFF1768A8); // medium cool blue
+          return const Color(0xFF1E6EAE); // vibrant medium blue
         case 3:
-          return const Color(0xFF268BDE); // vivid accent blue
+          return const Color(0xFF268BDE); // vivid accent royal blue
         case 4:
-          return const Color(0xFF5AB0FF); // bright luminous blue
+          return const Color(0xFF5AB0FF); // bright luminous sky blue
         case 0:
         default:
-          return const Color(0xFF1E1E24); // neutral dark cell
+          return const Color(0xFF26262E); // clearly visible cell against dark surface
       }
     } else {
       switch (intensityLevel) {
@@ -56,7 +56,7 @@ class HeatmapCell extends StatelessWidget {
           return const Color(0xFF1D4ED8); // deep rich blue
         case 0:
         default:
-          return const Color(0xFFE5E5EA); // neutral crisp light cell
+          return const Color(0xFFE4E4EA); // neutral crisp light cell
       }
     }
   }
@@ -92,7 +92,12 @@ class HeatmapCell extends StatelessWidget {
                     color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
                     width: 1.6,
                   )
-                : null,
+                : Border.all(
+                    color: isDark
+                        ? const Color(0x18FFFFFF)
+                        : const Color(0x0C000000),
+                    width: 0.6,
+                  ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(

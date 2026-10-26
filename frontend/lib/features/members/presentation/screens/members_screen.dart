@@ -18,6 +18,7 @@ import '../../../../shared/widgets/empty_state_widget.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/members_provider.dart';
+import '../widgets/draggable_org_network_fab.dart';
 import 'member_details_screen.dart';
 
 enum MembersViewMode {
@@ -299,21 +300,27 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     else
                       _buildTiersView(context, members, filteredMembers, isDark),
 
-                    // 2. Floating Top Header & Domain Filter Row (Redesigned Spacious Glass Deck)
-                    Positioned(
-                      top: 10,
-                      left: 14,
-                      right: 14,
-                      child: _buildFloatingControlsHeader(context, members, isDark),
-                    ),
-
-                    // 3. Floating HUD Tools (Bottom Right)
+                    // 2. Floating HUD Tools (Bottom Right)
                     if (_viewMode == MembersViewMode.graph)
                       Positioned(
                         bottom: 24,
                         right: 16,
                         child: _buildFloatingHUD(isDark),
                       ),
+
+                    // 3. Draggable Org Network FAB with Morphing Expand Animation
+                    Positioned.fill(
+                      child: DraggableOrgNetworkFab(
+                        memberCount: members.length,
+                        searchQuery: _searchQuery,
+                        onSearchChanged: (val) => setState(() => _searchQuery = val),
+                        selectedDomain: _selectedDomain,
+                        onDomainChanged: (val) => setState(() => _selectedDomain = val),
+                        domains: _domains,
+                        getDomainIcon: _getDomainIcon,
+                        isDark: isDark,
+                      ),
+                    ),
                   ],
                 );
               },
@@ -383,271 +390,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
     }).toList();
   }
 
-  // ---------------------------------------------------------------------------
-  // 1. FLOATING CONTROLS & FILTER HEADER (SPACIOUS, APPLE-GRADE GLASS CYBER DECK)
-  // ---------------------------------------------------------------------------
-  Widget _buildFloatingControlsHeader(BuildContext context, List<UserEntity> allMembers, bool isDark) {
-    final surfaceColor = isDark ? const Color(0xD912121B) : const Color(0xF5FFFFFF);
-    final borderColor = isDark ? const Color(0x38FFFFFF) : const Color(0x1F000000);
-    final accent = AppColors.accentOf(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: borderColor, width: 1.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.09),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-              if (isDark)
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 2),
-                ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Top Section: Org Branding & Live Metrics Badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [accent, const Color(0xFF6366F1)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: accent.withValues(alpha: 0.4),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.hub_rounded, size: 18, color: Colors.white),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'NEXUS ORG NETWORK',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.1,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Interactive Society Hierarchy Graph',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  // Cyber Live Status Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0x38222234) : const Color(0x1F000000),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark ? const Color(0x2EFFFFFF) : const Color(0x14000000),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF34C759),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: Color(0xFF34C759), blurRadius: 6, spreadRadius: 1),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${allMembers.length} Members',
-                          style: GoogleFonts.inter(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : AppColors.lightTextPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // 2. Search Bar: Spacious, Touch-Friendly, Modern Apple-Grade
-              Container(
-                height: 42,
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0x551E1E2C) : const Color(0x73F0F0F4),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? const Color(0x26FFFFFF) : const Color(0x1A000000),
-                    width: 0.8,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.search_rounded, size: 19, color: accent),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        onChanged: (val) => setState(() => _searchQuery = val.trim()),
-                        style: GoogleFonts.inter(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Search members, roles, or domains...',
-                          hintStyle: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: isDark ? Colors.white38 : Colors.black38,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ),
-                    if (_searchQuery.isNotEmpty)
-                      GestureDetector(
-                        onTap: () => setState(() => _searchQuery = ''),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white12 : Colors.black12,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.clear_rounded, size: 12, color: isDark ? Colors.white70 : Colors.black54),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // 3. Domain Filters Row with Dedicated Category Icons
-              SizedBox(
-                height: 32,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _domains.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, i) {
-                    final d = _domains[i];
-                    final isSelected = _selectedDomain == d;
-                    final icon = _getDomainIcon(d);
-
-                    return InkWell(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedDomain = d);
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? LinearGradient(
-                                  colors: [accent, const Color(0xFF6366F1)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : null,
-                          color: isSelected
-                              ? null
-                              : (isDark ? const Color(0x38222234) : const Color(0x1FEEEEF4)),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? accent.withValues(alpha: 0.9)
-                                : (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000)),
-                            width: 0.8,
-                          ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: accent.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              icon,
-                              size: 13,
-                              color: isSelected
-                                  ? Colors.white
-                                  : (isDark ? Colors.white60 : AppColors.lightTextSecondary),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              d,
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // ---------------------------------------------------------------------------
   // 2. FLOATING HUD TOOLS (ZOOM, RECENTER, LEGEND)
@@ -1026,7 +769,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 145, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 76, 16, 100),
         children: [
           _buildTierGroupCard(
             context,

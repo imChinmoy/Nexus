@@ -221,12 +221,16 @@ class _ModernHomeBar extends StatelessWidget {
                 curve: Curves.fastOutSlowIn,
                 left: indicatorLeft,
                 top: 0,
-                child: Container(
-                  width: indicatorSize,
-                  height: indicatorSize,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: selectedIndex == 2 ? 0.0 : 1.0,
+                  child: Container(
+                    width: indicatorSize,
+                    height: indicatorSize,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
               ),
@@ -267,6 +271,55 @@ class _HomeBarItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (item.isScanner) {
+      return Semantics(
+        label: item.label,
+        selected: isSelected,
+        button: true,
+        child: Tooltip(
+          message: item.label,
+          waitDuration: const Duration(milliseconds: 600),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(100),
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              child: Center(
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2997FF), Color(0xFF0A84FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2997FF).withValues(alpha: 0.55),
+                        blurRadius: 16,
+                        spreadRadius: 1.5,
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.qr_code_scanner_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     // When selected: pitch dark icon inside white circle
     // When unselected: clean white outline icon
     final targetColor = isSelected ? const Color(0xFF101012) : Colors.white.withValues(alpha: 0.90);

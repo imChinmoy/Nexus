@@ -19,9 +19,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   bool _animationCompleted = false;
   Timer? _fallbackTimer;
 
-  // Total duration: 3200ms allows the full 2800ms SVG animation to play completely
-  // and hold its final frame for 400ms.
-  static const Duration _splashDuration = Duration(milliseconds: 3200);
+  // Snappy 1800ms allows the cyber SVG mark animation to play fluidly without stalling the user
+  static const Duration _splashDuration = Duration(milliseconds: 1800);
 
   @override
   void initState() {
@@ -37,7 +36,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     });
 
     // Safety fallback timer in case of animation callback anomalies
-    _fallbackTimer = Timer(_splashDuration + const Duration(milliseconds: 400), () {
+    _fallbackTimer = Timer(_splashDuration + const Duration(milliseconds: 200), () {
       if (mounted && !_animationCompleted) {
         _handleSplashFinish();
       }

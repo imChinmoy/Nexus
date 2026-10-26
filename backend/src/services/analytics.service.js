@@ -160,7 +160,10 @@ class AnalyticsService {
     const events = await Event.find({
       status: { $ne: 'cancelled' },
       startDate: { $lt: queryEnd },
-      endDate: { $gte: queryStart },
+      $or: [
+        { endDate: { $gte: queryStart } },
+        { endDate: null, startDate: { $gte: queryStart } },
+      ],
     })
       .select('_id title type status startDate endDate venue capacity isAttendanceOpen')
       .lean();
@@ -172,8 +175,10 @@ class AnalyticsService {
     const monthCounts = new Array(12).fill(0);
 
     for (const event of events) {
+      if (!event.startDate) continue;
       const start = new Date(event.startDate);
-      const end = new Date(event.endDate);
+      const end = event.endDate ? new Date(event.endDate) : start;
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) continue;
 
       // Apply event effective boundary logic
       const isEndDateOnly =
@@ -289,7 +294,7 @@ class AnalyticsService {
     const pipeline = [
       {
         $match: {
-          markedAt: { $gte: queryStart, $lt: queryEnd },
+          markedAt: { $type: 'date', $gte: queryStart, $lt: queryEnd },
         },
       },
       {

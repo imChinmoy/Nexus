@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +16,7 @@ import '../../../students/domain/entities/student_entity.dart';
 import '../../../students/providers/student_provider.dart';
 import '../../../analytics/presentation/widgets/society_activity_heatmap_card.dart';
 import '../../../analytics/providers/analytics_provider.dart';
+import '../widgets/stacked_event_deck.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -26,6 +26,8 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  int _activeStageIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -56,7 +58,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics()),
             slivers: [
-              // 1. Minimal Header
+              // 1. Minimal Personalized Header
               SliverToBoxAdapter(
                 child: _buildMinimalHeader(context, user, isDark),
               ),
@@ -65,39 +67,70 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               eventsAsync.when(
                 data: (events) {
                   final featuredEvent = _resolveFeaturedEvent(events);
+                  final featuredList = <EventEntity>[];
+                  if (featuredEvent != null) {
+                    featuredList.add(featuredEvent);
+                    for (final e in events) {
+                      if (e.id != featuredEvent.id && featuredList.length < 5) {
+                        featuredList.add(e);
+                      }
+                    }
+                  }
+                  if (_activeStageIndex >= featuredList.length && featuredList.isNotEmpty) {
+                    _activeStageIndex = 0;
+                  }
+                  final currentStageEvent = featuredList.isNotEmpty
+                      ? featuredList[_activeStageIndex % featuredList.length]
+                      : null;
                   final otherEvents =
-                      events.where((e) => e.id != featuredEvent?.id).toList();
+                      events.where((e) => e.id != (currentStageEvent ?? featuredEvent)?.id).toList();
 
                   return SliverList(
                     delegate: SliverChildListDelegate([
-                      // 2. Featured Event Hero Card
+                      // 2. Featured Event Stage (3D layered card deck with peeking cards & indicator dots)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-                        child: _buildFeaturedEventCard(
+                        padding: const EdgeInsets.fromLTRB(0, 6, 0, 12),
+                        child: _buildFeaturedEventStage(
                           context,
-                          featuredEvent,
-                          isDark,
+                          featuredList: featuredList,
+                          activeIndex: _activeStageIndex,
+                          isDark: isDark,
                           isAdmin: user?.isAdmin ?? false,
+                          onStageIndexChanged: (newIdx) {
+                            setState(() => _activeStageIndex = newIdx);
+                          },
                         ),
                       ),
 
-                      // 3. Attendance Overview (Single Compact Horizontal Statistics Section)
+                      // 3. Quick Operations Row (Scan, Create, Manage, Members)
+                      if (featuredList.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 2, 16, 18),
+                          child: _buildQuickOperationsRow(
+                            context,
+                            currentEvent: currentStageEvent ?? featuredEvent,
+                            isDark: isDark,
+                            canCreate: user?.isAdmin ?? false,
+                          ),
+                        ),
+
+                      // 4. Today at a Glance (Compact Operational Pulse)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: _buildAttendanceOverview(
-                            context, featuredEvent, isDark),
+                            context, currentStageEvent ?? featuredEvent, isDark),
                       ),
 
-                      // 4. Recent Activity (Connected Timeline, hidden if no activity)
-                      _buildRecentActivityTimeline(
-                          context, featuredEvent, isDark),
-
-                      // 5. Upcoming Events (Image-Led Horizontal Carousel)
+                      // 5. Upcoming Highlights (Image-Led Horizontal Highlights)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                         child: _buildUpcomingEventsCarousel(
                             context, otherEvents, isDark),
                       ),
+
+                      // 6. Recent Activity (Connected Timeline, hidden if no activity)
+                      _buildRecentActivityTimeline(
+                          context, currentStageEvent ?? featuredEvent, isDark),
                     ]),
                   );
                 },
@@ -200,19 +233,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  currentDateFormatted,
+                  '$currentDateFormatted • Let\'s make today count.',
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: textSecondary,
-                    letterSpacing: 0,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Notification icon & Profile avatar
+          // Notification icon, Insights icon & Profile avatar
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -270,6 +302,50 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Analytics / Insights icon button
+              Semantics(
+                label: 'Analytics and Reports',
+                button: true,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    context.push(RouteConstants.reports);
+                  },
+                  borderRadius: BorderRadius.circular(19),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0x1FFFFFFF)
+                            : const Color(0x0F000000),
+                        width: 0.8,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.insights_rounded,
+                      size: 18,
+                      color: textPrimary,
                     ),
                   ),
                 ),
@@ -365,6 +441,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   // 2. FEATURED EVENT (HERO WIDE CARD)
   // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 2. FEATURED EVENT STAGE (3D LAYERED DECK CENTERPIECE)
+  // ---------------------------------------------------------------------------
+  Widget _buildFeaturedEventStage(
+    BuildContext context, {
+    required List<EventEntity> featuredList,
+    required int activeIndex,
+    required bool isDark,
+    required bool isAdmin,
+    required ValueChanged<int> onStageIndexChanged,
+  }) {
+    if (featuredList.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: _buildFeaturedEventCard(context, null, isDark, isAdmin: isAdmin),
+      );
+    }
+
+    return StackedEventDeck(
+      events: featuredList,
+      activeIndex: activeIndex,
+      isDark: isDark,
+      isAdmin: isAdmin,
+      onIndexChanged: onStageIndexChanged,
+    );
+  }
+
+
+
+
+
+  // Backward compatibility alias for tests
   Widget _buildFeaturedEventCard(
     BuildContext context,
     EventEntity? event,
@@ -374,418 +482,110 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (event == null) {
       return _buildEmptyFeaturedCard(context, isDark);
     }
+    return StackedEventDeck(
+      events: [event],
+      activeIndex: 0,
+      isDark: isDark,
+      isAdmin: isAdmin,
+      onIndexChanged: (_) {},
+    );
+  }
 
+  // ---------------------------------------------------------------------------
+  // 3. QUICK OPERATIONS ROW (COMPACT COMMAND DOCK)
+  // ---------------------------------------------------------------------------
+  Widget _buildQuickOperationsRow(
+    BuildContext context, {
+    required EventEntity? currentEvent,
+    required bool isDark,
+    required bool canCreate,
+  }) {
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor =
+        isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final successColor = isDark ? AppColors.successDark : AppColors.success;
-    final dateFormatted =
-        DateFormat('EEE, MMM d • h:mm a').format(event.startDate);
 
-    return Semantics(
-      label: 'Featured Event: ${event.title}',
-      child: Container(
-        height: 270,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: (event.isAttendanceOpen && !event.isPast)
-                ? successColor.withValues(alpha: isDark ? 0.45 : 0.6)
-                : (isDark ? const Color(0x2EFFFFFF) : const Color(0x18000000)),
-            width: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (event.isAttendanceOpen && !event.isPast)
-                  ? successColor.withValues(alpha: isDark ? 0.16 : 0.10)
-                  : Colors.black.withValues(alpha: isDark ? 0.35 : 0.07),
-              blurRadius: 18,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. Full-Bleed Artwork Viewport
-              if (event.banner != null && event.banner!.trim().isNotEmpty)
-                CachedNetworkImage(
-                  imageUrl: event.banner!.trim(),
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => _buildBannerFallback(isDark),
-                  errorWidget: (_, __, ___) => _buildBannerFallback(isDark),
-                )
-              else
-                _buildBannerFallback(isDark),
+    final actions = [
+      (
+        icon: Icons.qr_code_scanner_rounded,
+        label: 'Scan',
+        onTap: () {
+          HapticFeedback.lightImpact();
+          final eventId = currentEvent?.id ?? '';
+          context.push('${RouteConstants.attendance}/qr-scan?eventId=$eventId');
+        },
+      ),
+      (
+        icon: Icons.add_circle_outline_rounded,
+        label: 'Create',
+        onTap: () {
+          HapticFeedback.lightImpact();
+          context.push(RouteConstants.createEvent);
+        },
+      ),
+      (
+        icon: Icons.calendar_today_outlined,
+        label: 'Manage',
+        onTap: () {
+          HapticFeedback.lightImpact();
+          context.go(RouteConstants.events);
+        },
+      ),
+      (
+        icon: Icons.people_outline_rounded,
+        label: 'Members',
+        onTap: () {
+          HapticFeedback.lightImpact();
+          context.go(RouteConstants.members);
+        },
+      ),
+    ];
 
-              // 2. High-Tech Scrim Gradients (Top beacon contrast & bottom dock fade)
-              DecoratedBox(
+    return Row(
+      children: actions.map((act) {
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: InkWell(
+              onTap: act.onTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.65),
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.35),
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                    stops: const [0.0, 0.35, 0.65, 1.0],
-                  ),
-                ),
-              ),
-
-              // 3. Card Tap Surface (Navigates to Event Details)
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    context.push('${RouteConstants.events}/${event.id}');
-                  },
-                  splashColor: Colors.white.withValues(alpha: 0.08),
-                  highlightColor: Colors.white.withValues(alpha: 0.04),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-
-              // 4. Top Operational Beacon Strip
-              Positioned(
-                top: 10,
-                left: 12,
-                right: 12,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Live Status Radar Beacon
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xE6080B11),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: (event.isAttendanceOpen && !event.isPast)
-                              ? successColor.withValues(alpha: 0.85)
-                              : Colors.white.withValues(alpha: 0.25),
-                          width: 0.9,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: (event.isAttendanceOpen && !event.isPast)
-                                  ? successColor
-                                  : Colors.white70,
-                              shape: BoxShape.circle,
-                              boxShadow: (event.isAttendanceOpen &&
-                                      !event.isPast)
-                                  ? [
-                                      BoxShadow(
-                                        color:
-                                            successColor.withValues(alpha: 0.8),
-                                        blurRadius: 7,
-                                        spreadRadius: 1.5,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            (event.isAttendanceOpen && !event.isPast)
-                                ? 'LIVE CHECK-IN OPEN'
-                                : event.effectiveStatus.toUpperCase(),
-                            style: GoogleFonts.inter(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                              color: (event.isAttendanceOpen && !event.isPast)
-                                  ? successColor
-                                  : Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
+                  color: surfaceColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor, width: 0.8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-
-                    // Right Actions: Type Tag & Admin Quick Toggle
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Type Tag
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xE6080B11),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Text(
-                            event.type.toUpperCase(),
-                            style: GoogleFonts.inter(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-
-                        // Admin Quick Toggle
-                        if (isAdmin) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            height: 28,
-                            width: 28,
-                            decoration: BoxDecoration(
-                              color: (event.isAttendanceOpen && !event.isPast)
-                                  ? successColor.withValues(alpha: 0.22)
-                                  : const Color(0xE6080B11),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: (event.isAttendanceOpen && !event.isPast)
-                                    ? successColor.withValues(alpha: 0.8)
-                                    : Colors.white24,
-                                width: 0.8,
-                              ),
-                            ),
-                            child: IconButton(
-                              onPressed: () async {
-                                HapticFeedback.mediumImpact();
-                                final nextState =
-                                    !(event.isAttendanceOpen && !event.isPast);
-                                final result = await ref
-                                    .read(eventRepositoryProvider)
-                                    .toggleAttendance(event.id, nextState);
-                                result.fold(
-                                  (failure) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(failure.message),
-                                        backgroundColor:
-                                            AppColors.errorOf(context),
-                                      ),
-                                    );
-                                  },
-                                  (_) {
-                                    ref.invalidate(eventsProvider);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          nextState
-                                              ? 'Attendance check-in opened'
-                                              : 'Attendance check-in closed',
-                                        ),
-                                        backgroundColor: nextState
-                                            ? successColor
-                                            : AppColors.surfaceOf(context),
-                                        duration:
-                                            const Duration(milliseconds: 1500),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                              icon: Icon(
-                                (event.isAttendanceOpen && !event.isPast)
-                                    ? Icons.how_to_reg_rounded
-                                    : Icons.person_off_outlined,
-                                size: 14,
-                                color: (event.isAttendanceOpen && !event.isPast)
-                                    ? successColor
-                                    : Colors.white70,
-                              ),
-                              padding: EdgeInsets.zero,
-                              tooltip: (event.isAttendanceOpen && !event.isPast)
-                                  ? 'Close Attendance'
-                                  : 'Open Attendance',
-                            ),
-                          ),
-                        ],
-                      ],
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(act.icon, size: 22, color: accent),
+                    const SizedBox(height: 6),
+                    Text(
+                      act.label,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              // 5. Floating Cyber HUD Command Dock (Compact micro-dock)
-              Positioned(
-                left: 10,
-                right: 10,
-                bottom: 10,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xD90B0E17)
-                            : Colors.white.withValues(alpha: 0.88),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: (event.isAttendanceOpen && !event.isPast)
-                              ? successColor.withValues(alpha: 0.45)
-                              : (isDark ? Colors.white12 : Colors.black12),
-                          width: 0.8,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black
-                                .withValues(alpha: isDark ? 0.35 : 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Event Title (Crisp, compact)
-                          Text(
-                            event.title,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
-                              color: isDark
-                                  ? Colors.white
-                                  : AppColors.lightTextPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 3),
-
-                          // Compact Info & Action Strip
-                          Row(
-                            children: [
-                              // Date & Venue Details
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule_rounded,
-                                      size: 11,
-                                      color: (event.isAttendanceOpen &&
-                                              !event.isPast)
-                                          ? successColor
-                                          : (isDark
-                                              ? Colors.white60
-                                              : AppColors.lightTextSecondary),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        dateFormatted,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark
-                                              ? Colors.white70
-                                              : AppColors.lightTextSecondary,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    if (event.venue != null &&
-                                        event.venue!.isNotEmpty) ...[
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        '•',
-                                        style: TextStyle(
-                                          color: isDark
-                                              ? Colors.white30
-                                              : Colors.black26,
-                                          fontSize: 9,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Icon(
-                                        Icons.place_outlined,
-                                        size: 11,
-                                        color: isDark
-                                            ? Colors.white60
-                                            : AppColors.lightTextSecondary,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Flexible(
-                                        child: Text(
-                                          event.venue!,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w500,
-                                            color: isDark
-                                                ? Colors.white70
-                                                : AppColors.lightTextSecondary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // Glowing "Scan QR Pass" Cyber Action Pill
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  HapticFeedback.mediumImpact();
-                                  context.push(
-                                      '${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
-                                },
-                                icon: const Icon(Icons.qr_code_scanner_rounded,
-                                    size: 13.5),
-                                label: Text(
-                                  'Scan QR Pass',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.1,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      (event.isAttendanceOpen && !event.isPast)
-                                          ? successColor
-                                          : accent,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 9, vertical: 5),
-                                  minimumSize: const Size(0, 28),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      }).toList(),
     );
   }
 
@@ -915,24 +715,52 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top Section Header: Title & Event Scope / Manage Action
+            // Top Section Header: Title & Event Scope / Manage Action
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.analytics_outlined, size: 15, color: accent),
-                    const SizedBox(width: 6),
-                    Text(
-                      'ATTENDANCE OPERATIONS',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.7,
-                        color: textSecondary,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.pie_chart_outline_rounded,
+                          size: 16, color: accent),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Today at a glance',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                          color: textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '•',
+                        style: GoogleFonts.inter(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: textSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'ATTENDANCE OPERATIONS',
+                          style: GoogleFonts.inter(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 InkWell(
                   onTap: () {
                     HapticFeedback.lightImpact();
@@ -970,113 +798,187 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Horizontal Statistics Strip (Replaces separate metric cards)
+            // 3 Modern Operational Pulse Tiles (Mockup Screen 1)
             Row(
               children: [
-                // 1. Present / Checked In
+                // 1. Live Check-In Pill
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        presentCount.toString(),
-                        style: GoogleFonts.inter(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                          color: successColor,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF14171E)
+                          : const Color(0xFFF3F4F7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0x14FFFFFF)
+                            : const Color(0x0A000000),
+                        width: 0.6,
                       ),
-                      const SizedBox(height: 1),
-                      Text(
-                        'Present',
-                        style: GoogleFonts.inter(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Vertical hairline divider
-                Container(
-                  width: 1,
-                  height: 32,
-                  color: isDark
-                      ? AppColors.darkSeparator
-                      : AppColors.lightSeparator,
-                ),
-
-                // 2. Total Registered
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 14),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          totalRegistered.toString(),
+                          'Live Check-in',
                           style: GoogleFonts.inter(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: textPrimary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 1),
-                        Text(
-                          'Registered',
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              width: 6.5,
+                              height: 6.5,
+                              decoration: BoxDecoration(
+                                color: (featuredEvent?.isAttendanceOpen ?? false)
+                                    ? successColor
+                                    : Colors.orange,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4.5),
+                            Text(
+                              (featuredEvent?.isAttendanceOpen ?? false)
+                                  ? 'Open'
+                                  : 'Standby',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: (featuredEvent?.isAttendanceOpen ?? false)
+                                    ? successColor
+                                    : Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // 2. Checked In / Present
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF14171E)
+                          : const Color(0xFFF3F4F7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0x14FFFFFF)
+                            : const Color(0x0A000000),
+                        width: 0.6,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.qr_code_scanner_rounded,
+                            size: 19, color: successColor),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                presentCount.toString(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: successColor,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                'Present',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
 
-                // Vertical hairline divider
-                Container(
-                  width: 1,
-                  height: 32,
-                  color: isDark
-                      ? AppColors.darkSeparator
-                      : AppColors.lightSeparator,
-                ),
-
-                // 3. Attendance Rate / Remaining
+                // 3. Registered / Attendance Rate
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF14171E)
+                          : const Color(0xFFF3F4F7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0x14FFFFFF)
+                            : const Color(0x0A000000),
+                        width: 0.6,
+                      ),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          '$percentage%',
-                          style: GoogleFonts.inter(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: accent,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                        SizedBox(
+                          width: 19,
+                          height: 19,
+                          child: CircularProgressIndicator(
+                            value: progress,
+                            strokeWidth: 2.8,
+                            backgroundColor: isDark
+                                ? const Color(0xFF26262B)
+                                : const Color(0xFFE5E5EA),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(accent),
                           ),
                         ),
-                        const SizedBox(height: 1),
-                        Text(
-                          '$remaining remaining',
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                totalRegistered.toString(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: textPrimary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                'Registered',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -1084,13 +986,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Continuous Horizontal Progress Bar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$percentage%',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: accent,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'rate',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  '$remaining remaining',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: SizedBox(
-                height: 5,
+                height: 4,
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0.0, end: progress),
                   duration: const Duration(milliseconds: 600),
@@ -1140,9 +1078,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             [])
         : <StudentEntity>[];
 
-    final candidatePool =
-        scopedStudents.isNotEmpty ? scopedStudents : allStudents;
-    final presentStudents = candidatePool.where((s) => s.isPresent).toList();
+    final scopedPresent = scopedStudents.where((s) => s.isPresent).toList();
+    final allPresent = allStudents.where((s) => s.isPresent).toList();
+    final presentStudents =
+        scopedPresent.isNotEmpty ? scopedPresent : allPresent;
 
     // Sort by most recently marked/updated
     presentStudents.sort((a, b) {
@@ -1257,7 +1196,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
-        context.push('${RouteConstants.students}/${student.id}');
+        final targetId =
+            student.id.isNotEmpty ? student.id : student.rollNumber;
+        context.push('${RouteConstants.students}/$targetId');
       },
       child: IntrinsicHeight(
         child: Row(
@@ -1416,38 +1357,66 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(
-                  'UPCOMING SCHEDULE',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: textSecondary,
-                  ),
-                ),
-                if (displayEvents.isNotEmpty) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 1.5),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
-                      borderRadius: BorderRadius.circular(10),
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    'Upcoming Highlights',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
                     ),
+                  ),
+                  if (displayEvents.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        displayEvents.length.toString(),
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  Text(
+                    '•',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
                     child: Text(
-                      displayEvents.length.toString(),
+                      'UPCOMING SCHEDULE',
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: accent,
+                        letterSpacing: 0.7,
+                        color: textSecondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
@@ -1466,16 +1435,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         const SizedBox(height: 10),
 
-        // Carousel Container
+        // Carousel Container (Image-Led Mini Cards matching Screen 1)
         SizedBox(
-          height: 172,
+          height: 88,
           child: displayEvents.isEmpty
               ? _buildEmptyEventsCarousel(isDark, textSecondary)
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: displayEvents.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
                   itemBuilder: (context, index) {
                     final event = displayEvents[index];
                     return _buildCarouselCard(context, event, isDark);
@@ -1499,8 +1468,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     final dateMonthDay =
-        DateFormat('MMM d').format(event.startDate).toUpperCase();
-    final timeStr = DateFormat('h:mm a').format(event.startDate);
+        DateFormat('MMM d').format(event.startDate);
+    final venueStr = (event.venue != null && event.venue!.trim().isNotEmpty)
+        ? event.venue!.trim()
+        : 'Campus';
 
     return Semantics(
       label: 'Event: ${event.title}',
@@ -1511,7 +1482,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           context.push('${RouteConstants.events}/${event.id}');
         },
         child: Container(
-          width: 215,
+          width: 235,
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: surfaceColor,
             borderRadius: BorderRadius.circular(16),
@@ -1524,152 +1496,79 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Image Section (Banner or Fallback)
-                SizedBox(
-                  height: 94,
-                  width: double.infinity,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (event.banner != null &&
+          child: Row(
+            children: [
+              // Left: Rounded cover image thumbnail
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 68,
+                  height: 68,
+                  child: (event.banner != null &&
                           event.banner!.trim().isNotEmpty)
-                        CachedNetworkImage(
+                      ? CachedNetworkImage(
                           imageUrl: event.banner!.trim(),
                           fit: BoxFit.cover,
+                          filterQuality: FilterQuality.high,
                           placeholder: (_, __) => _buildBannerFallback(isDark),
                           errorWidget: (_, __, ___) =>
                               _buildBannerFallback(isDark),
                         )
-                      else
-                        _buildBannerFallback(isDark),
-
-                      // Overlay gradient for date legibility
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.45),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.6],
-                          ),
-                        ),
-                      ),
-
-                      // Floating Date & Status Chips
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(8),
-                            border:
-                                Border.all(color: Colors.white24, width: 0.5),
-                          ),
-                          child: Text(
-                            dateMonthDay,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            event.status.toUpperCase(),
-                            style: GoogleFonts.inter(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                      : _buildBannerFallback(isDark),
                 ),
+              ),
+              const SizedBox(width: 10),
 
-                // Bottom Content Section
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        event.title,
+              // Right: Title, Date & Venue, UPCOMING status pill
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      event.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '$dateMonthDay • $venueStr',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: isDark ? 0.20 : 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'UPCOMING',
                         style: GoogleFonts.inter(
-                          fontSize: 13,
+                          fontSize: 8.5,
                           fontWeight: FontWeight.w700,
-                          color: textPrimary,
-                          letterSpacing: -0.2,
+                          color: accent,
+                          letterSpacing: 0.3,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Icon(Icons.access_time_rounded,
-                              size: 11, color: textSecondary),
-                          const SizedBox(width: 3),
-                          Text(
-                            timeStr,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary,
-                            ),
-                          ),
-                          if (event.venue != null &&
-                              event.venue!.isNotEmpty) ...[
-                            const SizedBox(width: 6),
-                            const Text('•',
-                                style:
-                                    TextStyle(color: Colors.grey, fontSize: 8)),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                event.venue!,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: textSecondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

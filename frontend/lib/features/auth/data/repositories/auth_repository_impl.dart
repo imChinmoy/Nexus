@@ -120,8 +120,13 @@ class AuthRepositoryImpl implements AuthRepository {
       if (cached != null) return Right(cached.toEntity());
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      // Fall back to cached user on backend cold starts / 5xx
+      final cached = await _local.getUser();
+      if (cached != null) return Right(cached.toEntity());
+      return Left(ServerFailure(e.message, statusCode: e.statusCode));
     } catch (e) {
+      final cached = await _local.getUser();
+      if (cached != null) return Right(cached.toEntity());
       return Left(UnknownFailure(e.toString()));
     }
   }

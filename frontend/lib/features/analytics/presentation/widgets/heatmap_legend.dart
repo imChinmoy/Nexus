@@ -61,16 +61,16 @@ class _LegendCell extends StatelessWidget {
     if (isDark) {
       switch (level) {
         case 1:
-          return const Color(0xFF0F3B5F);
+          return const Color(0xFF144A75);
         case 2:
-          return const Color(0xFF1768A8);
+          return const Color(0xFF1E6EAE);
         case 3:
           return const Color(0xFF268BDE);
         case 4:
           return const Color(0xFF5AB0FF);
         case 0:
         default:
-          return const Color(0xFF1E1E24);
+          return const Color(0xFF26262E);
       }
     } else {
       switch (level) {
@@ -84,7 +84,7 @@ class _LegendCell extends StatelessWidget {
           return const Color(0xFF1D4ED8);
         case 0:
         default:
-          return const Color(0xFFE5E5EA);
+          return const Color(0xFFE4E4EA);
       }
     }
   }
@@ -97,6 +97,10 @@ class _LegendCell extends StatelessWidget {
       decoration: BoxDecoration(
         color: _resolveColor(),
         borderRadius: BorderRadius.circular(HeatmapCell.cellRadius),
+        border: Border.all(
+          color: isDark ? const Color(0x18FFFFFF) : const Color(0x0C000000),
+          width: 0.6,
+        ),
       ),
     );
   }

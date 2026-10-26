@@ -85,8 +85,16 @@ void main() {
 
       // Top title
       expect(find.text('Organization Graph'), findsOneWidget);
-      expect(find.text('NEXUS ORG NETWORK'), findsOneWidget);
+      // Compact draggable network FAB is rendered with live member count
+      expect(find.byKey(const Key('draggable_org_fab')), findsOneWidget);
       expect(find.textContaining('4 Members'), findsOneWidget);
+
+      // Tapping FAB expands into full control deck
+      await tester.tap(find.byKey(const Key('draggable_org_fab')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('NEXUS ORG NETWORK'), findsOneWidget);
+      expect(find.text('Interactive Society Hierarchy Graph'), findsOneWidget);
 
       // Verify node names are rendered in the graph
       expect(find.text('Chinmoy Senapati'), findsOneWidget);
@@ -215,6 +223,11 @@ void main() {
         (tester) async {
       await tester.pumpWidget(createMembersHarness());
       await tester.pump(const Duration(milliseconds: 300));
+
+      // Expand FAB to access search controls
+      await tester.tap(find.byKey(const Key('draggable_org_fab')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
 
       // Enter search query
       final searchField = find.byType(TextField);

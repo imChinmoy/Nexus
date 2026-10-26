@@ -20,13 +20,13 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
     required this.metric,
   });
 
-  static void show(
+  static Future<void> show(
     BuildContext context, {
     required HeatmapCalendarDay day,
     required HeatmapDayEntity dayData,
     required String metric,
   }) {
-    showModalBottomSheet(
+    return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -290,26 +290,29 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
               const SizedBox(height: 10),
 
               // Navigate to details button
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.of(context).pop();
-                    context.push('${RouteConstants.events}/${event.id}');
-                  },
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 14),
-                  label: Text(
-                    'View Event',
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: accent,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: const Size(0, 30),
+              if (event.id.isNotEmpty)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      final nav = Navigator.of(context);
+                      final router = GoRouter.of(context);
+                      nav.pop();
+                      router.push('${RouteConstants.events}/${event.id}');
+                    },
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 14),
+                    label: Text(
+                      'View Event',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: accent,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      minimumSize: const Size(0, 30),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -380,8 +383,10 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                 IconButton(
                   onPressed: () {
                     HapticFeedback.lightImpact();
-                    Navigator.of(context).pop();
-                    context.push('${RouteConstants.events}/${ev.id}');
+                    final nav = Navigator.of(context);
+                    final router = GoRouter.of(context);
+                    nav.pop();
+                    router.push('${RouteConstants.events}/${ev.id}');
                   },
                   icon: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
                   color: textSecondary,

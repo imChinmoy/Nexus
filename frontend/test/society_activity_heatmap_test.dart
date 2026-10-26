@@ -167,6 +167,37 @@ void main() {
         expect(grid2026.monthHeaders[i].columnIndex, greaterThanOrEqualTo(grid2026.monthHeaders[i - 1].columnIndex));
       }
     });
+
+    test('Properly segregates each of the 12 months with strictly isolated days and accurate column boundaries', () {
+      final grid2026 = HeatmapCalendarUtils.generateGrid(2026);
+      expect(grid2026.months.length, 12);
+
+      int accumulatedDays = 0;
+      for (int i = 0; i < grid2026.months.length; i++) {
+        final month = grid2026.months[i];
+        final expectedMonthNum = i + 1;
+        expect(month.month, expectedMonthNum);
+        expect(month.columns, isNotEmpty);
+
+        int nonNullDaysInMonth = 0;
+        for (final col in month.columns) {
+          expect(col.length, 7);
+          for (final day in col) {
+            if (day != null) {
+              nonNullDaysInMonth++;
+              // Day strictly belongs to this month and year
+              expect(day.date.month, expectedMonthNum);
+              expect(day.date.year, 2026);
+            }
+          }
+        }
+
+        expect(nonNullDaysInMonth, month.daysInMonth);
+        accumulatedDays += nonNullDaysInMonth;
+      }
+
+      expect(accumulatedDays, 365);
+    });
   });
 
   group('ActivityHeatmapEntity - Intensity Normalization', () {
@@ -470,6 +501,38 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Society Activity'), findsOneWidget);
       }
+    });
+
+    testWidgets('Renders month quick-jump chips and supports tapping month to navigate', (tester) async {
+      final mockRepo = MockAnalyticsRepository();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            analyticsRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: SocietyActivityHeatmapCard(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Month quick-jump chips
+      expect(find.text('Jan'), findsWidgets);
+      expect(find.text('Feb'), findsWidgets);
+      expect(find.text('Mar'), findsWidgets);
+
+      // Tap March chip to jump to March
+      await tester.tap(find.text('Mar').first);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HeatmapCalendarGrid), findsOneWidget);
     });
   });
 }
