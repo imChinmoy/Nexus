@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../constants/route_constants.dart';
 
-
 String? authGuard(WidgetRef ref, GoRouterState state) {
   final authState = ref.read(authNotifierProvider);
   final isAuthRoute = state.matchedLocation == RouteConstants.login ||

@@ -32,7 +32,8 @@ class ActivityHeatmapParams extends Equatable {
 }
 
 final activityHeatmapProvider =
-    FutureProvider.family<ActivityHeatmapEntity, ActivityHeatmapParams>((ref, params) async {
+    FutureProvider.family<ActivityHeatmapEntity, ActivityHeatmapParams>(
+        (ref, params) async {
   final repo = ref.watch(analyticsRepositoryProvider);
   final result = await repo.getActivityHeatmap(
     year: params.year,
@@ -46,7 +47,8 @@ final activityHeatmapProvider =
   );
 });
 
-final selectedHeatmapYearProvider = StateProvider<int>((ref) => DateTime.now().year);
+final selectedHeatmapYearProvider =
+    StateProvider<int>((ref) => DateTime.now().year);
 
 final selectedHeatmapMetricProvider = StateProvider<String>((ref) => 'events');
 

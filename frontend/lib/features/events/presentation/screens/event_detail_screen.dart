@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -67,7 +66,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             ),
           ),
           data: (events) {
-            final event = events.where((e) => e.id == widget.eventId).firstOrNull;
+            final event =
+                events.where((e) => e.id == widget.eventId).firstOrNull;
             if (event == null) {
               return Center(
                 child: Padding(
@@ -334,7 +334,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00C853).withValues(alpha: 0.22),
+                          color:
+                              const Color(0xFF00C853).withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: const Color(0xFF00E676),
@@ -355,7 +356,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             const SizedBox(width: 5),
                             Text(
                               statusLabel,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.labelSm.copyWith(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.6,
@@ -379,7 +380,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ),
                         child: Text(
                           event.type.toUpperCase(),
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelSm.copyWith(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.6,
@@ -394,9 +395,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   // Large Event Title
                   Text(
                     event.title,
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.headlineLg.copyWith(
                       fontSize: 26,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: -0.6,
                       color: Colors.white,
                       shadows: [
@@ -417,11 +418,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     event.description?.isNotEmpty == true
                         ? event.description!.split('\n').first
                         : 'CODE • CREATE • CONNECT',
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.editorialSubtitle.copyWith(
                       fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.8,
-                      color: Colors.white.withValues(alpha: 0.82),
+                      letterSpacing: 0.2,
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -432,11 +432,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   Row(
                     children: [
                       Icon(Icons.calendar_today_rounded,
-                          size: 13, color: Colors.white.withValues(alpha: 0.75)),
+                          size: 13,
+                          color: Colors.white.withValues(alpha: 0.75)),
                       const SizedBox(width: 5),
                       Text(
                         '${_formatDate(event.startDate)} – ${_formatDate(event.endDate)}',
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.bodySm.copyWith(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.85),
@@ -444,14 +445,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                       const SizedBox(width: 14),
                       Icon(Icons.location_on_rounded,
-                          size: 14, color: Colors.white.withValues(alpha: 0.75)),
+                          size: 14,
+                          color: Colors.white.withValues(alpha: 0.75)),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           event.venue?.isNotEmpty == true
                               ? event.venue!
                               : 'CSIT Block',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.bodySm.copyWith(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
                             color: Colors.white.withValues(alpha: 0.85),
@@ -515,9 +517,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     const SizedBox(width: 8),
                     Text(
                       'Scan QR Attendance',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.buttonMd.copyWith(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
                         color: Colors.white,
                       ),
@@ -539,7 +541,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               color: isDark ? const Color(0xFF141720) : const Color(0xFFF3F4F7),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0x24FFFFFF) : const Color(0x18000000),
+                color:
+                    isDark ? const Color(0x24FFFFFF) : const Color(0x18000000),
                 width: 0.9,
               ),
             ),
@@ -563,7 +566,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Manual Entry',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.buttonSm.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: isDark
@@ -617,7 +620,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Text(
                       tabs[index],
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelMd.copyWith(
                         fontSize: 13.5,
                         fontWeight:
                             isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -709,7 +712,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'About This Event',
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.cardTitle.copyWith(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.2,
@@ -723,7 +726,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 event.description?.isNotEmpty == true
                     ? event.description!
                     : 'Join us for this exciting society session featuring deep-dive presentations, peer workshops, hands-on tasks, and networking with members and industry experts.',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.bodyMd.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   height: 1.55,
@@ -744,8 +747,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   if (event.venue?.isNotEmpty == true) event.venue!,
                 ].map((tag) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: isDark
                           ? const Color(0xFF1C202C)
@@ -760,7 +763,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     ),
                     child: Text(
                       tag,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,
@@ -815,7 +818,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         // Media Gallery Preview Section (Mockup Screen 2)
         Text(
           'Media Highlights',
-          style: GoogleFonts.inter(
+          style: AppTextStyles.cardTitle.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
@@ -947,7 +950,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.labelMd.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: textPrimary,
@@ -958,7 +961,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           const SizedBox(height: 2),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: textSecondary,
@@ -1011,7 +1014,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       children: [
         Text(
           'Timeline & Announcements',
-          style: GoogleFonts.inter(
+          style: AppTextStyles.cardTitle.copyWith(
             fontSize: 15,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
@@ -1069,15 +1072,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           children: [
                             Text(
                               u['title'] as String,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.bodyMd.copyWith(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: textPrimary,
                               ),
                             ),
                             Text(
                               u['time'] as String,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w500,
                                 color: textSecondary,
@@ -1088,7 +1091,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         const SizedBox(height: 4),
                         Text(
                           u['desc'] as String,
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.bodySm.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                             color: textSecondary,
@@ -1118,8 +1121,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
 
-    final scopedAsync =
-        ref.watch(eventScopedStudentsFamilyProvider(event.id));
+    final scopedAsync = ref.watch(eventScopedStudentsFamilyProvider(event.id));
 
     return Column(
       key: const ValueKey('tab_attendees'),
@@ -1138,7 +1140,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Unable to load attendees: $err',
-                style: GoogleFonts.inter(fontSize: 12, color: AppColors.errorOf(context)),
+                style: AppTextStyles.caption
+                    .copyWith(fontSize: 12, color: AppColors.errorOf(context)),
               ),
             ),
           ),
@@ -1162,8 +1165,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
               children: [
                 // Attendance Summary Banner
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: isDark
                         ? const Color(0xFF13161F)
@@ -1208,13 +1211,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 TextField(
                   onChanged: (val) =>
                       setState(() => _attendeeSearchQuery = val),
-                  style: GoogleFonts.inter(fontSize: 13, color: textPrimary),
+                  style: AppTextStyles.bodyMd
+                      .copyWith(fontSize: 13, color: textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Search attendee by name or roll no...',
-                    hintStyle:
-                        GoogleFonts.inter(fontSize: 12, color: textSecondary),
-                    prefixIcon:
-                        Icon(Icons.search_rounded, size: 18, color: textSecondary),
+                    hintStyle: AppTextStyles.bodySm
+                        .copyWith(fontSize: 12, color: textSecondary),
+                    prefixIcon: Icon(Icons.search_rounded,
+                        size: 18, color: textSecondary),
                     filled: true,
                     fillColor: isDark
                         ? const Color(0xFF13161F)
@@ -1249,8 +1253,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 24.0),
                       child: Text(
                         'No attendees match the criteria',
-                        style: GoogleFonts.inter(
-                            fontSize: 12.5, color: textSecondary),
+                        style: AppTextStyles.captionItalic
+                            .copyWith(fontSize: 12.5, color: textSecondary),
                       ),
                     ),
                   )
@@ -1279,10 +1283,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             backgroundColor:
                                 accent.withValues(alpha: isDark ? 0.2 : 0.1),
                             child: Text(
-                              s.name.isNotEmpty
-                                  ? s.name[0].toUpperCase()
-                                  : 'S',
-                              style: GoogleFonts.inter(
+                              s.name.isNotEmpty ? s.name[0].toUpperCase() : 'S',
+                              style: AppTextStyles.labelSm.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                                 color: accent,
@@ -1296,7 +1298,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               children: [
                                 Text(
                                   s.name,
-                                  style: GoogleFonts.inter(
+                                  style: AppTextStyles.bodyMd.copyWith(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: textPrimary,
@@ -1304,7 +1306,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                 ),
                                 Text(
                                   '${s.studentNo} • ${s.branch.isNotEmpty ? s.branch : "Member"}',
-                                  style: GoogleFonts.inter(
+                                  style: AppTextStyles.caption.copyWith(
                                     fontSize: 11,
                                     color: textSecondary,
                                   ),
@@ -1316,18 +1318,18 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: (s.isPresent ? successColor : Colors.orange)
-                                  .withValues(alpha: 0.15),
+                              color:
+                                  (s.isPresent ? successColor : Colors.orange)
+                                      .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               s.isPresent ? 'Present' : 'Not Scanned',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.labelSm.copyWith(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: s.isPresent
-                                    ? successColor
-                                    : Colors.orange,
+                                color:
+                                    s.isPresent ? successColor : Colors.orange,
                               ),
                             ),
                           ),
@@ -1348,16 +1350,16 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       children: [
         Text(
           count,
-          style: GoogleFonts.inter(
+          style: AppTextStyles.metricMd.copyWith(
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: color,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: GoogleFonts.inter(
+          style: AppTextStyles.caption.copyWith(
             fontSize: 10.5,
             fontWeight: FontWeight.w500,
             color: color.withValues(alpha: 0.8),
@@ -1381,7 +1383,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       children: [
         Text(
           'Moments & Snapshots',
-          style: GoogleFonts.inter(
+          style: AppTextStyles.cardTitle.copyWith(
             fontSize: 15,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
@@ -1474,7 +1476,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           children: [
             Text(
               'ADMIN OPERATIONS',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.labelSm.copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.7,
@@ -1498,7 +1500,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     const SizedBox(width: 4),
                     Text(
                       'Full Edit',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelMd.copyWith(
                         fontSize: 11,
                         color: accent,
                         fontWeight: FontWeight.w600,
@@ -1642,7 +1644,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   return ChoiceChip(
                     label: Text(
                       statusKey[0].toUpperCase() + statusKey.substring(1),
-                      style: TextStyle(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 12,
                         fontWeight:
                             isCurrent ? FontWeight.w700 : FontWeight.w500,

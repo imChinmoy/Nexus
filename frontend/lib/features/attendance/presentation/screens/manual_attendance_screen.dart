@@ -18,10 +18,12 @@ class ManualAttendanceScreen extends ConsumerStatefulWidget {
   const ManualAttendanceScreen({super.key, this.eventId = ''});
 
   @override
-  ConsumerState<ManualAttendanceScreen> createState() => _ManualAttendanceScreenState();
+  ConsumerState<ManualAttendanceScreen> createState() =>
+      _ManualAttendanceScreenState();
 }
 
-class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen> {
+class _ManualAttendanceScreenState
+    extends ConsumerState<ManualAttendanceScreen> {
   final TextEditingController _searchController = TextEditingController();
   final Map<String, String> _attendanceStatus = {};
   bool _isMarking = false;
@@ -33,7 +35,8 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
     if (widget.eventId.trim().isNotEmpty) {
       Future.microtask(() {
         if (mounted) {
-          ref.read(selectedEventIdProvider.notifier).state = widget.eventId.trim();
+          ref.read(selectedEventIdProvider.notifier).state =
+              widget.eventId.trim();
         }
       });
     }
@@ -50,7 +53,8 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
     setState(() {
       _isMarking = true;
       if (student.id.isNotEmpty) _attendanceStatus[student.id] = status;
-      if (student.rollNumber.isNotEmpty) _attendanceStatus[student.rollNumber] = status;
+      if (student.rollNumber.isNotEmpty)
+        _attendanceStatus[student.rollNumber] = status;
     });
 
     try {
@@ -73,11 +77,13 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
           );
           setState(() {
             if (student.id.isNotEmpty) _attendanceStatus.remove(student.id);
-            if (student.rollNumber.isNotEmpty) _attendanceStatus.remove(student.rollNumber);
+            if (student.rollNumber.isNotEmpty)
+              _attendanceStatus.remove(student.rollNumber);
           });
         },
         (_) {
-          final displayStatus = status == 'not_scanned' ? 'NOT SCANNED' : status.toUpperCase();
+          final displayStatus =
+              status == 'not_scanned' ? 'NOT SCANNED' : status.toUpperCase();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Attendance recorded: $displayStatus'),
@@ -94,11 +100,13 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), behavior: SnackBarBehavior.floating),
+          SnackBar(
+              content: Text(e.toString()), behavior: SnackBarBehavior.floating),
         );
         setState(() {
           if (student.id.isNotEmpty) _attendanceStatus.remove(student.id);
-          if (student.rollNumber.isNotEmpty) _attendanceStatus.remove(student.rollNumber);
+          if (student.rollNumber.isNotEmpty)
+            _attendanceStatus.remove(student.rollNumber);
         });
       }
     } finally {
@@ -111,7 +119,8 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     if (widget.eventId.trim().isEmpty) {
       return AnimatedGradientBg(
@@ -129,17 +138,20 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.event_busy_outlined, color: AppColors.errorDark, size: 52),
+                    const Icon(Icons.event_busy_outlined,
+                        color: AppColors.errorDark, size: 52),
                     const SizedBox(height: 16),
                     Text(
                       'NO EVENT SELECTED',
-                      style: AppTextStyles.headlineSm.copyWith(color: AppColors.errorDark),
+                      style: AppTextStyles.headlineSm
+                          .copyWith(color: AppColors.errorDark),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       'Please select an event from the Attendance Hub before recording manual attendance.',
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                      style:
+                          AppTextStyles.bodyMd.copyWith(color: textSecondary),
                     ),
                     const SizedBox(height: 24),
                     BrlButton(
@@ -155,7 +167,8 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
       );
     }
 
-    final scopedAsync = ref.watch(eventScopedStudentsFamilyProvider(widget.eventId));
+    final scopedAsync =
+        ref.watch(eventScopedStudentsFamilyProvider(widget.eventId));
     final fallbackStudentsAsync = ref.watch(studentsProvider);
 
     return AnimatedGradientBg(
@@ -173,7 +186,8 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                 controller: _searchController,
                 label: 'Search students',
                 hint: 'Search name, roll number, student ID...',
-                prefix: Icon(Icons.search_rounded, color: textSecondary, size: 18),
+                prefix:
+                    Icon(Icons.search_rounded, color: textSecondary, size: 18),
                 suffix: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, size: 18),
@@ -195,29 +209,39 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
             Expanded(
               child: RefreshIndicator(
                 color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
-                backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
+                backgroundColor: isDark
+                    ? AppColors.darkElevatedSurface
+                    : AppColors.lightSurface,
                 onRefresh: () async {
-                  ref.invalidate(eventScopedStudentsFamilyProvider(widget.eventId));
+                  ref.invalidate(
+                      eventScopedStudentsFamilyProvider(widget.eventId));
                   ref.invalidate(eventAttendanceProvider(widget.eventId));
                   ref.invalidate(studentsProvider);
                   await Future.delayed(const Duration(milliseconds: 600));
                 },
                 child: scopedAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  error: (_, __) => _buildFallbackList(fallbackStudentsAsync, isDark, textSecondary),
+                  loading: () => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+                  error: (_, __) => _buildFallbackList(
+                      fallbackStudentsAsync, isDark, textSecondary),
                   data: (eventResult) {
                     final List<StudentEntity> candidateStudents;
-                    if (eventResult != null && eventResult.students.isNotEmpty) {
+                    if (eventResult != null &&
+                        eventResult.students.isNotEmpty) {
                       candidateStudents = eventResult.students;
                     } else {
-                      candidateStudents = fallbackStudentsAsync.valueOrNull ?? [];
+                      candidateStudents =
+                          fallbackStudentsAsync.valueOrNull ?? [];
                     }
 
-                    if (candidateStudents.isEmpty && fallbackStudentsAsync.isLoading) {
-                      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                    if (candidateStudents.isEmpty &&
+                        fallbackStudentsAsync.isLoading) {
+                      return const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2));
                     }
 
-                    return _buildStudentsListView(candidateStudents, isDark, textSecondary);
+                    return _buildStudentsListView(
+                        candidateStudents, isDark, textSecondary);
                   },
                 ),
               ),
@@ -228,20 +252,25 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
     );
   }
 
-  Widget _buildFallbackList(AsyncValue<List<StudentEntity>> fallbackAsync, bool isDark, Color textSecondary) {
+  Widget _buildFallbackList(AsyncValue<List<StudentEntity>> fallbackAsync,
+      bool isDark, Color textSecondary) {
     return fallbackAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () =>
+          const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       error: (err, _) => Center(
         child: Text(
           'Error loading students: $err',
-          style: AppTextStyles.bodyMd.copyWith(color: isDark ? AppColors.errorDark : AppColors.error),
+          style: AppTextStyles.bodyMd
+              .copyWith(color: isDark ? AppColors.errorDark : AppColors.error),
         ),
       ),
-      data: (students) => _buildStudentsListView(students, isDark, textSecondary),
+      data: (students) =>
+          _buildStudentsListView(students, isDark, textSecondary),
     );
   }
 
-  Widget _buildStudentsListView(List<StudentEntity> allStudents, bool isDark, Color textSecondary) {
+  Widget _buildStudentsListView(
+      List<StudentEntity> allStudents, bool isDark, Color textSecondary) {
     final query = _searchQuery.trim().toLowerCase();
     final filtered = allStudents.where((s) {
       if (query.isEmpty) return true;
@@ -258,7 +287,9 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
             height: MediaQuery.of(context).size.height * 0.5,
             child: Center(
               child: Text(
-                _searchQuery.isEmpty ? 'No registered students found' : 'No students matching "$_searchQuery"',
+                _searchQuery.isEmpty
+                    ? 'No registered students found'
+                    : 'No students matching "$_searchQuery"',
                 style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
               ),
             ),
@@ -285,11 +316,16 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: (isDark ? AppColors.darkAccent : AppColors.lightAccent).withValues(alpha: 0.12),
+                backgroundColor:
+                    (isDark ? AppColors.darkAccent : AppColors.lightAccent)
+                        .withValues(alpha: 0.12),
                 child: Text(
-                  student.name.isNotEmpty ? student.name.substring(0, 1).toUpperCase() : 'S',
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                  student.name.isNotEmpty
+                      ? student.name.substring(0, 1).toUpperCase()
+                      : 'S',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color:
+                        isDark ? AppColors.darkAccent : AppColors.lightAccent,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -302,14 +338,16 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                   children: [
                     Text(
                       student.name,
-                      style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
+                      style: AppTextStyles.bodyMd
+                          .copyWith(fontWeight: FontWeight.w600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${student.rollNumber} • ${student.branch.isNotEmpty ? student.branch : 'General'}',
-                      style: AppTextStyles.caption.copyWith(color: textSecondary),
+                      style:
+                          AppTextStyles.caption.copyWith(color: textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -318,27 +356,36 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkElevatedSurface : AppColors.lightSecondaryBackground,
+                  color: isDark
+                      ? AppColors.darkElevatedSurface
+                      : AppColors.lightSecondaryBackground,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000),
+                    color: isDark
+                        ? const Color(0x1AFFFFFF)
+                        : const Color(0x0F000000),
                     width: 0.5,
                   ),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: currentStatus,
-                    dropdownColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-                    style: AppTextStyles.labelSm.copyWith(fontWeight: FontWeight.w600),
+                    dropdownColor: isDark
+                        ? AppColors.darkElevatedSurface
+                        : AppColors.lightSurface,
+                    icon:
+                        const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                    style: AppTextStyles.labelSm
+                        .copyWith(fontWeight: FontWeight.w600),
                     items: [
                       DropdownMenuItem(
                         value: 'not_scanned',
                         child: Text(
                           'Not Scanned',
-                          style: TextStyle(
+                          style: AppTextStyles.labelSmall.copyWith(
                             color: textSecondary,
                             fontWeight: FontWeight.w600,
                           ),
@@ -348,8 +395,10 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                         value: 'present',
                         child: Text(
                           'Present',
-                          style: TextStyle(
-                            color: isDark ? AppColors.successDark : AppColors.success,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: isDark
+                                ? AppColors.successDark
+                                : AppColors.success,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -358,8 +407,9 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                         value: 'absent',
                         child: Text(
                           'Absent',
-                          style: TextStyle(
-                            color: isDark ? AppColors.errorDark : AppColors.error,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color:
+                                isDark ? AppColors.errorDark : AppColors.error,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -368,17 +418,19 @@ class _ManualAttendanceScreenState extends ConsumerState<ManualAttendanceScreen>
                         value: 'late',
                         child: Text(
                           'Late',
-                          style: TextStyle(
-                            color: isDark ? AppColors.warningDark : AppColors.warning,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: isDark
+                                ? AppColors.warningDark
+                                : AppColors.warning,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: 'excused',
                         child: Text(
                           'Excused',
-                          style: TextStyle(
+                          style: AppTextStyles.labelSmall.copyWith(
                             color: Colors.blue,
                             fontWeight: FontWeight.w600,
                           ),

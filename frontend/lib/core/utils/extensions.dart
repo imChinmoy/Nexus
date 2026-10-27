@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension StringExtension on String {
-  String get capitalize =>
-      isNotEmpty ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : this;
+  String get capitalize => isNotEmpty
+      ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
+      : this;
 
   String get titleCase => split(' ').map((w) => w.capitalize).join(' ');
 
@@ -13,7 +14,8 @@ extension StringExtension on String {
 
   bool get isValidPhone => RegExp(r'^[0-9]{10}$').hasMatch(this);
 
-  bool get isValidRollNumber => RegExp(r'^[0-9]{2}[A-Z]{2}[0-9]{5}$').hasMatch(this);
+  bool get isValidRollNumber =>
+      RegExp(r'^[0-9]{2}[A-Z]{2}[0-9]{5}$').hasMatch(this);
 }
 
 extension DateTimeExtension on DateTime {
@@ -49,7 +51,8 @@ extension ContextExtension on BuildContext {
     ScaffoldMessenger.of(this).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? const Color(0xFFFF4444) : const Color(0xFF00FF88),
+        backgroundColor:
+            isError ? const Color(0xFFFF4444) : const Color(0xFF00FF88),
       ),
     );
   }

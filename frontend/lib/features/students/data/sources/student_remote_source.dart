@@ -75,7 +75,9 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
       if (branch != null && branch.trim().isNotEmpty && branch != 'All') {
         queryParams['branch'] = branch.trim();
       }
-      if (attendanceStatus != null && attendanceStatus.trim().isNotEmpty && attendanceStatus.toLowerCase() != 'all') {
+      if (attendanceStatus != null &&
+          attendanceStatus.trim().isNotEmpty &&
+          attendanceStatus.toLowerCase() != 'all') {
         queryParams['attendanceStatus'] = attendanceStatus.trim();
       }
 
@@ -84,11 +86,14 @@ class StudentRemoteSourceImpl implements StudentRemoteSource {
         queryParameters: queryParams,
       );
 
-      return EventStudentsResultModel.fromJson(response.data as Map<String, dynamic>);
+      return EventStudentsResultModel.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.error is AppException) throw e.error as AppException;
-      final serverMessage = e.response?.data is Map ? e.response?.data['message'] : null;
-      throw ServerException(serverMessage ?? 'Failed to fetch event students: ${e.message}');
+      final serverMessage =
+          e.response?.data is Map ? e.response?.data['message'] : null;
+      throw ServerException(
+          serverMessage ?? 'Failed to fetch event students: ${e.message}');
     } on AppException {
       rethrow;
     } catch (e) {

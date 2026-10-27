@@ -49,6 +49,7 @@ class HeatmapCalendarGridData {
   final bool isLeapYear;
   final int totalDays;
   final int totalColumns;
+
   /// 2D grid: columns[columnIndex][weekdayRowIndex (0..6)]
   final List<List<HeatmapCalendarDay?>> columns;
   final List<HeatmapMonthHeader> monthHeaders;

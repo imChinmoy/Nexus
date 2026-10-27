@@ -35,8 +35,7 @@ class UserEntity extends Equatable {
 
   bool get isSuperAdmin => role == UserRole.superAdmin;
   bool get isAdmin => role == UserRole.admin || isSuperAdmin;
-  bool get isCoordinator =>
-      role == UserRole.coordinator || isAdmin;
+  bool get isCoordinator => role == UserRole.coordinator || isAdmin;
   bool get canWrite => role != UserRole.viewer;
 
   UserEntity copyWith({
@@ -129,7 +128,7 @@ enum UserRole {
         return UserRole.viewer;
     }
   }
-  
+
   String get backendValue {
     switch (this) {
       case UserRole.superAdmin:

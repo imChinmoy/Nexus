@@ -14,7 +14,9 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._remote, this._local);
 
   @override
-  Future<Either<Failure, ({UserEntity user, String accessToken, String refreshToken})>> login({
+  Future<
+      Either<Failure,
+          ({UserEntity user, String accessToken, String refreshToken})>> login({
     required String email,
     required String password,
   }) async {
@@ -44,7 +46,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, ({UserEntity user, String accessToken, String refreshToken})>> register({
+  Future<
+          Either<Failure,
+              ({UserEntity user, String accessToken, String refreshToken})>>
+      register({
     required String name,
     required String email,
     required String password,

@@ -59,10 +59,15 @@ class _BrlTextFieldState extends State<BrlTextField> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final fillColor = isDark ? AppColors.darkElevatedSurface : AppColors.lightSecondaryBackground;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final textTertiary = isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
+    final fillColor = isDark
+        ? AppColors.darkElevatedSurface
+        : AppColors.lightSecondaryBackground;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textTertiary =
+        isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary;
     final errorColor = isDark ? AppColors.errorDark : AppColors.error;
 
     return TextFormField(
@@ -85,7 +90,9 @@ class _BrlTextFieldState extends State<BrlTextField> {
         suffixIcon: (widget.isPassword || widget.obscureText)
             ? IconButton(
                 icon: Icon(
-                  _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: textSecondary,
                   size: 20,
                 ),
@@ -98,7 +105,8 @@ class _BrlTextFieldState extends State<BrlTextField> {
         labelStyle: AppTextStyles.bodyMd.copyWith(color: textSecondary),
         hintStyle: AppTextStyles.bodyMd.copyWith(color: textTertiary),
         errorStyle: AppTextStyles.caption.copyWith(color: errorColor),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

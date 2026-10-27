@@ -114,15 +114,18 @@ class EventRemoteSourceImpl implements EventRemoteSource {
     try {
       final mapData = <String, dynamic>{};
       if (title != null) mapData['title'] = title;
-      if (startDate != null) mapData['startDate'] = startDate.toUtc().toIso8601String();
-      if (endDate != null) mapData['endDate'] = endDate.toUtc().toIso8601String();
+      if (startDate != null)
+        mapData['startDate'] = startDate.toUtc().toIso8601String();
+      if (endDate != null)
+        mapData['endDate'] = endDate.toUtc().toIso8601String();
       if (type != null) mapData['type'] = type;
       if (capacity != null) mapData['capacity'] = capacity;
       if (description != null) mapData['description'] = description;
       if (venue != null) mapData['venue'] = venue;
       if (status != null) mapData['status'] = status;
-      if (isAttendanceOpen != null) mapData['isAttendanceOpen'] = isAttendanceOpen;
-      
+      if (isAttendanceOpen != null)
+        mapData['isAttendanceOpen'] = isAttendanceOpen;
+
       final formData = FormData.fromMap(mapData);
 
       if (bannerPath != null && bannerPath.isNotEmpty) {

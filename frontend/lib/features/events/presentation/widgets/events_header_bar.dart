@@ -30,11 +30,16 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-    final surfaceColor = (isDark ? AppColors.darkSurface : AppColors.lightSurface)
-        .withValues(alpha: isDark ? 0.85 : 0.90);
-    final borderCol = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06);
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final surfaceColor =
+        (isDark ? AppColors.darkSurface : AppColors.lightSurface)
+            .withValues(alpha: isDark ? 0.85 : 0.90);
+    final borderCol = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
 
     return ClipRect(
       child: BackdropFilter(
@@ -44,7 +49,8 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
             color: surfaceColor,
             border: Border(bottom: BorderSide(color: borderCol, width: 0.8)),
           ),
-          padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 8, 16, 10),
+          padding: EdgeInsets.fromLTRB(
+              16, MediaQuery.of(context).padding.top + 8, 16, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -99,9 +105,11 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2.5),
                               decoration: BoxDecoration(
-                                color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+                                color: accent.withValues(
+                                    alpha: isDark ? 0.16 : 0.10),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: accent.withValues(alpha: 0.25),
@@ -130,7 +138,9 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                       // Glass Search Toggle
                       _buildHeaderIconButton(
                         context: context,
-                        icon: isSearching ? Icons.close_rounded : Icons.search_rounded,
+                        icon: isSearching
+                            ? Icons.close_rounded
+                            : Icons.search_rounded,
                         tooltip: isSearching ? 'Close Search' : 'Search Events',
                         isActive: isSearching,
                         onTap: onToggleSearch,
@@ -154,12 +164,19 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                             borderRadius: BorderRadius.circular(14),
                             onTap: onAddEvent,
                             child: Ink(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: isDark
-                                      ? [AppColors.darkAccent, const Color(0xFF0071E3)]
-                                      : [AppColors.lightAccent, const Color(0xFF005BB5)],
+                                      ? [
+                                          AppColors.darkAccent,
+                                          const Color(0xFF0071E3)
+                                        ]
+                                      : [
+                                          AppColors.lightAccent,
+                                          const Color(0xFF005BB5)
+                                        ],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
@@ -170,14 +187,15 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                                   ),
                                 ],
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                                  SizedBox(width: 4),
+                                  const Icon(Icons.add_rounded,
+                                      size: 16, color: Colors.white),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Create',
-                                    style: TextStyle(
+                                    style: AppTextStyles.button.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 12.5,
@@ -216,8 +234,10 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                     style: AppTextStyles.bodySm.copyWith(color: textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Search by title, venue, or category...',
-                      hintStyle: AppTextStyles.bodySm.copyWith(color: textSecondary),
-                      prefixIcon: Icon(Icons.search_rounded, size: 18, color: accent),
+                      hintStyle:
+                          AppTextStyles.bodySm.copyWith(color: textSecondary),
+                      prefixIcon:
+                          Icon(Icons.search_rounded, size: 18, color: accent),
                       suffixIcon: searchController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear_rounded, size: 16),
@@ -265,12 +285,15 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                   ? accent.withValues(alpha: isDark ? 0.22 : 0.14)
                   : (isDark
                       ? AppColors.darkElevatedSurface.withValues(alpha: 0.7)
-                      : AppColors.lightSecondaryBackground.withValues(alpha: 0.8)),
+                      : AppColors.lightSecondaryBackground
+                          .withValues(alpha: 0.8)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isActive
                     ? accent.withValues(alpha: 0.5)
-                    : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.06)),
                 width: 0.6,
               ),
             ),
@@ -279,7 +302,9 @@ class EventsHeaderBar extends StatelessWidget implements PreferredSizeWidget {
               size: 18,
               color: isActive
                   ? accent
-                  : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                  : (isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary),
             ),
           ),
         ),

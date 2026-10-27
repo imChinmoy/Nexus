@@ -36,12 +36,14 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         ),
         body: RefreshIndicator(
           color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
-          backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
+          backgroundColor:
+              isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
           onRefresh: () async {
             ref.invalidate(eventsProvider);
           },
           child: eventsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            loading: () =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             error: (err, _) => Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -56,12 +58,15 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                         size: 40,
                       ),
                       const SizedBox(height: 16),
-                      Text('Error loading events', style: AppTextStyles.headlineSm),
+                      Text('Error loading events',
+                          style: AppTextStyles.headlineSm),
                       const SizedBox(height: 6),
                       Text(
                         '$err',
                         style: AppTextStyles.bodySm.copyWith(
-                          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -82,29 +87,38 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
               }
 
               final activeEvents = events
-                  .where((e) => e.status != 'archived' && e.status != 'cancelled')
+                  .where(
+                      (e) => e.status != 'archived' && e.status != 'cancelled')
                   .toList();
-              final availableEvents = activeEvents.isNotEmpty ? activeEvents : events;
-              final sortedEvents = EventEntity.sortChronologically(availableEvents);
+              final availableEvents =
+                  activeEvents.isNotEmpty ? activeEvents : events;
+              final sortedEvents =
+                  EventEntity.sortChronologically(availableEvents);
 
-              final activeEventId = _selectedEventId ?? ref.watch(selectedEventIdProvider);
+              final activeEventId =
+                  _selectedEventId ?? ref.watch(selectedEventIdProvider);
               final selectedEvent = sortedEvents.firstWhere(
                 (e) => e.id == activeEventId,
-                orElse: () => EventEntity.findDefaultEvent(sortedEvents) ?? sortedEvents.first,
+                orElse: () =>
+                    EventEntity.findDefaultEvent(sortedEvents) ??
+                    sortedEvents.first,
               );
 
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16.0),
                 children: [
-                  _buildEventSelectorCard(context, availableEvents, selectedEvent),
+                  _buildEventSelectorCard(
+                      context, availableEvents, selectedEvent),
                   const SizedBox(height: 24),
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 8),
                     child: Text(
                       'ATTENDANCE MODES',
                       style: AppTextStyles.labelSm.copyWith(
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                         letterSpacing: 0.8,
                         fontWeight: FontWeight.w600,
                       ),
@@ -113,10 +127,13 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                   _buildActionCard(
                     context,
                     title: 'QR Code Scanner',
-                    description: 'Continuous high-speed gate check-in using student QR codes',
+                    description:
+                        'Continuous high-speed gate check-in using student QR codes',
                     icon: Icons.qr_code_scanner_rounded,
-                    accentColor: isDark ? AppColors.successDark : AppColors.success,
-                    badgeText: selectedEvent.isAttendanceOpen ? 'Ready' : 'Closed',
+                    accentColor:
+                        isDark ? AppColors.successDark : AppColors.success,
+                    badgeText:
+                        selectedEvent.isAttendanceOpen ? 'Ready' : 'Closed',
                     onTap: () {
                       context.push(
                         '${RouteConstants.attendance}/qr-scan?eventId=${selectedEvent.id}',
@@ -127,9 +144,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                   _buildActionCard(
                     context,
                     title: 'Manual Attendance',
-                    description: 'Search attendee by name, roll number, or student ID',
+                    description:
+                        'Search attendee by name, roll number, or student ID',
                     icon: Icons.edit_note_rounded,
-                    accentColor: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                    accentColor:
+                        isDark ? AppColors.darkAccent : AppColors.lightAccent,
                     onTap: () {
                       context.push(
                         '${RouteConstants.attendance}/manual?eventId=${selectedEvent.id}',
@@ -140,7 +159,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                   _buildActionCard(
                     context,
                     title: 'Recent Attendance Logs',
-                    description: 'View chronological history of marked attendees',
+                    description:
+                        'View chronological history of marked attendees',
                     icon: Icons.history_rounded,
                     accentColor: const Color(0xFF5E5CE6),
                     onTap: () {
@@ -162,7 +182,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     EventEntity selectedEvent,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return BrlGlassCard(
       padding: const EdgeInsets.all(18),
@@ -181,7 +202,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 ),
               ),
               NeonBadge(
-                label: selectedEvent.isAttendanceOpen ? 'Attendance Open' : 'Attendance Closed',
+                label: selectedEvent.isAttendanceOpen
+                    ? 'Attendance Open'
+                    : 'Attendance Closed',
                 type: selectedEvent.isAttendanceOpen
                     ? NeonBadgeType.success
                     : NeonBadgeType.error,
@@ -192,10 +215,13 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkElevatedSurface : AppColors.lightSecondaryBackground,
+              color: isDark
+                  ? AppColors.darkElevatedSurface
+                  : AppColors.lightSecondaryBackground,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000),
+                color:
+                    isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000),
                 width: 0.5,
               ),
             ),
@@ -203,9 +229,12 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
               child: DropdownButton<String>(
                 value: selectedEvent.id,
                 isExpanded: true,
-                dropdownColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
+                dropdownColor: isDark
+                    ? AppColors.darkElevatedSurface
+                    : AppColors.lightSurface,
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
+                style:
+                    AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
                 items: events.map((e) {
                   return DropdownMenuItem<String>(
                     value: e.id,
@@ -245,7 +274,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(Icons.calendar_today_outlined, size: 15, color: textSecondary),
+              Icon(Icons.calendar_today_outlined,
+                  size: 15, color: textSecondary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -272,7 +302,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     String? badgeText,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return BrlGlassCard(
       padding: const EdgeInsets.all(18),
@@ -304,7 +335,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                     if (badgeText != null) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: accentColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
@@ -345,7 +377,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
 
   Widget _buildNoEventsFound(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),

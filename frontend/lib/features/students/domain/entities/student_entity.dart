@@ -8,7 +8,8 @@ class StudentEntity {
   final String email;
   final int attendance;
   final bool isPresent;
-  final String? attendanceStatus; // 'present', 'absent', 'late', 'excused', or null (not marked)
+  final String?
+      attendanceStatus; // 'present', 'absent', 'late', 'excused', or null (not marked)
   final DateTime? markedAt;
   final String? markedMethod;
   final String? phone;

@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
-
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
@@ -48,6 +49,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
           onRefresh: () async {
             HapticFeedback.lightImpact();
+            ref.read(authNotifierProvider.notifier).refreshCurrentUser();
             ref.invalidate(eventsProvider);
             ref.invalidate(studentsProvider);
             ref.invalidate(eventScopedStudentsFamilyProvider);
@@ -76,14 +78,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       }
                     }
                   }
-                  if (_activeStageIndex >= featuredList.length && featuredList.isNotEmpty) {
+                  if (_activeStageIndex >= featuredList.length &&
+                      featuredList.isNotEmpty) {
                     _activeStageIndex = 0;
                   }
                   final currentStageEvent = featuredList.isNotEmpty
                       ? featuredList[_activeStageIndex % featuredList.length]
                       : null;
-                  final otherEvents =
-                      events.where((e) => e.id != (currentStageEvent ?? featuredEvent)?.id).toList();
+                  final otherEvents = events
+                      .where((e) =>
+                          e.id != (currentStageEvent ?? featuredEvent)?.id)
+                      .toList();
 
                   return SliverList(
                     delegate: SliverChildListDelegate([
@@ -117,8 +122,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       // 4. Today at a Glance (Compact Operational Pulse)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: _buildAttendanceOverview(
-                            context, currentStageEvent ?? featuredEvent, isDark),
+                        child: _buildAttendanceOverview(context,
+                            currentStageEvent ?? featuredEvent, isDark),
                       ),
 
                       // 5. Upcoming Highlights (Image-Led Horizontal Highlights)
@@ -159,7 +164,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ---------------------------------------------------------------------------
   // 1. MINIMAL HEADER
   // ---------------------------------------------------------------------------
-  Widget _buildMinimalHeader(BuildContext context, dynamic user, bool isDark) {
+  Widget _buildMinimalHeader(
+      BuildContext context, UserEntity? user, bool isDark) {
     final textPrimary =
         isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
     final textSecondary =
@@ -173,7 +179,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ? 'Good afternoon'
             : 'Good evening';
 
-    final displayName = user?.name.split(' ').first ?? 'Operator';
+    final displayName = (user?.name != null && user!.name.trim().isNotEmpty)
+        ? user.name.trim().split(RegExp(r'\s+')).first
+        : 'Operator';
+    final avatarLetter =
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : 'N';
+    final avatarUrl = user?.avatar?.trim();
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
+    final fullAvatarUrl = hasAvatar
+        ? ((avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))
+            ? avatarUrl
+            : '${ApiConstants.baseUrl.replaceAll(RegExp(r'/api/?$'), '')}${avatarUrl.startsWith('/') ? '' : '/'}$avatarUrl')
+        : '';
     final currentDateFormatted =
         DateFormat('EEEE, MMM d').format(DateTime.now());
 
@@ -209,7 +226,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           const SizedBox(width: 4),
                           Text(
                             'NEXUS • OPS',
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.labelSm.copyWith(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.8,
@@ -224,7 +241,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 const SizedBox(height: 6),
                 Text(
                   '$greeting, $displayName',
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.headlineMd.copyWith(
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.4,
@@ -232,11 +249,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '$currentDateFormatted • Let\'s make today count.',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: '$currentDateFormatted • '),
+                      const TextSpan(
+                        text: 'Let\'s make today count.',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                    ],
+                  ),
+                  style: AppTextStyles.bodySm.copyWith(
                     color: textSecondary,
                   ),
                 ),
@@ -409,6 +432,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: Container(
                     width: 38,
                     height: 38,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: isDark ? 0.20 : 0.12),
                       shape: BoxShape.circle,
@@ -416,18 +440,54 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         color: accent.withValues(alpha: isDark ? 0.45 : 0.28),
                         width: 1.2,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      displayName.isNotEmpty
-                          ? displayName[0].toUpperCase()
-                          : 'N',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: accent,
-                      ),
-                    ),
+                    child: hasAvatar
+                        ? CachedNetworkImage(
+                            imageUrl: fullAvatarUrl,
+                            width: 38,
+                            height: 38,
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
+                            placeholder: (_, __) => Center(
+                              child: Text(
+                                avatarLetter,
+                                style: AppTextStyles.labelLg.copyWith(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: accent,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) => Center(
+                              child: Text(
+                                avatarLetter,
+                                style: AppTextStyles.labelLg.copyWith(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: accent,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              avatarLetter,
+                              style: AppTextStyles.labelLg.copyWith(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: accent,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -467,10 +527,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       onIndexChanged: onStageIndexChanged,
     );
   }
-
-
-
-
 
   // Backward compatibility alias for tests
   Widget _buildFeaturedEventCard(
@@ -560,7 +616,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   border: Border.all(color: borderColor, width: 0.8),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -573,7 +630,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: 6),
                     Text(
                       act.label,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelMd.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: textPrimary,
@@ -632,7 +689,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: 10),
           Text(
             'No Active or Scheduled Events',
-            style: GoogleFonts.inter(
+            style: AppTextStyles.cardTitle.copyWith(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: isDark
@@ -643,7 +700,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: 4),
           Text(
             'Events will appear here once configured',
-            style: GoogleFonts.inter(fontSize: 12, color: textSecondary),
+            style: AppTextStyles.captionItalic.copyWith(
+              fontSize: 12,
+              color: textSecondary,
+            ),
           ),
         ],
       ),
@@ -727,8 +787,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Today at a glance',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          fontSize: 14.5,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
                           color: textPrimary,
@@ -737,7 +797,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         '•',
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.labelSm.copyWith(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w700,
                           color: textSecondary,
@@ -747,7 +807,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       Flexible(
                         child: Text(
                           'ATTENDANCE OPERATIONS',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelSm.copyWith(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.6,
@@ -781,7 +841,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           featuredEvent != null
                               ? 'Event Scope'
                               : 'All Students',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelMd.copyWith(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: accent,
@@ -804,8 +864,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 // 1. Live Check-In Pill
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 9),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                     decoration: BoxDecoration(
                       color: isDark
                           ? const Color(0xFF14171E)
@@ -823,7 +883,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       children: [
                         Text(
                           'Live Check-in',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelSm.copyWith(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w600,
                             color: textSecondary,
@@ -836,9 +896,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               width: 6.5,
                               height: 6.5,
                               decoration: BoxDecoration(
-                                color: (featuredEvent?.isAttendanceOpen ?? false)
-                                    ? successColor
-                                    : Colors.orange,
+                                color:
+                                    (featuredEvent?.isAttendanceOpen ?? false)
+                                        ? successColor
+                                        : Colors.orange,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -847,12 +908,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               (featuredEvent?.isAttendanceOpen ?? false)
                                   ? 'Open'
                                   : 'Standby',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.labelSm.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: (featuredEvent?.isAttendanceOpen ?? false)
-                                    ? successColor
-                                    : Colors.orange,
+                                color:
+                                    (featuredEvent?.isAttendanceOpen ?? false)
+                                        ? successColor
+                                        : Colors.orange,
                               ),
                             ),
                           ],
@@ -866,8 +928,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 // 2. Checked In / Present
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 9),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                     decoration: BoxDecoration(
                       color: isDark
                           ? const Color(0xFF14171E)
@@ -891,18 +953,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             children: [
                               Text(
                                 presentCount.toString(),
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.metricMd.copyWith(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: successColor,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures()
-                                  ],
                                 ),
                               ),
                               Text(
                                 'Present',
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.labelSm.copyWith(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: textSecondary,
@@ -922,8 +981,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 // 3. Registered / Attendance Rate
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 9),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                     decoration: BoxDecoration(
                       color: isDark
                           ? const Color(0xFF14171E)
@@ -947,8 +1006,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             backgroundColor: isDark
                                 ? const Color(0xFF26262B)
                                 : const Color(0xFFE5E5EA),
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(accent),
+                            valueColor: AlwaysStoppedAnimation<Color>(accent),
                           ),
                         ),
                         const SizedBox(width: 7),
@@ -958,18 +1016,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             children: [
                               Text(
                                 totalRegistered.toString(),
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.metricMd.copyWith(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: textPrimary,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures()
-                                  ],
                                 ),
                               ),
                               Text(
                                 'Registered',
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.labelSm.copyWith(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
                                   color: textSecondary,
@@ -997,7 +1052,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     Text(
                       '$percentage%',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.metricMd.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: accent,
@@ -1006,7 +1061,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(width: 4),
                     Text(
                       'rate',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,
@@ -1016,7 +1071,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 Text(
                   '$remaining remaining',
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.labelSm.copyWith(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: textSecondary,
@@ -1111,7 +1166,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             children: [
               Text(
                 'RECENT ACTIVITY',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.labelSm.copyWith(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
@@ -1125,7 +1180,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 },
                 child: Text(
                   'See All',
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.labelMd.copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: accent,
@@ -1223,7 +1278,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       initial,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: accent,
@@ -1255,7 +1310,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     Text(
                       student.name,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodyMd.copyWith(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                         color: textPrimary,
@@ -1266,7 +1321,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: 1),
                     Text(
                       '${student.rollNumber} • ${student.branch}',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodySm.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w400,
                         color: textSecondary,
@@ -1307,7 +1362,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         const SizedBox(width: 4),
                         Text(
                           'Verified',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelSm.copyWith(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: successColor,
@@ -1319,7 +1374,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(height: 2),
                   Text(
                     timeStr,
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.caption.copyWith(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w400,
                       color: textSecondary,
@@ -1362,8 +1417,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 children: [
                   Text(
                     'Upcoming Highlights',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
+                    style: AppTextStyles.cardTitle.copyWith(
+                      fontSize: 14.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.2,
                       color: isDark
@@ -1382,7 +1437,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       child: Text(
                         displayEvents.length.toString(),
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.labelSm.copyWith(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: accent,
@@ -1393,7 +1448,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(width: 4),
                   Text(
                     '•',
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.labelSm.copyWith(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: textSecondary,
@@ -1403,7 +1458,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Flexible(
                     child: Text(
                       'UPCOMING SCHEDULE',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.7,
@@ -1424,7 +1479,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               },
               child: Text(
                 'See All',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.labelMd.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: accent,
@@ -1467,8 +1522,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000);
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
-    final dateMonthDay =
-        DateFormat('MMM d').format(event.startDate);
+    final dateMonthDay = DateFormat('MMM d').format(event.startDate);
     final venueStr = (event.venue != null && event.venue!.trim().isNotEmpty)
         ? event.venue!.trim()
         : 'Campus';
@@ -1527,7 +1581,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     Text(
                       event.title,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.cardTitle.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: textPrimary,
@@ -1539,7 +1593,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     const SizedBox(height: 3),
                     Text(
                       '$dateMonthDay • $venueStr',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodySm.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,
@@ -1557,7 +1611,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                       child: Text(
                         'UPCOMING',
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.labelSm.copyWith(
                           fontSize: 8.5,
                           fontWeight: FontWeight.w700,
                           color: accent,
@@ -1596,7 +1650,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: 6),
           Text(
             'No upcoming events scheduled',
-            style: GoogleFonts.inter(fontSize: 12.5, color: textSecondary),
+            style: AppTextStyles.captionItalic
+                .copyWith(fontSize: 12.5, color: textSecondary),
           ),
         ],
       ),
@@ -1675,7 +1730,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const SizedBox(height: 10),
             Text(
               'Unable to load operations dashboard',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.cardTitle.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: isDark
@@ -1686,7 +1741,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const SizedBox(height: 4),
             Text(
               error,
-              style: GoogleFonts.inter(
+              style: AppTextStyles.captionItalic.copyWith(
                 fontSize: 12,
                 color: isDark
                     ? AppColors.darkTextSecondary

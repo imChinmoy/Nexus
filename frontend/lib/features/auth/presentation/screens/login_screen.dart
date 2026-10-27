@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -102,22 +101,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Future<void> _handleRegister({bool skipProfile = false}) async {
     if (!(_registerFormKey.currentState?.validate() ?? false)) return;
 
-    final year = (!skipProfile && _showProfileFields && _regYear != null && _regYear!.isNotEmpty)
+    final year = (!skipProfile &&
+            _showProfileFields &&
+            _regYear != null &&
+            _regYear!.isNotEmpty)
         ? _regYear
         : null;
-    final domain = (!skipProfile && _showProfileFields && _regDomain != null && _regDomain!.isNotEmpty)
+    final domain = (!skipProfile &&
+            _showProfileFields &&
+            _regDomain != null &&
+            _regDomain!.isNotEmpty)
         ? _regDomain
         : null;
-    final phone = (!skipProfile && _showProfileFields && _regPhoneController.text.trim().isNotEmpty)
+    final phone = (!skipProfile &&
+            _showProfileFields &&
+            _regPhoneController.text.trim().isNotEmpty)
         ? _regPhoneController.text.trim()
         : null;
-    final bio = (!skipProfile && _showProfileFields && _regBioController.text.trim().isNotEmpty)
+    final bio = (!skipProfile &&
+            _showProfileFields &&
+            _regBioController.text.trim().isNotEmpty)
         ? _regBioController.text.trim()
         : null;
-    final github = (!skipProfile && _showProfileFields && _regGithubController.text.trim().isNotEmpty)
+    final github = (!skipProfile &&
+            _showProfileFields &&
+            _regGithubController.text.trim().isNotEmpty)
         ? _regGithubController.text.trim()
         : null;
-    final linkedin = (!skipProfile && _showProfileFields && _regLinkedinController.text.trim().isNotEmpty)
+    final linkedin = (!skipProfile &&
+            _showProfileFields &&
+            _regLinkedinController.text.trim().isNotEmpty)
         ? _regLinkedinController.text.trim()
         : null;
 
@@ -786,7 +799,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       children: [
                         Text(
                           'Profile Details',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppTextStyles.labelMedium.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -805,7 +818,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                           child: Text(
                             'Optional',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppTextStyles.caption.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF34C759),
@@ -821,7 +834,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           : 'Skipped for now · Fill in Profile',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 11,
                         color: const Color(0xFF8E9BB0),
                       ),
@@ -846,7 +859,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     children: [
                       Text(
                         _showProfileFields ? 'Skip' : '+ Add',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppTextStyles.labelMedium.copyWith(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: _showProfileFields
@@ -870,7 +883,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ],
           ),
-
           if (_showProfileFields) ...[
             const SizedBox(height: 12),
             const Divider(color: Color(0x1FFFFFFF), height: 1),
@@ -974,7 +986,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 ),
                 label: Text(
                   'Skip for now & continue',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppTextStyles.caption.copyWith(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF8E9BB0),

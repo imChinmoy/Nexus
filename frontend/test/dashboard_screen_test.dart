@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -197,6 +198,7 @@ Widget createTestDashboard({
   required MockEventRepository eventRepo,
   required MockStudentRepository studentRepo,
   ThemeMode themeMode = ThemeMode.dark,
+  UserEntity? user,
 }) {
   return ProviderScope(
     overrides: [
@@ -204,15 +206,17 @@ Widget createTestDashboard({
       studentRepositoryProvider.overrideWithValue(studentRepo),
       analyticsRepositoryProvider.overrideWithValue(MockDashboardAnalyticsRepository()),
       currentUserProvider.overrideWith(
-        (ref) => UserEntity(
-          id: 'user-ops-1',
-          name: 'Chinmoy Administrator',
-          email: 'chinmoy@akgec.ac.in',
-          role: UserRole.admin,
-          isActive: true,
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
-        ),
+        (ref) =>
+            user ??
+            UserEntity(
+              id: 'user-ops-1',
+              name: 'Chinmoy Administrator',
+              email: 'chinmoy@akgec.ac.in',
+              role: UserRole.admin,
+              isActive: true,
+              createdAt: DateTime(2026, 1, 1),
+              updatedAt: DateTime(2026, 1, 1),
+            ),
       ),
     ],
     child: MaterialApp(
@@ -270,6 +274,40 @@ void main() {
       // Notification icon and avatar
       expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
       expect(find.text('C'), findsOneWidget); // Initial 'C' for Chinmoy
+    });
+
+    testWidgets('Renders user avatar image in header when avatar URL is available',
+        (tester) async {
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final eventRepo = MockEventRepository();
+      final studentRepo = MockStudentRepository();
+
+      await tester.pumpWidget(createTestDashboard(
+        eventRepo: eventRepo,
+        studentRepo: studentRepo,
+        user: UserEntity(
+          id: 'user-ops-2',
+          name: 'Chinmoy Administrator',
+          email: 'chinmoy@akgec.ac.in',
+          role: UserRole.admin,
+          avatar: 'https://example.com/avatar.jpg',
+          isActive: true,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      ));
+      await tester.pump();
+
+      expect(find.byType(CachedNetworkImage), findsWidgets);
+      final cachedImages =
+          tester.widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage));
+      expect(
+          cachedImages
+              .any((img) => img.imageUrl == 'https://example.com/avatar.jpg'),
+          isTrue);
     });
 
     testWidgets('Renders Featured Event hero card with banner, live status, and prominent Scan QR action',

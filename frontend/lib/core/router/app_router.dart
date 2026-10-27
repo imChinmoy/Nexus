@@ -54,7 +54,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return authState.when(
         initial: () => isSplashRoute ? null : RouteConstants.splash,
         loading: () => isSplashRoute ? null : RouteConstants.splash,
-        authenticated: (_) => isAuthRoute || isSplashRoute ? RouteConstants.dashboard : null,
+        authenticated: (_) =>
+            isAuthRoute || isSplashRoute ? RouteConstants.dashboard : null,
         unauthenticated: () => isAuthRoute ? null : RouteConstants.login,
         error: (_) => isAuthRoute ? null : RouteConstants.login,
       );
@@ -101,8 +102,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':studentId',
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) =>
-                    StudentDetailScreen(studentId: state.pathParameters['studentId']!),
+                builder: (context, state) => StudentDetailScreen(
+                    studentId: state.pathParameters['studentId']!),
               ),
             ],
           ),
@@ -132,8 +133,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':eventId',
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) =>
-                    EventDetailScreen(eventId: state.pathParameters['eventId']!),
+                builder: (context, state) => EventDetailScreen(
+                    eventId: state.pathParameters['eventId']!),
               ),
             ],
           ),

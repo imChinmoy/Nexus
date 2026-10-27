@@ -20,7 +20,8 @@ class MemberDetailScreen extends ConsumerWidget {
           showBack: true,
         ),
         body: Center(
-          child: Text('Member Details for $memberId', style: AppTextStyles.bodyLg),
+          child:
+              Text('Member Details for $memberId', style: AppTextStyles.bodyLg),
         ),
       ),
     );

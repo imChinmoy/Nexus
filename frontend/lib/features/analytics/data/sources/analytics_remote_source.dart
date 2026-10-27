@@ -48,7 +48,8 @@ class AnalyticsRemoteSourceImpl implements AnalyticsRemoteSource {
     } on AppException {
       rethrow;
     } catch (e) {
-      throw ServerException('Failed to fetch activity heatmap: ${e.toString()}');
+      throw ServerException(
+          'Failed to fetch activity heatmap: ${e.toString()}');
     }
   }
 }

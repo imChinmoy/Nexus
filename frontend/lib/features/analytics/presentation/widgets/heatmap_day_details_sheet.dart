@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -41,9 +41,12 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surface = isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final surface =
+        isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final border = isDark ? AppColors.darkSeparator : AppColors.lightSeparator;
 
@@ -98,7 +101,7 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                       children: [
                         Text(
                           dateFormatted,
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.cardTitle.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
@@ -107,10 +110,11 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isEvents ? 'Society Event Activity' : 'Society Check-in Operations',
-                          style: GoogleFonts.inter(
+                          isEvents
+                              ? 'Society Event Activity'
+                              : 'Society Check-in Operations',
+                          style: AppTextStyles.editorialSubtitle.copyWith(
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
                             color: textSecondary,
                           ),
                         ),
@@ -120,20 +124,29 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
 
                   // Pill Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: count > 0 ? accent.withValues(alpha: 0.12) : (isDark ? Colors.white10 : Colors.black12),
+                      color: count > 0
+                          ? accent.withValues(alpha: 0.12)
+                          : (isDark ? Colors.white10 : Colors.black12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: count > 0 ? accent.withValues(alpha: 0.3) : Colors.transparent,
+                        color: count > 0
+                            ? accent.withValues(alpha: 0.3)
+                            : Colors.transparent,
                         width: 0.8,
                       ),
                     ),
                     child: Text(
                       isEvents
-                          ? (count > 0 ? '$count ${count == 1 ? 'Event' : 'Events'}' : 'No Events')
-                          : (count > 0 ? '$count ${count == 1 ? 'Check-in' : 'Check-ins'}' : 'No Check-ins'),
-                      style: GoogleFonts.inter(
+                          ? (count > 0
+                              ? '$count ${count == 1 ? 'Event' : 'Events'}'
+                              : 'No Events')
+                          : (count > 0
+                              ? '$count ${count == 1 ? 'Check-in' : 'Check-ins'}'
+                              : 'No Check-ins'),
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: count > 0 ? accent : textSecondary,
@@ -151,8 +164,10 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                 child: count == 0
                     ? _buildEmptyState(context, isDark, isEvents, textSecondary)
                     : isEvents
-                        ? _buildEventsList(context, isDark, textPrimary, textSecondary, accent, border)
-                        : _buildAttendanceList(context, isDark, textPrimary, textSecondary, accent, border),
+                        ? _buildEventsList(context, isDark, textPrimary,
+                            textSecondary, accent, border)
+                        : _buildAttendanceList(context, isDark, textPrimary,
+                            textSecondary, accent, border),
               ),
             ],
           ),
@@ -161,7 +176,8 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, bool isDark, bool isEvents, Color textSecondary) {
+  Widget _buildEmptyState(
+      BuildContext context, bool isDark, bool isEvents, Color textSecondary) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24.0),
       child: Center(
@@ -178,9 +194,8 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
               isEvents
                   ? 'No events were active on this date'
                   : 'No attendance records were marked on this date',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.captionItalic.copyWith(
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
                 color: textSecondary,
               ),
               textAlign: TextAlign.center,
@@ -222,14 +237,15 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2.5),
                     decoration: BoxDecoration(
                       color: accent.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       typeLabel,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w700,
                         color: accent,
@@ -239,14 +255,17 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2.5),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+                      color: isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       statusLabel,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.labelSm.copyWith(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w600,
                         color: textSecondary,
@@ -261,7 +280,7 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
               // Title
               Text(
                 event.title,
-                style: GoogleFonts.inter(
+                style: AppTextStyles.cardTitle.copyWith(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: textPrimary,
@@ -271,12 +290,13 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 13, color: textSecondary),
+                    Icon(Icons.location_on_outlined,
+                        size: 13, color: textSecondary),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         event.venue!,
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.bodySm.copyWith(
                           fontSize: 11.5,
                           color: textSecondary,
                         ),
@@ -304,11 +324,13 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                     icon: const Icon(Icons.arrow_forward_rounded, size: 14),
                     label: Text(
                       'View Event',
-                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                      style: AppTextStyles.buttonSm
+                          .copyWith(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                     style: TextButton.styleFrom(
                       foregroundColor: accent,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       minimumSize: const Size(0, 30),
                     ),
                   ),
@@ -361,7 +383,7 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                   children: [
                     Text(
                       ev.title,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.cardTitle.copyWith(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
                         color: textPrimary,
@@ -370,7 +392,7 @@ class HeatmapDayDetailsSheet extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '$eventCount verified check-ins',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,

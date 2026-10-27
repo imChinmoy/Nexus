@@ -4,7 +4,8 @@ import '../../../../core/storage/secure_storage_service.dart';
 import '../models/user_model.dart';
 
 abstract interface class AuthLocalSource {
-  Future<void> saveTokens({required String accessToken, required String refreshToken});
+  Future<void> saveTokens(
+      {required String accessToken, required String refreshToken});
   Future<void> saveUser(UserModel user);
   Future<UserModel?> getUser();
   Future<String?> getAccessToken();

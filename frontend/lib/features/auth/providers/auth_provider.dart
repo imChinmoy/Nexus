@@ -72,9 +72,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       // 2. Fallback if no cached user profile found: fetch with a quick 4-second timeout
       final result = await _repo.getCurrentUser().timeout(
-        const Duration(seconds: 4),
-        onTimeout: () => const Left(NetworkFailure('Auth verification timeout')),
-      );
+            const Duration(seconds: 4),
+            onTimeout: () =>
+                const Left(NetworkFailure('Auth verification timeout')),
+          );
       result.fold(
         (failure) => state = const AuthState.unauthenticated(),
         (user) => state = AuthState.authenticated(user),
@@ -103,6 +104,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Retain cached session if background revalidation fails
     }
   }
+
+  Future<void> refreshCurrentUser() => _revalidateSession();
 
   Future<bool> login({required String email, required String password}) async {
     state = const AuthState.loading();

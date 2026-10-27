@@ -50,10 +50,15 @@ class StudentModel {
   });
 
   factory StudentModel.fromJson(Map<String, dynamic> json) {
-    final id = json['studentId'] as String? ?? json['_id'] as String? ?? json['id'] as String? ?? '';
+    final id = json['studentId'] as String? ??
+        json['_id'] as String? ??
+        json['id'] as String? ??
+        '';
     final name = json['name'] as String? ?? '';
-    final rollNumber = json['rollNo'] as String? ?? json['rollNumber'] as String? ?? '';
-    final studentNo = json['studentNo'] as String? ?? json['studentNumber'] as String? ?? '';
+    final rollNumber =
+        json['rollNo'] as String? ?? json['rollNumber'] as String? ?? '';
+    final studentNo =
+        json['studentNo'] as String? ?? json['studentNumber'] as String? ?? '';
     final branch = json['branch'] as String? ?? '';
     final year = json['year'] as int? ?? 2;
     final email = json['email'] as String? ?? '';
@@ -67,7 +72,9 @@ class StudentModel {
     if (json['attendance'] is Map) {
       final attMap = json['attendance'] as Map<String, dynamic>;
       attStatus = (attMap['status'] as String?)?.toLowerCase().trim();
-      markedAt = attMap['markedAt'] != null ? DateTime.tryParse(attMap['markedAt'].toString()) : null;
+      markedAt = attMap['markedAt'] != null
+          ? DateTime.tryParse(attMap['markedAt'].toString())
+          : null;
       markedMethod = attMap['method'] as String?;
       isPresent = attStatus == 'present' || attStatus == 'late';
       attPercent = isPresent ? 100 : 0;
@@ -106,8 +113,12 @@ class StudentModel {
                 username: e['username'] as String? ?? '',
               ))
           .toList(),
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString())
+          : null,
     );
   }
 
@@ -202,9 +213,11 @@ class EventStudentsResultModel {
     final total = (meta['total'] as num?)?.toInt() ?? list.length;
     final page = (meta['page'] as num?)?.toInt() ?? 1;
     final limit = (meta['limit'] as num?)?.toInt() ?? 20;
-    final totalPages = (meta['totalPages'] as num?)?.toInt() ?? (total > 0 ? (total / limit).ceil() : 0);
+    final totalPages = (meta['totalPages'] as num?)?.toInt() ??
+        (total > 0 ? (total / limit).ceil() : 0);
 
-    final countsJson = json['counts'] as Map<String, dynamic>? ?? (meta['counts'] as Map<String, dynamic>?);
+    final countsJson = json['counts'] as Map<String, dynamic>? ??
+        (meta['counts'] as Map<String, dynamic>?);
     final counts = EventStudentCountsModel.fromJson(countsJson);
 
     return EventStudentsResultModel(

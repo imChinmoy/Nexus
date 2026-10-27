@@ -101,7 +101,7 @@ class EventFilterBar extends StatelessWidget {
                         ),
                         child: Text(
                           '$count',
-                          style: TextStyle(
+                          style: AppTextStyles.labelSmall.copyWith(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: isSelected

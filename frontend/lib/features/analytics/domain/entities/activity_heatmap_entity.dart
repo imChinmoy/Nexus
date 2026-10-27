@@ -86,7 +86,8 @@ class ActivityHeatmapEntity {
   });
 
   HeatmapDayEntity getDay(String dateStr) {
-    return daysMap[dateStr] ?? HeatmapDayEntity(date: dateStr, count: 0, events: const []);
+    return daysMap[dateStr] ??
+        HeatmapDayEntity(date: dateStr, count: 0, events: const []);
   }
 
   /// Calculates dynamic intensity thresholds [t1, t2, t3, t4] based on the distribution
@@ -97,11 +98,8 @@ class ActivityHeatmapEntity {
   /// Level 3: t2 < count <= t3
   /// Level 4: count > t3 (or count >= t4)
   List<int> calculateThresholds() {
-    final positiveCounts = daysMap.values
-        .map((d) => d.count)
-        .where((c) => c > 0)
-        .toList()
-      ..sort();
+    final positiveCounts =
+        daysMap.values.map((d) => d.count).where((c) => c > 0).toList()..sort();
 
     if (positiveCounts.isEmpty) {
       return [1, 2, 3, 4];

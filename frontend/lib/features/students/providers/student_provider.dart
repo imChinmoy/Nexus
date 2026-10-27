@@ -20,7 +20,8 @@ final studentAttendanceFilterProvider = StateProvider<String>((ref) => 'All');
 final studentPageProvider = StateProvider<int>((ref) => 1);
 
 /// Event-scoped students provider with server-side search, filtering, and pagination.
-final eventStudentsProvider = FutureProvider.autoDispose<EventStudentsResultEntity?>((ref) async {
+final eventStudentsProvider =
+    FutureProvider.autoDispose<EventStudentsResultEntity?>((ref) async {
   String? eventId = ref.watch(selectedEventIdProvider);
   if (eventId == null || eventId.trim().isEmpty) {
     final eventsAsync = ref.watch(eventsProvider);
@@ -69,7 +70,8 @@ final eventStudentsProvider = FutureProvider.autoDispose<EventStudentsResultEnti
 });
 
 /// Backward-compatible students list provider for detail views and legacy workflows.
-final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) async {
+final studentsProvider =
+    FutureProvider.autoDispose<List<StudentEntity>>((ref) async {
   final eventId = ref.watch(selectedEventIdProvider);
   if (eventId != null && eventId.trim().isNotEmpty) {
     try {
@@ -91,7 +93,9 @@ final studentsProvider = FutureProvider.autoDispose<List<StudentEntity>>((ref) a
 });
 
 /// Family provider for fetching event-scoped student registrations and live counts.
-final eventScopedStudentsFamilyProvider = FutureProvider.family<EventStudentsResultEntity?, String>((ref, eventId) async {
+final eventScopedStudentsFamilyProvider =
+    FutureProvider.family<EventStudentsResultEntity?, String>(
+        (ref, eventId) async {
   if (eventId.trim().isEmpty) return null;
   final repository = ref.watch(studentRepositoryProvider);
   final result = await repository.getStudentsByEvent(eventId, limit: 100);
@@ -100,4 +104,3 @@ final eventScopedStudentsFamilyProvider = FutureProvider.family<EventStudentsRes
     (res) => res,
   );
 });
-

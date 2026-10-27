@@ -30,19 +30,23 @@ class EventSwipeDeck extends StatefulWidget {
   State<EventSwipeDeck> createState() => EventSwipeDeckState();
 }
 
-class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProviderStateMixin {
+class EventSwipeDeckState extends State<EventSwipeDeck>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late ValueNotifier<Offset> _dragNotifier;
   Animation<Offset>? _offsetAnimation;
   bool _isDragging = false;
   bool _isAnimating = false;
-  int _activeDirection = 0; // -1 for left (previous), 1 for right (next), 0 for resting
+  int _activeDirection =
+      0; // -1 for left (previous), 1 for right (next), 0 for resting
 
   // Tangible deck aesthetic constants (smooth continuous rotation)
   static const double _rotationFactor = 0.00095;
-  static const double _maxRotation = 0.18; // ~10.3 degrees max rotation during drag
+  static const double _maxRotation =
+      0.18; // ~10.3 degrees max rotation during drag
   static const double _restingRotationNext = 0.088; // ~5.0 degrees for 2nd card
-  static const double _restingRotationThird = -0.082; // ~ -4.7 degrees for 3rd card
+  static const double _restingRotationThird =
+      -0.082; // ~ -4.7 degrees for 3rd card
   static const double _restingScaleNext = 0.94;
   static const double _restingScaleThird = 0.88;
   static const double _restingOffsetNextY = -18.0;
@@ -55,8 +59,9 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 240),
-    )..addListener(_onAnimationTick)
-     ..addStatusListener(_handleAnimationStatus);
+    )
+      ..addListener(_onAnimationTick)
+      ..addStatusListener(_handleAnimationStatus);
   }
 
   void _onAnimationTick() {
@@ -68,7 +73,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
   @override
   void didUpdateWidget(EventSwipeDeck oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentIndex != widget.currentIndex || oldWidget.events != widget.events) {
+    if (oldWidget.currentIndex != widget.currentIndex ||
+        oldWidget.events != widget.events) {
       _precacheAdjacentBanners();
       if (!_isAnimating && !_isDragging) {
         _dragNotifier.value = Offset.zero;
@@ -124,7 +130,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
 
       if (wasSwipeOut) {
         final swipedRight = finalOffset.dx > 0;
-        final newIndex = swipedRight ? widget.currentIndex + 1 : widget.currentIndex - 1;
+        final newIndex =
+            swipedRight ? widget.currentIndex + 1 : widget.currentIndex - 1;
 
         // Reset local state FIRST so when parent builds with new currentIndex,
         // the deck is cleanly resting at Offset.zero with zero-frame hitch!
@@ -189,7 +196,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
   }
 
   void _runSwipeAnimation({required bool isRight, double velocityX = 0.0}) {
-    final targetX = isRight ? widget.cardWidth + 140.0 : -(widget.cardWidth + 140.0);
+    final targetX =
+        isRight ? widget.cardWidth + 140.0 : -(widget.cardWidth + 140.0);
     _isAnimating = true;
     _activeDirection = isRight ? 1 : -1;
 
@@ -221,7 +229,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
     if (_isAnimating) {
       // If returning to center, smoothly catch the card without drop
       if (_offsetAnimation != null && _animController.isAnimating) {
-        final isFlingingAway = _offsetAnimation!.value.dx.abs() > widget.cardWidth * 0.4;
+        final isFlingingAway =
+            _offsetAnimation!.value.dx.abs() > widget.cardWidth * 0.4;
         if (!isFlingingAway) {
           _animController.stop();
           _isAnimating = false;
@@ -242,9 +251,11 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
     final double currentDx = _dragNotifier.value.dx;
 
     // Fluid boundary resistance: only damp outward motion beyond deck boundaries
-    final isTryingToSwipePastStart = widget.currentIndex == 0 && (currentDx + deltaX) < 0;
+    final isTryingToSwipePastStart =
+        widget.currentIndex == 0 && (currentDx + deltaX) < 0;
     final isTryingToSwipePastEnd =
-        widget.currentIndex == widget.events.length - 1 && (currentDx + deltaX) > 0;
+        widget.currentIndex == widget.events.length - 1 &&
+            (currentDx + deltaX) > 0;
 
     if (isTryingToSwipePastStart && deltaX < 0) {
       deltaX *= 0.25;
@@ -279,8 +290,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
     final isThresholdRight = currentDx > threshold && velocityX > -300;
     final isThresholdLeft = currentDx < -threshold && velocityX < 300;
 
-    final shouldSwipeRight =
-        (isThresholdRight || isFastFlickRight) && widget.currentIndex < widget.events.length - 1;
+    final shouldSwipeRight = (isThresholdRight || isFastFlickRight) &&
+        widget.currentIndex < widget.events.length - 1;
     final shouldSwipeLeft =
         (isThresholdLeft || isFastFlickLeft) && widget.currentIndex > 0;
 
@@ -314,7 +325,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
         builder: (context, currentOffset, _) {
           // Smooth progressive interpolation over 70% of card width
           final maxRange = widget.cardWidth * 0.70;
-          final rawProgress = (currentOffset.dx.abs() / maxRange).clamp(0.0, 1.0);
+          final rawProgress =
+              (currentOffset.dx.abs() / maxRange).clamp(0.0, 1.0);
           final dragProgress = Curves.easeOutCubic.transform(rawProgress);
 
           // Stable background card indexing with direction lock during snap-back
@@ -333,8 +345,10 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
             thirdCardIndex = widget.currentIndex + 2;
           }
 
-          final hasNextCard = nextCardIndex >= 0 && nextCardIndex < widget.events.length;
-          final hasThirdCard = thirdCardIndex >= 0 && thirdCardIndex < widget.events.length;
+          final hasNextCard =
+              nextCardIndex >= 0 && nextCardIndex < widget.events.length;
+          final hasThirdCard =
+              thirdCardIndex >= 0 && thirdCardIndex < widget.events.length;
 
           // Continuous interpolated transforms without jarring sign flips
           final double card2Scale;
@@ -359,15 +373,19 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
             card2Rotation = lerpDouble(_restingRotationNext, 0.0, dragProgress);
 
             // Card 3 moves smoothly into Card 2's resting position
-            card3Scale = lerpDouble(_restingScaleThird, _restingScaleNext, dragProgress);
-            card3Offset = lerpDouble(_restingOffsetThirdY, _restingOffsetNextY, dragProgress);
-            card3Rotation = lerpDouble(_restingRotationThird, _restingRotationNext, dragProgress);
+            card3Scale =
+                lerpDouble(_restingScaleThird, _restingScaleNext, dragProgress);
+            card3Offset = lerpDouble(
+                _restingOffsetThirdY, _restingOffsetNextY, dragProgress);
+            card3Rotation = lerpDouble(
+                _restingRotationThird, _restingRotationNext, dragProgress);
           }
 
           // Active top card rotation
           final double topRotation = disableMotion
               ? 0.0
-              : (currentOffset.dx * _rotationFactor).clamp(-_maxRotation, _maxRotation);
+              : (currentOffset.dx * _rotationFactor)
+                  .clamp(-_maxRotation, _maxRotation);
 
           return Stack(
             alignment: Alignment.center,
@@ -383,7 +401,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
                       child: Transform.scale(
                         scale: card3Scale,
                         child: EventDeckCard(
-                          key: ValueKey('card-stack-3-${widget.events[thirdCardIndex].id}'),
+                          key: ValueKey(
+                              'card-stack-3-${widget.events[thirdCardIndex].id}'),
                           event: widget.events[thirdCardIndex],
                           isActive: false,
                           stackDepth: 2,
@@ -405,7 +424,8 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
                       child: Transform.scale(
                         scale: card2Scale,
                         child: EventDeckCard(
-                          key: ValueKey('card-stack-2-${widget.events[nextCardIndex].id}'),
+                          key: ValueKey(
+                              'card-stack-2-${widget.events[nextCardIndex].id}'),
                           event: widget.events[nextCardIndex],
                           isActive: false,
                           stackDepth: 1,
@@ -430,18 +450,22 @@ class EventSwipeDeckState extends State<EventSwipeDeck> with SingleTickerProvide
                       child: Transform.rotate(
                         angle: topRotation,
                         child: EventDeckCard(
-                          key: ValueKey('card-top-${widget.events[widget.currentIndex].id}'),
+                          key: ValueKey(
+                              'card-top-${widget.events[widget.currentIndex].id}'),
                           event: widget.events[widget.currentIndex],
                           isActive: true,
                           stackDepth: 0,
                           width: widget.cardWidth,
                           height: widget.cardHeight,
-                          onTap: () => widget.onCardTap?.call(widget.events[widget.currentIndex]),
+                          onTap: () => widget.onCardTap
+                              ?.call(widget.events[widget.currentIndex]),
                           onScanAttendance: widget.onScanAttendance != null
-                              ? () => widget.onScanAttendance!(widget.events[widget.currentIndex])
+                              ? () => widget.onScanAttendance!(
+                                  widget.events[widget.currentIndex])
                               : null,
                           onEdit: widget.onEdit != null
-                              ? () => widget.onEdit!(widget.events[widget.currentIndex])
+                              ? () => widget
+                                  .onEdit!(widget.events[widget.currentIndex])
                               : null,
                         ),
                       ),

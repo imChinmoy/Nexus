@@ -32,7 +32,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -59,7 +60,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Your new password must be at least 6 characters.',
-                          style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                          style: AppTextStyles.bodyMd
+                              .copyWith(color: textSecondary),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
@@ -80,7 +82,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           label: 'Confirm Password',
                           controller: _confirmController,
                           obscureText: true,
-                          validator: (v) => Validators.confirmPassword(v, _passwordController.text),
+                          validator: (v) => Validators.confirmPassword(
+                              v, _passwordController.text),
                           textInputAction: TextInputAction.done,
                           prefix: Icon(
                             Icons.lock_outline_rounded,

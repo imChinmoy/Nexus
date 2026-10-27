@@ -24,9 +24,12 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = iconColor ?? (isDark ? AppColors.darkAccent : AppColors.lightAccent);
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final accent =
+        iconColor ?? (isDark ? AppColors.darkAccent : AppColors.lightAccent);
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Center(
       child: SingleChildScrollView(
@@ -34,49 +37,49 @@ class EmptyStateWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 68,
-              height: 68,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
-                shape: BoxShape.circle,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: accent,
+                  size: 32,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: accent,
-                size: 32,
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: AppTextStyles.headlineSm.copyWith(
+                  color: textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              style: AppTextStyles.headlineSm.copyWith(
-                color: textPrimary,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: AppTextStyles.editorialSubtitle.copyWith(
+                  color: textSecondary,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: AppTextStyles.bodyMd.copyWith(
-                color: textSecondary,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
-              BrlButton(
-                label: actionLabel!,
-                onPressed: onAction,
-                variant: BrlButtonVariant.secondary,
-              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 24),
+                BrlButton(
+                  label: actionLabel!,
+                  onPressed: onAction,
+                  variant: BrlButtonVariant.secondary,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
-      ),
       ),
     );
   }

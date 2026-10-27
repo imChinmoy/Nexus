@@ -33,8 +33,10 @@ class BrlGlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final defaultBorder = isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final defaultBorder =
+        isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
     final effectiveBorder = borderColor ?? defaultBorder;
 
     final cardContent = Container(

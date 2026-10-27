@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/constants/route_constants.dart';
@@ -47,7 +46,8 @@ class _ScanFeedback {
   });
 }
 
-class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsBindingObserver {
+class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
+    with WidgetsBindingObserver {
   bool _isProcessing = false;
   bool _isTorchOn = false;
   String? _lastScannedCode;
@@ -151,7 +151,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
             _ScanFeedback(
               isSuccess: true,
               isDuplicate: scanResult.isDuplicate,
-              title: scanResult.isDuplicate ? 'Already Recorded' : 'Marked Present',
+              title: scanResult.isDuplicate
+                  ? 'Already Recorded'
+                  : 'Marked Present',
               subtitle: scanResult.message,
               studentName: scanResult.studentName,
               rollNumber: scanResult.rollNumber ?? scanResult.studentNo,
@@ -215,8 +217,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
 
   void _showHistoryModal() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final surfaceColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     showModalBottomSheet(
       context: context,
@@ -263,7 +267,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     child: Center(
                       child: Text(
                         'No students scanned in this session yet.',
-                        style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                        style:
+                            AppTextStyles.bodyMd.copyWith(color: textSecondary),
                       ),
                     ),
                   )
@@ -278,8 +283,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                         final name = item.studentName ?? 'Unknown Student';
                         final id = item.rollNumber ?? item.studentNo ?? 'N/A';
                         final color = item.isDuplicate
-                            ? (isDark ? AppColors.warningDark : AppColors.warning)
-                            : (isDark ? AppColors.successDark : AppColors.success);
+                            ? (isDark
+                                ? AppColors.warningDark
+                                : AppColors.warning)
+                            : (isDark
+                                ? AppColors.successDark
+                                : AppColors.success);
 
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
@@ -291,25 +300,31 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              item.isDuplicate ? Icons.history_rounded : Icons.check_rounded,
+                              item.isDuplicate
+                                  ? Icons.history_rounded
+                                  : Icons.check_rounded,
                               color: color,
                               size: 18,
                             ),
                           ),
-                          title: Text(name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
-                          subtitle: Text(id, style: AppTextStyles.caption.copyWith(color: textSecondary)),
+                          title: Text(name,
+                              style: AppTextStyles.bodyMd
+                                  .copyWith(fontWeight: FontWeight.w600)),
+                          subtitle: Text(id,
+                              style: AppTextStyles.caption
+                                  .copyWith(color: textSecondary)),
                           trailing: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: color.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               item.isDuplicate ? 'Duplicate' : 'Present',
-                              style: TextStyle(
+                              style: AppTextStyles.labelSmall.copyWith(
                                 color: color,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 11,
                               ),
                             ),
                           ),
@@ -339,7 +354,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
     }
     // 2. Event explicitly passed via navigation parameter
     if (event == null && widget.eventId.trim().isNotEmpty) {
-      event = sortedEvents.where((e) => e.id == widget.eventId.trim()).firstOrNull;
+      event =
+          sortedEvents.where((e) => e.id == widget.eventId.trim()).firstOrNull;
     }
     // 3. Default event: ongoing event first, or closest upcoming event
     event ??= EventEntity.findDefaultEvent(sortedEvents);
@@ -384,16 +400,19 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.videocam_off_outlined, color: AppColors.errorDark, size: 44),
+                        const Icon(Icons.videocam_off_outlined,
+                            color: AppColors.errorDark, size: 44),
                         const SizedBox(height: 16),
                         Text(
                           'Camera Access Error',
-                          style: AppTextStyles.headlineSm.copyWith(color: AppColors.errorDark),
+                          style: AppTextStyles.headlineSm
+                              .copyWith(color: AppColors.errorDark),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           error.errorDetails?.message ?? error.errorCode.name,
-                          style: AppTextStyles.bodySm.copyWith(color: Colors.white70),
+                          style: AppTextStyles.bodySm
+                              .copyWith(color: Colors.white70),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
@@ -402,7 +421,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.darkAccent,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           icon: const Icon(Icons.refresh_rounded, size: 18),
                           label: const Text('Restart Camera'),
@@ -440,7 +460,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white, size: 18),
                       tooltip: 'Exit Scanner',
                       onPressed: () => context.pop(),
                     ),
@@ -449,15 +470,19 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                   Expanded(
                     child: InkWell(
                       onTap: sortedEvents.length > 1
-                          ? () => _showEventSwitchSheet(sortedEvents, effectiveEventId)
+                          ? () => _showEventSwitchSheet(
+                              sortedEvents, effectiveEventId)
                           : null,
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.55),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.5),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              width: 0.5),
                         ),
                         child: Row(
                           children: [
@@ -482,17 +507,23 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                                         width: 6,
                                         height: 6,
                                         decoration: BoxDecoration(
-                                          color: isOpen ? successColor : AppColors.errorDark,
+                                          color: isOpen
+                                              ? successColor
+                                              : AppColors.errorDark,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        isOpen ? 'Attendance Open' : 'Attendance Closed',
-                                        style: TextStyle(
+                                        isOpen
+                                            ? 'Attendance Open'
+                                            : 'Attendance Closed',
+                                        style: AppTextStyles.caption.copyWith(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w500,
-                                          color: isOpen ? successColor : AppColors.errorDark,
+                                          color: isOpen
+                                              ? successColor
+                                              : AppColors.errorDark,
                                         ),
                                       ),
                                     ],
@@ -528,8 +559,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     ),
                     child: IconButton(
                       icon: Icon(
-                        _isTorchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                        color: _isTorchOn ? const Color(0xFFFF9F0A) : Colors.white,
+                        _isTorchOn
+                            ? Icons.flash_on_rounded
+                            : Icons.flash_off_rounded,
+                        color:
+                            _isTorchOn ? const Color(0xFFFF9F0A) : Colors.white,
                         size: 20,
                       ),
                       tooltip: 'Toggle Flashlight',
@@ -545,7 +579,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.list_alt_rounded, color: Colors.white, size: 20),
+                          icon: const Icon(Icons.list_alt_rounded,
+                              color: Colors.white, size: 20),
                           tooltip: 'Session Scans',
                           onPressed: _showHistoryModal,
                         ),
@@ -560,10 +595,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                               color: Color(0xFF2997FF),
                               shape: BoxShape.circle,
                             ),
-                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            constraints: const BoxConstraints(
+                                minWidth: 16, minHeight: 16),
                             child: Text(
                               '${_sessionHistory.length}',
-                              style: const TextStyle(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -581,10 +617,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                      icon: const Icon(Icons.edit_note_rounded,
+                          color: Colors.white, size: 20),
                       tooltip: 'Manual Attendance Entry',
                       onPressed: () {
-                        context.push('${RouteConstants.attendance}/manual?eventId=$effectiveEventId');
+                        context.push(
+                            '${RouteConstants.attendance}/manual?eventId=$effectiveEventId');
                       },
                     ),
                   ),
@@ -601,24 +639,32 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF2997FF).withValues(alpha: 0.5), width: 0.5),
+                    border: Border.all(
+                        color: const Color(0xFF2997FF).withValues(alpha: 0.5),
+                        width: 0.5),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2997FF)),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Color(0xFF2997FF)),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
                         'Verifying attendee...',
-                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -648,7 +694,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
         : (isDark ? AppColors.errorDark : AppColors.error);
 
     final icon = feedback.isSuccess
-        ? (feedback.isDuplicate ? Icons.info_outline_rounded : Icons.check_circle_rounded)
+        ? (feedback.isDuplicate
+            ? Icons.info_outline_rounded
+            : Icons.check_circle_rounded)
         : Icons.error_outline_rounded;
 
     return Container(
@@ -693,7 +741,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     ),
                   ],
                 ),
-                if (feedback.studentName != null && feedback.studentName!.isNotEmpty) ...[
+                if (feedback.studentName != null &&
+                    feedback.studentName!.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     feedback.studentName!,
@@ -705,11 +754,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                if (feedback.rollNumber != null && feedback.rollNumber!.isNotEmpty) ...[
+                if (feedback.rollNumber != null &&
+                    feedback.rollNumber!.isNotEmpty) ...[
                   const SizedBox(height: 1),
                   Text(
                     feedback.rollNumber!,
-                    style: AppTextStyles.caption.copyWith(color: Colors.white60),
+                    style:
+                        AppTextStyles.caption.copyWith(color: Colors.white60),
                   ),
                 ],
                 const SizedBox(height: 2),
@@ -750,14 +801,19 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Align QR code within frame',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w400),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
@@ -769,21 +825,26 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
   }
 
   Widget _buildLoadingEventState() {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 28,
               height: 28,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2997FF)),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Color(0xFF2997FF)),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Connecting to event gate...',
-              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -796,7 +857,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? const Color(0xFF1C1C1E) : Colors.white;
     final textPrimary = isDark ? Colors.white : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? Colors.white60 : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? Colors.white60 : AppColors.lightTextSecondary;
 
     showModalBottomSheet(
       context: context,
@@ -828,14 +890,14 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                   children: [
                     Text(
                       'Select Event for Scanner',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
+                      style: AppTextStyles.titleLg.copyWith(
                         fontWeight: FontWeight.w700,
                         color: textPrimary,
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close_rounded, size: 20, color: textSecondary),
+                      icon: Icon(Icons.close_rounded,
+                          size: 20, color: textSecondary),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -847,7 +909,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                     itemCount: events.length,
                     separatorBuilder: (_, __) => Divider(
                       height: 1,
-                      color: isDark ? const Color(0x1FFFFFFF) : const Color(0x0F000000),
+                      color: isDark
+                          ? const Color(0x1FFFFFFF)
+                          : const Color(0x0F000000),
                     ),
                     itemBuilder: (context, index) {
                       final ev = events[index];
@@ -856,15 +920,20 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                       final isUpcoming = ev.isUpcoming;
                       final statusLabel = isOngoing
                           ? 'ONGOING'
-                          : (isUpcoming ? 'UPCOMING' : (ev.isPast ? 'PAST' : ev.status.toUpperCase()));
+                          : (isUpcoming
+                              ? 'UPCOMING'
+                              : (ev.isPast ? 'PAST' : ev.status.toUpperCase()));
                       final statusColor = isOngoing
                           ? (isDark ? AppColors.successDark : AppColors.success)
                           : (isUpcoming
-                              ? (isDark ? AppColors.darkAccent : AppColors.lightAccent)
+                              ? (isDark
+                                  ? AppColors.darkAccent
+                                  : AppColors.lightAccent)
                               : textSecondary);
 
                       return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 4),
                         onTap: () {
                           HapticFeedback.selectionClick();
                           setState(() {
@@ -877,11 +946,14 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                             Expanded(
                               child: Text(
                                 ev.title,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
                                   color: isSelected
-                                      ? (isDark ? AppColors.darkAccent : AppColors.lightAccent)
+                                      ? (isDark
+                                          ? AppColors.darkAccent
+                                          : AppColors.lightAccent)
                                       : textPrimary,
                                 ),
                                 maxLines: 1,
@@ -889,14 +961,15 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: statusColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 statusLabel,
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.labelSmall.copyWith(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
                                   color: statusColor,
@@ -906,16 +979,18 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
                           ],
                         ),
                         subtitle: Text(
-                          DateFormat('MMM d, yyyy • h:mm a').format(ev.startDate),
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
+                          DateFormat('MMM d, yyyy • h:mm a')
+                              .format(ev.startDate),
+                          style: AppTextStyles.caption.copyWith(
                             color: textSecondary,
                           ),
                         ),
                         trailing: isSelected
                             ? Icon(
                                 Icons.check_circle_rounded,
-                                color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                                color: isDark
+                                    ? AppColors.darkAccent
+                                    : AppColors.lightAccent,
                                 size: 20,
                               )
                             : null,
@@ -944,11 +1019,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> with WidgetsB
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.event_busy_outlined, color: AppColors.errorDark, size: 52),
+                  const Icon(Icons.event_busy_outlined,
+                      color: AppColors.errorDark, size: 52),
                   const SizedBox(height: 16),
                   Text(
                     'NO EVENT SELECTED',
-                    style: AppTextStyles.headlineSm.copyWith(color: AppColors.errorDark),
+                    style: AppTextStyles.headlineSm
+                        .copyWith(color: AppColors.errorDark),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -982,7 +1059,9 @@ class _AppleViewfinderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = isProcessing ? const Color(0xFF2997FF) : Colors.white.withValues(alpha: 0.85)
+      ..color = isProcessing
+          ? const Color(0xFF2997FF)
+          : Colors.white.withValues(alpha: 0.85)
       ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -994,7 +1073,8 @@ class _AppleViewfinderPainter extends CustomPainter {
     final topLeft = Path()
       ..moveTo(0, cornerLength)
       ..lineTo(0, radius)
-      ..arcToPoint(const Offset(radius, 0), radius: const Radius.circular(radius))
+      ..arcToPoint(const Offset(radius, 0),
+          radius: const Radius.circular(radius))
       ..lineTo(cornerLength, 0);
     canvas.drawPath(topLeft, paint);
 
@@ -1002,7 +1082,8 @@ class _AppleViewfinderPainter extends CustomPainter {
     final topRight = Path()
       ..moveTo(size.width - cornerLength, 0)
       ..lineTo(size.width - radius, 0)
-      ..arcToPoint(Offset(size.width, radius), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(size.width, radius),
+          radius: const Radius.circular(radius))
       ..lineTo(size.width, cornerLength);
     canvas.drawPath(topRight, paint);
 
@@ -1010,7 +1091,8 @@ class _AppleViewfinderPainter extends CustomPainter {
     final bottomLeft = Path()
       ..moveTo(0, size.height - cornerLength)
       ..lineTo(0, size.height - radius)
-      ..arcToPoint(Offset(radius, size.height), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(radius, size.height),
+          radius: const Radius.circular(radius))
       ..lineTo(cornerLength, size.height);
     canvas.drawPath(bottomLeft, paint);
 
@@ -1018,7 +1100,8 @@ class _AppleViewfinderPainter extends CustomPainter {
     final bottomRight = Path()
       ..moveTo(size.width - cornerLength, size.height)
       ..lineTo(size.width - radius, size.height)
-      ..arcToPoint(Offset(size.width, size.height - radius), radius: const Radius.circular(radius))
+      ..arcToPoint(Offset(size.width, size.height - radius),
+          radius: const Radius.circular(radius))
       ..lineTo(size.width, size.height - cornerLength);
     canvas.drawPath(bottomRight, paint);
   }

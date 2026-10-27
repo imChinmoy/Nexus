@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
+import 'app_text_styles.dart';
 
 class AppTheme {
   AppTheme._();
@@ -26,10 +26,7 @@ class AppTheme {
           outline: AppColors.darkSeparator,
           surfaceContainerHighest: AppColors.darkElevatedSurface,
         ),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
-          bodyColor: AppColors.darkTextPrimary,
-          displayColor: AppColors.darkTextPrimary,
-        ),
+        textTheme: AppTextStyles.buildTextTheme(Brightness.dark),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.darkTextPrimary,
@@ -65,7 +62,8 @@ class AppTheme {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.darkAccent, width: 1.5),
+            borderSide:
+                const BorderSide(color: AppColors.darkAccent, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -73,21 +71,23 @@ class AppTheme {
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.errorDark, width: 1.5),
+            borderSide:
+                const BorderSide(color: AppColors.errorDark, width: 1.5),
           ),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0x0AFFFFFF), width: 0.5),
           ),
-          hintStyle: GoogleFonts.inter(
+          hintStyle: AppTextStyles.bodyMd.copyWith(
             color: AppColors.darkTextTertiary,
             fontSize: 14,
           ),
-          labelStyle: GoogleFonts.inter(
+          labelStyle: AppTextStyles.bodyMd.copyWith(
             color: AppColors.darkTextSecondary,
             fontSize: 14,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         dividerTheme: const DividerThemeData(
           color: AppColors.darkSeparator,
@@ -96,7 +96,10 @@ class AppTheme {
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColors.darkElevatedSurface,
-          contentTextStyle: GoogleFonts.inter(color: AppColors.darkTextPrimary, fontSize: 14),
+          contentTextStyle: AppTextStyles.bodyMd.copyWith(
+            color: AppColors.darkTextPrimary,
+            fontSize: 14,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: const BorderSide(color: Color(0x1AFFFFFF), width: 0.5),
@@ -116,7 +119,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          labelStyle: GoogleFonts.inter(color: AppColors.darkTextSecondary, fontSize: 12),
+          labelStyle: AppTextStyles.labelMd.copyWith(
+            color: AppColors.darkTextSecondary,
+            fontSize: 12,
+          ),
         ),
         dialogTheme: DialogThemeData(
           backgroundColor: AppColors.darkElevatedSurface,
@@ -155,10 +161,7 @@ class AppTheme {
           outline: AppColors.lightSeparator,
           surfaceContainerHighest: AppColors.lightSecondaryBackground,
         ),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).apply(
-          bodyColor: AppColors.lightTextPrimary,
-          displayColor: AppColors.lightTextPrimary,
-        ),
+        textTheme: AppTextStyles.buildTextTheme(Brightness.light),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.lightTextPrimary,
@@ -194,7 +197,8 @@ class AppTheme {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.lightAccent, width: 1.5),
+            borderSide:
+                const BorderSide(color: AppColors.lightAccent, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -208,15 +212,16 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0x05000000), width: 0.5),
           ),
-          hintStyle: GoogleFonts.inter(
+          hintStyle: AppTextStyles.bodyMd.copyWith(
             color: AppColors.lightTextTertiary,
             fontSize: 14,
           ),
-          labelStyle: GoogleFonts.inter(
+          labelStyle: AppTextStyles.bodyMd.copyWith(
             color: AppColors.lightTextSecondary,
             fontSize: 14,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         dividerTheme: const DividerThemeData(
           color: AppColors.lightSeparator,
@@ -225,7 +230,10 @@ class AppTheme {
         ),
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppColors.lightTextPrimary,
-          contentTextStyle: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+          contentTextStyle: AppTextStyles.bodyMd.copyWith(
+            color: Colors.white,
+            fontSize: 14,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -244,7 +252,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          labelStyle: GoogleFonts.inter(color: AppColors.lightTextSecondary, fontSize: 12),
+          labelStyle: AppTextStyles.labelMd.copyWith(
+            color: AppColors.lightTextSecondary,
+            fontSize: 12,
+          ),
         ),
         dialogTheme: DialogThemeData(
           backgroundColor: AppColors.lightSurface,

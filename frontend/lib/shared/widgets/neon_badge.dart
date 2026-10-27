@@ -21,11 +21,15 @@ class NeonBadge extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final color = switch (type) {
-      NeonBadgeType.success => isDark ? AppColors.successDark : AppColors.success,
+      NeonBadgeType.success =>
+        isDark ? AppColors.successDark : AppColors.success,
       NeonBadgeType.error => isDark ? AppColors.errorDark : AppColors.error,
-      NeonBadgeType.warning => isDark ? AppColors.warningDark : AppColors.warning,
-      NeonBadgeType.info => isDark ? AppColors.darkAccent : AppColors.lightAccent,
-      NeonBadgeType.neutral => isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+      NeonBadgeType.warning =>
+        isDark ? AppColors.warningDark : AppColors.warning,
+      NeonBadgeType.info =>
+        isDark ? AppColors.darkAccent : AppColors.lightAccent,
+      NeonBadgeType.neutral =>
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
     };
 
     return Container(

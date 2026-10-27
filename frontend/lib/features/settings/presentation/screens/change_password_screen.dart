@@ -13,7 +13,8 @@ class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
@@ -40,7 +41,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           content: const Text('New passwords do not match'),
           backgroundColor: AppColors.errorOf(context),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -64,7 +66,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             content: const Text('Password changed successfully'),
             backgroundColor: AppColors.successOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
         Navigator.pop(context);
@@ -80,7 +83,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             content: Text(msg),
             backgroundColor: AppColors.errorOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -125,7 +129,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         label: 'Current Password',
                         isPassword: true,
                         hintText: 'Enter existing password',
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 14),
                       BrlTextField(
@@ -135,7 +140,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         hintText: 'At least 8 characters',
                         validator: (val) {
                           if (val == null || val.isEmpty) return 'Required';
-                          if (val.length < 8) return 'Password must be at least 8 characters';
+                          if (val.length < 8)
+                            return 'Password must be at least 8 characters';
                           return null;
                         },
                       ),
@@ -145,7 +151,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         label: 'Confirm New Password',
                         isPassword: true,
                         hintText: 'Re-enter new password',
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Required' : null,
                       ),
                     ],
                   ),

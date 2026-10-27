@@ -534,18 +534,19 @@ class EventDeckCard extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.qr_code_scanner_rounded,
                                           size: 16,
                                           color: Colors.white,
                                         ),
-                                        SizedBox(width: 6),
+                                        const SizedBox(width: 6),
                                         Text(
                                           'Scan',
-                                          style: TextStyle(
+                                          style: AppTextStyles.labelMedium
+                                              .copyWith(
                                             color: Colors.white,
                                             fontWeight: FontWeight.w700,
                                             fontSize: 13,
@@ -666,7 +667,7 @@ class EventDeckCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   event.type.toUpperCase(),
-                  style: TextStyle(
+                  style: AppTextStyles.cardTitle.copyWith(
                     color: Colors.white.withValues(alpha: 0.35),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.0,

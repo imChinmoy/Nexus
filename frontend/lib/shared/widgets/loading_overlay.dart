@@ -18,9 +18,11 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface;
+    final cardBg =
+        isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Stack(
       children: [
@@ -30,20 +32,25 @@ class LoadingOverlay extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
               child: Container(
-                color: (isDark ? Colors.black : Colors.white).withValues(alpha: 0.35),
+                color: (isDark ? Colors.black : Colors.white)
+                    .withValues(alpha: 0.35),
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 20),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000),
+                        color: isDark
+                            ? const Color(0x1AFFFFFF)
+                            : const Color(0x0F000000),
                         width: 0.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.3 : 0.08),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),

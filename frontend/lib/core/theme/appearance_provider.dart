@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_constants.dart';
 import '../storage/hive_service.dart';
 
-final appearanceProvider = StateNotifierProvider<AppearanceNotifier, ThemeMode>((ref) {
+final appearanceProvider =
+    StateNotifierProvider<AppearanceNotifier, ThemeMode>((ref) {
   return AppearanceNotifier();
 });
 

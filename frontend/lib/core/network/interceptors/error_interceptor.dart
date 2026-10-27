@@ -8,7 +8,8 @@ class ErrorInterceptor extends Interceptor {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        throw const NetworkException('Connection timed out. Check your internet.');
+        throw const NetworkException(
+            'Connection timed out. Check your internet.');
       case DioExceptionType.connectionError:
         throw const NetworkException('No internet connection.');
       case DioExceptionType.badResponse:
@@ -21,13 +22,17 @@ class ErrorInterceptor extends Interceptor {
   Never _handleResponseError(DioException err) {
     final statusCode = err.response?.statusCode;
     final data = err.response?.data;
-    final message = data is Map ? (data['message'] ?? 'An error occurred') : 'An error occurred';
+    final message = data is Map
+        ? (data['message'] ?? 'An error occurred')
+        : 'An error occurred';
 
     switch (statusCode) {
       case 400:
-        final errors = data is Map ? (data['errors'] as Map<String, dynamic>?)?.map(
-          (k, v) => MapEntry(k, v.toString()),
-        ) : null;
+        final errors = data is Map
+            ? (data['errors'] as Map<String, dynamic>?)?.map(
+                (k, v) => MapEntry(k, v.toString()),
+              )
+            : null;
         throw ValidationException(message.toString(), fieldErrors: errors);
       case 401:
         throw UnauthorizedException(message.toString());

@@ -14,7 +14,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -50,7 +51,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final errorColor = isDark ? AppColors.errorDark : AppColors.error;
 
     return AnimatedGradientBg(
@@ -80,7 +82,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 'Enter your registered email address and we will send you a link to reset your password.',
-                                style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                                style: AppTextStyles.bodyMd
+                                    .copyWith(color: textSecondary),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 24),
@@ -101,7 +104,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               if (_error != null) ...[
                                 const SizedBox(height: 14),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
                                   decoration: BoxDecoration(
                                     color: errorColor.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
@@ -112,12 +116,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.error_outline_rounded, color: errorColor, size: 18),
+                                      Icon(Icons.error_outline_rounded,
+                                          color: errorColor, size: 18),
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Text(
                                           _error!,
-                                          style: AppTextStyles.bodySm.copyWith(color: errorColor),
+                                          style: AppTextStyles.bodySm
+                                              .copyWith(color: errorColor),
                                         ),
                                       ),
                                     ],
@@ -153,7 +159,8 @@ class _SentConfirmation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
 
     return BrlGlassCard(

@@ -36,11 +36,16 @@ class BrlAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = (isDark ? AppColors.darkSurface : AppColors.lightSurface)
-        .withValues(alpha: isDark ? 0.85 : 0.90);
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final accent = accentColor ?? (isDark ? AppColors.darkAccent : AppColors.lightAccent);
-    final borderCol = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06);
+    final surfaceColor =
+        (isDark ? AppColors.darkSurface : AppColors.lightSurface)
+            .withValues(alpha: isDark ? 0.85 : 0.90);
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final accent =
+        accentColor ?? (isDark ? AppColors.darkAccent : AppColors.lightAccent);
+    final borderCol = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.06);
 
     return ClipRect(
       child: BackdropFilter(
@@ -50,7 +55,8 @@ class BrlAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: surfaceColor,
             border: Border(bottom: BorderSide(color: borderCol, width: 0.8)),
           ),
-          padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 8, 16, 10),
+          padding: EdgeInsets.fromLTRB(
+              16, MediaQuery.of(context).padding.top + 8, 16, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -122,12 +128,15 @@ class BrlAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (counterText != null && counterText!.isNotEmpty) ...[
+                            if (counterText != null &&
+                                counterText!.isNotEmpty) ...[
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2.5),
                                 decoration: BoxDecoration(
-                                  color: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+                                  color: accent.withValues(
+                                      alpha: isDark ? 0.16 : 0.10),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: accent.withValues(alpha: 0.25),
@@ -191,13 +200,15 @@ class BrlHeaderIconButton extends StatelessWidget {
     this.isActive = false,
     this.iconColor,
     this.badge,
-  }) : assert(icon != null || child != null, 'Either icon or child must be provided');
+  }) : assert(icon != null || child != null,
+            'Either icon or child must be provided');
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
 
     return Tooltip(
       message: tooltip,
@@ -222,7 +233,9 @@ class BrlHeaderIconButton extends StatelessWidget {
               border: Border.all(
                 color: isActive
                     ? accent.withValues(alpha: 0.45)
-                    : (isDark ? Colors.white.withValues(alpha: 0.10) : Colors.black.withValues(alpha: 0.06)),
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : Colors.black.withValues(alpha: 0.06)),
                 width: 0.8,
               ),
             ),
@@ -233,7 +246,10 @@ class BrlHeaderIconButton extends StatelessWidget {
                     Icon(
                       icon!,
                       size: 19,
-                      color: iconColor ?? (isActive ? accent : textPrimary.withValues(alpha: 0.82)),
+                      color: iconColor ??
+                          (isActive
+                              ? accent
+                              : textPrimary.withValues(alpha: 0.82)),
                     ),
                 if (badge != null)
                   Positioned(

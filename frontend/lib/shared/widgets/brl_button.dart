@@ -32,7 +32,8 @@ class BrlButton extends StatefulWidget {
   State<BrlButton> createState() => _BrlButtonState();
 }
 
-class _BrlButtonState extends State<BrlButton> with SingleTickerProviderStateMixin {
+class _BrlButtonState extends State<BrlButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -98,7 +99,8 @@ class _BrlButtonState extends State<BrlButton> with SingleTickerProviderStateMix
         break;
       case BrlButtonVariant.ghost:
         bg = Colors.transparent;
-        fg = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+        fg =
+            isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
         break;
     }
 
@@ -126,7 +128,8 @@ class _BrlButtonState extends State<BrlButton> with SingleTickerProviderStateMix
             border: border,
           ),
           child: Row(
-            mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisSize:
+                widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (widget.isLoading)

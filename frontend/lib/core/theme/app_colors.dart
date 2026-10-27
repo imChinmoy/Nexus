@@ -101,39 +101,66 @@ class AppColors {
   static const Color moduleSettings = Color(0xFF8E8E93);
 
   // Gradients (Subtle & Restrained)
-  static const List<Color> primaryGradient = [Color(0xFF2997FF), Color(0xFF5E5CE6)];
-  static const List<Color> secondaryGradient = [Color(0xFF5E5CE6), Color(0xFFFF375F)];
-  static const List<Color> accentGradient = [Color(0xFFFF375F), Color(0xFFFF9F0A)];
+  static const List<Color> primaryGradient = [
+    Color(0xFF2997FF),
+    Color(0xFF5E5CE6)
+  ];
+  static const List<Color> secondaryGradient = [
+    Color(0xFF5E5CE6),
+    Color(0xFFFF375F)
+  ];
+  static const List<Color> accentGradient = [
+    Color(0xFFFF375F),
+    Color(0xFFFF9F0A)
+  ];
 
   // ---------------------------------------------------------------------------
   // Context-aware color resolution helpers
   // ---------------------------------------------------------------------------
   static Color bgOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkBackground : lightBackground;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkBackground
+          : lightBackground;
 
   static Color surfaceOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkSurface : lightSurface;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkSurface
+          : lightSurface;
 
   static Color elevatedSurfaceOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkElevatedSurface : lightElevatedSurface;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkElevatedSurface
+          : lightElevatedSurface;
 
   static Color textPrimaryOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkTextPrimary : lightTextPrimary;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextPrimary
+          : lightTextPrimary;
 
   static Color textSecondaryOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkTextSecondary : lightTextSecondary;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextSecondary
+          : lightTextSecondary;
 
   static Color textTertiaryOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkTextTertiary : lightTextTertiary;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextTertiary
+          : lightTextTertiary;
 
   static Color separatorOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkSeparator : lightSeparator;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkSeparator
+          : lightSeparator;
 
   static Color borderOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkSeparator : lightSeparator;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkSeparator
+          : lightSeparator;
 
   static Color accentOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? darkAccent : lightAccent;
+      Theme.of(context).brightness == Brightness.dark
+          ? darkAccent
+          : lightAccent;
 
   static Color successOf(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? successDark : success;
@@ -148,5 +175,7 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark ? infoDark : info;
 
   static Color cardBorderOf(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0x1AFFFFFF)
+          : const Color(0x0F000000);
 }

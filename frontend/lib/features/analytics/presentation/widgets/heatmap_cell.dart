@@ -42,7 +42,8 @@ class HeatmapCell extends StatelessWidget {
           return const Color(0xFF5AB0FF); // bright luminous sky blue
         case 0:
         default:
-          return const Color(0xFF26262E); // clearly visible cell against dark surface
+          return const Color(
+              0xFF26262E); // clearly visible cell against dark surface
       }
     } else {
       switch (intensityLevel) {
@@ -71,7 +72,8 @@ class HeatmapCell extends StatelessWidget {
     final cellColor = _resolveCellColor(context, isDark);
     final count = dayData?.count ?? 0;
     final dateFormatted = DateFormat.yMMMMd().format(day!.date);
-    final semanticLabel = '$dateFormatted: $count ${metric == 'events' ? 'events' : 'check-ins'}';
+    final semanticLabel =
+        '$dateFormatted: $count ${metric == 'events' ? 'events' : 'check-ins'}';
 
     return Semantics(
       label: semanticLabel,
@@ -89,7 +91,8 @@ class HeatmapCell extends StatelessWidget {
             borderRadius: BorderRadius.circular(cellRadius),
             border: isSelected
                 ? Border.all(
-                    color: isDark ? AppColors.darkAccent : AppColors.lightAccent,
+                    color:
+                        isDark ? AppColors.darkAccent : AppColors.lightAccent,
                     width: 1.6,
                   )
                 : Border.all(
@@ -101,7 +104,10 @@ class HeatmapCell extends StatelessWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: (isDark ? AppColors.darkAccent : AppColors.lightAccent).withValues(alpha: 0.6),
+                      color: (isDark
+                              ? AppColors.darkAccent
+                              : AppColors.lightAccent)
+                          .withValues(alpha: 0.6),
                       blurRadius: 4,
                       spreadRadius: 1,
                     )

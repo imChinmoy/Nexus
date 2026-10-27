@@ -128,7 +128,8 @@ class EventEntity {
   /// 1. Ongoing event closest to current time (if any).
   /// 2. Upcoming event closest to current date/time (if any).
   /// 3. Fallback: Most recent past event (closest ended event to now).
-  static int findDefaultEventIndex(List<EventEntity> events, [DateTime? clock]) {
+  static int findDefaultEventIndex(List<EventEntity> events,
+      [DateTime? clock]) {
     if (events.isEmpty) return 0;
     final now = clock ?? DateTime.now();
 
@@ -155,7 +156,8 @@ class EventEntity {
       final status = e.effectiveStatusAt(now);
       if (status == 'upcoming' || e.startDate.isAfter(now)) {
         final diff = e.startDate.difference(now);
-        if (diff >= Duration.zero && (minUpcomingDiff == null || diff < minUpcomingDiff)) {
+        if (diff >= Duration.zero &&
+            (minUpcomingDiff == null || diff < minUpcomingDiff)) {
           minUpcomingDiff = diff;
           upcomingIdx = i;
         }
@@ -180,7 +182,8 @@ class EventEntity {
   }
 
   /// Returns the default landing EventEntity, or null if list is empty.
-  static EventEntity? findDefaultEvent(List<EventEntity> events, [DateTime? clock]) {
+  static EventEntity? findDefaultEvent(List<EventEntity> events,
+      [DateTime? clock]) {
     if (events.isEmpty) return null;
     final idx = findDefaultEventIndex(events, clock);
     if (idx >= 0 && idx < events.length) return events[idx];

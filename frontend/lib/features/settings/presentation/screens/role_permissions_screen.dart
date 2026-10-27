@@ -12,7 +12,8 @@ class RolePermissionsScreen extends ConsumerStatefulWidget {
   const RolePermissionsScreen({super.key});
 
   @override
-  ConsumerState<RolePermissionsScreen> createState() => _RolePermissionsScreenState();
+  ConsumerState<RolePermissionsScreen> createState() =>
+      _RolePermissionsScreenState();
 }
 
 class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
@@ -64,14 +65,16 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
     setState(() => _isSaving = true);
     try {
       final dio = ref.read(dioClientProvider);
-      await dio.put('/settings/role_permissions', data: {'value': _rolePermissions});
+      await dio
+          .put('/settings/role_permissions', data: {'value': _rolePermissions});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Permissions saved successfully'),
             backgroundColor: AppColors.successOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -82,7 +85,8 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
             content: Text('Failed to save permissions: $e'),
             backgroundColor: AppColors.errorOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -92,7 +96,8 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
   }
 
   Widget _buildRoleCard(String role, List<String> permissions) {
-    final isAllSelected = permissions.contains('all') || _allPermissions.every((p) => permissions.contains(p));
+    final isAllSelected = permissions.contains('all') ||
+        _allPermissions.every((p) => permissions.contains(p));
     final accent = AppColors.accentOf(context);
 
     return BrlGlassCard(
@@ -116,8 +121,11 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
                   Text(
                     'Full Access',
                     style: AppTextStyles.caption.copyWith(
-                      color: isAllSelected ? accent : AppColors.textSecondaryOf(context),
-                      fontWeight: isAllSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isAllSelected
+                          ? accent
+                          : AppColors.textSecondaryOf(context),
+                      fontWeight:
+                          isAllSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -159,37 +167,44 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: entry.value.map((permission) {
-                      final hasPermission = isAllSelected || permissions.contains(permission);
+                      final hasPermission =
+                          isAllSelected || permissions.contains(permission);
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            List<String> currentPerms = List<String>.from(permissions);
+                            List<String> currentPerms =
+                                List<String>.from(permissions);
                             if (currentPerms.contains('all')) {
                               currentPerms = List<String>.from(_allPermissions);
                             }
 
                             if (!hasPermission) {
                               currentPerms.add(permission);
-                              if (_allPermissions.every((p) => currentPerms.contains(p))) {
+                              if (_allPermissions
+                                  .every((p) => currentPerms.contains(p))) {
                                 currentPerms.add('all');
                               }
                             } else {
                               currentPerms.remove(permission);
                               currentPerms.remove('all');
                             }
-                            _rolePermissions[role] = currentPerms.toSet().toList();
+                            _rolePermissions[role] =
+                                currentPerms.toSet().toList();
                           });
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
                             color: hasPermission
                                 ? accent.withValues(alpha: 0.14)
                                 : AppColors.surfaceOf(context),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: hasPermission ? accent : AppColors.borderOf(context),
+                              color: hasPermission
+                                  ? accent
+                                  : AppColors.borderOf(context),
                               width: 0.8,
                             ),
                           ),
@@ -197,9 +212,13 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                hasPermission ? Icons.check_circle : Icons.circle_outlined,
+                                hasPermission
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
                                 size: 14,
-                                color: hasPermission ? accent : AppColors.textTertiaryOf(context),
+                                color: hasPermission
+                                    ? accent
+                                    : AppColors.textTertiaryOf(context),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -208,7 +227,9 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
                                   color: hasPermission
                                       ? accent
                                       : AppColors.textSecondaryOf(context),
-                                  fontWeight: hasPermission ? FontWeight.w600 : FontWeight.w500,
+                                  fontWeight: hasPermission
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
                                 ),
                               ),
                             ],
@@ -236,12 +257,17 @@ class _RolePermissionsScreenState extends ConsumerState<RolePermissionsScreen> {
           showBack: true,
         ),
         body: _isLoading
-            ? Center(child: CircularProgressIndicator(color: AppColors.accentOf(context), strokeWidth: 2.5))
+            ? Center(
+                child: CircularProgressIndicator(
+                    color: AppColors.accentOf(context), strokeWidth: 2.5))
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
                 children: [
-                  ..._rolePermissions.keys.where((role) => role != 'super_admin').map((role) {
-                    final permissions = List<String>.from(_rolePermissions[role] ?? []);
+                  ..._rolePermissions.keys
+                      .where((role) => role != 'super_admin')
+                      .map((role) {
+                    final permissions =
+                        List<String>.from(_rolePermissions[role] ?? []);
                     return _buildRoleCard(role, permissions);
                   }),
                   const SizedBox(height: 16),

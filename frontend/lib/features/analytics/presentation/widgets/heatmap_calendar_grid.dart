@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/activity_heatmap_entity.dart';
 import '../utils/heatmap_calendar_utils.dart';
 import 'heatmap_cell.dart';
@@ -9,7 +9,8 @@ import 'heatmap_cell.dart';
 class HeatmapCalendarGrid extends StatefulWidget {
   final ActivityHeatmapEntity heatmap;
   final String? selectedDateKey;
-  final void Function(HeatmapCalendarDay day, HeatmapDayEntity dayData) onDaySelected;
+  final void Function(HeatmapCalendarDay day, HeatmapDayEntity dayData)
+      onDaySelected;
 
   const HeatmapCalendarGrid({
     super.key,
@@ -33,7 +34,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
   static const double _cellSize = HeatmapCell.cellSize; // 12.0
   static const double _cellGap = 3.0;
   static const double _weekdayLabelWidth = 26.0;
-  static const double _monthSeparatorWidth = 17.0; // 8px left padding + 1px divider + 8px right padding
+  static const double _monthSeparatorWidth =
+      17.0; // 8px left padding + 1px divider + 8px right padding
 
   @override
   void initState() {
@@ -83,7 +85,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
     double offset = 0.0;
     for (int i = 0; i < targetIndex && i < _gridData.months.length; i++) {
       final m = _gridData.months[i];
-      final mWidth = (m.columns.length * _cellSize) + ((m.columns.length - 1) * _cellGap);
+      final mWidth =
+          (m.columns.length * _cellSize) + ((m.columns.length - 1) * _cellGap);
       offset += mWidth + _monthSeparatorWidth;
     }
     return offset;
@@ -97,13 +100,13 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
       _isProgrammaticScrolling = true;
       _scrollController
           .animateTo(
-            target,
-            duration: const Duration(milliseconds: 320),
-            curve: Curves.easeOutCubic,
-          )
+        target,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      )
           .then((_) {
-            _isProgrammaticScrolling = false;
-          });
+        _isProgrammaticScrolling = false;
+      });
     } else {
       _scrollController.jumpTo(target);
     }
@@ -167,8 +170,10 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
 
     return Column(
@@ -184,7 +189,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
           children: [
             // Weekday Guide (M, W, F)
             Padding(
-              padding: const EdgeInsets.only(top: 24.0), // 18px header + 6px gap
+              padding:
+                  const EdgeInsets.only(top: 24.0), // 18px header + 6px gap
               child: SizedBox(
                 width: _weekdayLabelWidth,
                 child: Column(
@@ -210,7 +216,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(_gridData.months.length, (monthIndex) {
+                  children:
+                      List.generate(_gridData.months.length, (monthIndex) {
                     final month = _gridData.months[monthIndex];
                     final isLast = monthIndex == _gridData.months.length - 1;
 
@@ -219,7 +226,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Month Block
-                        _buildMonthSection(month, isDark, textPrimary, textSecondary, accent),
+                        _buildMonthSection(
+                            month, isDark, textPrimary, textSecondary, accent),
 
                         // Month Segregation Divider
                         if (!isLast) _buildMonthSeparator(isDark),
@@ -255,7 +263,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
         itemBuilder: (context, index) {
           final month = _gridData.months[index];
           final isActive = index == _activeMonthIndex;
-          final isCurrentMonth = widget.heatmap.year == now.year && month.month == now.month;
+          final isCurrentMonth =
+              widget.heatmap.year == now.year && month.month == now.month;
 
           return Material(
             color: Colors.transparent,
@@ -271,7 +280,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
               borderRadius: BorderRadius.circular(14),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: isActive
                       ? accent.withValues(alpha: isDark ? 0.25 : 0.15)
@@ -295,9 +305,10 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
                   children: [
                     Text(
                       month.shortName,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 10.5,
-                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight:
+                            isActive ? FontWeight.w700 : FontWeight.w500,
                         color: isActive
                             ? (isDark ? Colors.white : accent)
                             : textSecondary,
@@ -354,10 +365,13 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
                 child: Column(
                   children: List.generate(7, (rowIndex) {
                     final day = colDays[rowIndex];
-                    final isSelected = day != null && day.dateKey == widget.selectedDateKey;
-                    final dayData = day != null ? widget.heatmap.getDay(day.dateKey) : null;
+                    final isSelected =
+                        day != null && day.dateKey == widget.selectedDateKey;
+                    final dayData =
+                        day != null ? widget.heatmap.getDay(day.dateKey) : null;
                     final count = dayData?.count ?? 0;
-                    final level = widget.heatmap.getIntensityLevel(count, _thresholds);
+                    final level =
+                        widget.heatmap.getIntensityLevel(count, _thresholds);
 
                     return Padding(
                       padding: EdgeInsets.only(
@@ -395,7 +409,8 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
     Color accent,
   ) {
     final now = DateTime.now();
-    final isCurrentMonth = widget.heatmap.year == now.year && month.month == now.month;
+    final isCurrentMonth =
+        widget.heatmap.year == now.year && month.month == now.month;
 
     int monthActivityCount = 0;
     for (final col in month.columns) {
@@ -413,7 +428,7 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
         children: [
           Text(
             month.shortName,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 11.0,
               fontWeight: isCurrentMonth ? FontWeight.w700 : FontWeight.w600,
               color: isCurrentMonth ? accent : textPrimary,
@@ -430,7 +445,7 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
               ),
               child: Text(
                 '$monthActivityCount',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 8.5,
                   fontWeight: FontWeight.w700,
                   color: accent,
@@ -471,10 +486,12 @@ class _HeatmapCalendarGridState extends State<HeatmapCalendarGrid> {
         alignment: Alignment.centerLeft,
         child: Text(
           label,
-          style: GoogleFonts.inter(
+          style: AppTextStyles.caption.copyWith(
             fontSize: 9.0,
             fontWeight: FontWeight.w500,
-            color: isDark ? AppColors.darkTextTertiary : AppColors.lightTextTertiary,
+            color: isDark
+                ? AppColors.darkTextTertiary
+                : AppColors.lightTextTertiary,
           ),
         ),
       ),

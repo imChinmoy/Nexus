@@ -36,7 +36,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     });
 
     // Safety fallback timer in case of animation callback anomalies
-    _fallbackTimer = Timer(_splashDuration + const Duration(milliseconds: 200), () {
+    _fallbackTimer =
+        Timer(_splashDuration + const Duration(milliseconds: 200), () {
       if (mounted && !_animationCompleted) {
         _handleSplashFinish();
       }
@@ -139,8 +140,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   Consumer(
                     builder: (context, ref, _) {
                       final authState = ref.watch(authNotifierProvider);
-                      final isResolving = authState is AuthLoading ||
-                          authState is AuthInitial;
+                      final isResolving =
+                          authState is AuthLoading || authState is AuthInitial;
 
                       return AnimatedOpacity(
                         duration: const Duration(milliseconds: 300),
@@ -165,7 +166,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              isResolving ? 'CONNECTING PROTOCOL' : 'SYSTEM READY',
+                              isResolving
+                                  ? 'CONNECTING PROTOCOL'
+                                  : 'SYSTEM READY',
                               style: AppTextStyles.caption.copyWith(
                                 color: const Color(0xFF94A3B8),
                                 fontSize: 9.5,

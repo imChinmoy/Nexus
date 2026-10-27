@@ -20,10 +20,12 @@ class StudentDetailScreen extends ConsumerStatefulWidget {
   const StudentDetailScreen({super.key, required this.studentId});
 
   @override
-  ConsumerState<StudentDetailScreen> createState() => _StudentDetailScreenState();
+  ConsumerState<StudentDetailScreen> createState() =>
+      _StudentDetailScreenState();
 }
 
-class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with SingleTickerProviderStateMixin {
+class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedTab = 0; // 0 = Overview, 1 = QR Pass
 
   @override
@@ -40,9 +42,13 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
         ),
         body: studentsAsync.maybeWhen(
           data: (students) {
-            final student = students.where(
-              (s) => s.rollNumber == widget.studentId || s.id == widget.studentId,
-            ).firstOrNull;
+            final student = students
+                .where(
+                  (s) =>
+                      s.rollNumber == widget.studentId ||
+                      s.id == widget.studentId,
+                )
+                .firstOrNull;
             if (student == null) {
               return Center(
                 child: Padding(
@@ -53,7 +59,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                       Icon(Icons.person_off_rounded,
                           size: 48, color: AppColors.errorOf(context)),
                       const SizedBox(height: 12),
-                      Text('Student Not Found', style: AppTextStyles.headlineSm),
+                      Text('Student Not Found',
+                          style: AppTextStyles.headlineSm),
                       const SizedBox(height: 6),
                       Text(
                         'The requested student record is not available in the current scope.',
@@ -88,7 +95,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                 await Future.delayed(const Duration(milliseconds: 600));
               },
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 children: [
                   _buildHero(context, student),
                   const SizedBox(height: 18),
@@ -110,13 +118,15 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.person_off_outlined, size: 48, color: AppColors.errorOf(context)),
+                Icon(Icons.person_off_outlined,
+                    size: 48, color: AppColors.errorOf(context)),
                 const SizedBox(height: 12),
                 Text('Student Not Found', style: AppTextStyles.headlineSm),
                 const SizedBox(height: 6),
                 Text(
                   'No record matched the provided ID: ${widget.studentId}',
-                  style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context)),
+                  style: AppTextStyles.bodySm
+                      .copyWith(color: AppColors.textSecondaryOf(context)),
                 ),
               ],
             ),
@@ -130,7 +140,13 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     final accent = AppColors.accentOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = student.name.trim().isNotEmpty
-        ? student.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? student.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : 'S';
 
     return Column(
@@ -206,7 +222,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   boxShadow: _selectedTab == 0
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.3 : 0.08),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -217,7 +234,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   child: Text(
                     'Overview',
                     style: AppTextStyles.labelMd.copyWith(
-                      fontWeight: _selectedTab == 0 ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight:
+                          _selectedTab == 0 ? FontWeight.w600 : FontWeight.w500,
                       color: _selectedTab == 0
                           ? AppColors.textPrimaryOf(context)
                           : AppColors.textSecondaryOf(context),
@@ -240,7 +258,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   boxShadow: _selectedTab == 1
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.3 : 0.08),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -254,13 +273,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                       Icon(
                         Icons.qr_code,
                         size: 16,
-                        color: _selectedTab == 1 ? accent : AppColors.textSecondaryOf(context),
+                        color: _selectedTab == 1
+                            ? accent
+                            : AppColors.textSecondaryOf(context),
                       ),
                       const SizedBox(width: 6),
                       Text(
                         'QR Pass',
                         style: AppTextStyles.labelMd.copyWith(
-                          fontWeight: _selectedTab == 1 ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: _selectedTab == 1
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: _selectedTab == 1
                               ? AppColors.textPrimaryOf(context)
                               : AppColors.textSecondaryOf(context),
@@ -277,7 +300,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     );
   }
 
-  Widget _buildEventAttendanceSection(BuildContext context, StudentEntity student) {
+  Widget _buildEventAttendanceSection(
+      BuildContext context, StudentEntity student) {
     final eventsAsync = ref.watch(eventsProvider);
     final events = eventsAsync.valueOrNull ?? [];
     if (events.isEmpty) return const SizedBox.shrink();
@@ -290,8 +314,11 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
 
     if (activeEvent == null) return const SizedBox.shrink();
 
-    final eventScopedAsync = ref.watch(eventScopedStudentsFamilyProvider(activeEvent.id));
-    final scopedStudent = eventScopedAsync.valueOrNull?.students.cast<StudentEntity?>().firstWhere(
+    final eventScopedAsync =
+        ref.watch(eventScopedStudentsFamilyProvider(activeEvent.id));
+    final scopedStudent = eventScopedAsync.valueOrNull?.students
+        .cast<StudentEntity?>()
+        .firstWhere(
           (s) => s?.id == student.id || s?.rollNumber == student.rollNumber,
           orElse: () => null,
         );
@@ -331,7 +358,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, 'EVENT ATTENDANCE • ${activeEvent.title.toUpperCase()}'),
+        _buildSectionHeader(
+            context, 'EVENT ATTENDANCE • ${activeEvent.title.toUpperCase()}'),
         const SizedBox(height: 8),
         BrlGlassCard(
           padding: const EdgeInsets.all(16),
@@ -356,7 +384,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   ),
                   Text(
                     'Manual Override',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textTertiaryOf(context)),
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.textTertiaryOf(context)),
                   ),
                 ],
               ),
@@ -370,14 +399,16 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                     label: 'Present',
                     color: AppColors.successOf(context),
                     isSelected: attStatus == 'present',
-                    onTap: () => _markStudent(student, activeEvent.id, 'present'),
+                    onTap: () =>
+                        _markStudent(student, activeEvent.id, 'present'),
                   ),
                   _buildQuickMarkChip(
                     context,
                     label: 'Absent',
                     color: AppColors.errorOf(context),
                     isSelected: attStatus == 'absent',
-                    onTap: () => _markStudent(student, activeEvent.id, 'absent'),
+                    onTap: () =>
+                        _markStudent(student, activeEvent.id, 'absent'),
                   ),
                   _buildQuickMarkChip(
                     context,
@@ -389,9 +420,12 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   _buildQuickMarkChip(
                     context,
                     label: 'Not Scanned',
-                    color: isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70),
+                    color: isDark
+                        ? const Color(0xFF8E8E93)
+                        : const Color(0xFF6C6C70),
                     isSelected: attStatus == 'not_scanned',
-                    onTap: () => _markStudent(student, activeEvent.id, 'not_scanned'),
+                    onTap: () =>
+                        _markStudent(student, activeEvent.id, 'not_scanned'),
                   ),
                 ],
               ),
@@ -439,7 +473,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     );
   }
 
-  Future<void> _markStudent(StudentEntity student, String eventId, String status) async {
+  Future<void> _markStudent(
+      StudentEntity student, String eventId, String status) async {
     try {
       final attendanceRepo = ref.read(attendanceRepositoryProvider);
       final targetId = student.id.isNotEmpty ? student.id : student.rollNumber;
@@ -461,7 +496,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
           );
         },
         (_) {
-          final displayLabel = status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
+          final displayLabel =
+              status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Attendance updated: $displayLabel'),
@@ -478,7 +514,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), behavior: SnackBarBehavior.floating),
+          SnackBar(
+              content: Text(e.toString()), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -497,44 +534,83 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
             children: [
               _buildRow(context, Icons.email_outlined, 'Email', student.email),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.phone_outlined, 'Phone', student.phone?.isNotEmpty == true ? student.phone! : 'Not specified'),
+              _buildRow(
+                  context,
+                  Icons.phone_outlined,
+                  'Phone',
+                  student.phone?.isNotEmpty == true
+                      ? student.phone!
+                      : 'Not specified'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.account_balance_outlined, 'Branch', student.branch),
+              _buildRow(context, Icons.account_balance_outlined, 'Branch',
+                  student.branch),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.school_outlined, 'Year', 'Year ${student.year}'),
+              _buildRow(context, Icons.school_outlined, 'Year',
+                  'Year ${student.year}'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.domain_outlined, 'Domain', student.domain?.isNotEmpty == true ? student.domain! : 'General'),
+              _buildRow(
+                  context,
+                  Icons.domain_outlined,
+                  'Domain',
+                  student.domain?.isNotEmpty == true
+                      ? student.domain!
+                      : 'General'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.person_outline, 'Gender', student.gender?.isNotEmpty == true ? student.gender! : 'Not specified'),
+              _buildRow(
+                  context,
+                  Icons.person_outline,
+                  'Gender',
+                  student.gender?.isNotEmpty == true
+                      ? student.gender!
+                      : 'Not specified'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.hotel_outlined, 'Hosteller', student.hosteller == true ? 'Yes' : 'Day Scholar'),
+              _buildRow(context, Icons.hotel_outlined, 'Hosteller',
+                  student.hosteller == true ? 'Yes' : 'Day Scholar'),
             ],
           ),
         ),
         const SizedBox(height: 20),
-
         _buildSectionHeader(context, 'DEVELOPER & CODING PROFILES'),
         const SizedBox(height: 8),
         BrlGlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              _buildRow(context, Icons.code_rounded, 'GitHub', student.github?.isNotEmpty == true ? student.github! : 'Not linked'),
+              _buildRow(
+                  context,
+                  Icons.code_rounded,
+                  'GitHub',
+                  student.github?.isNotEmpty == true
+                      ? student.github!
+                      : 'Not linked'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.emoji_events_outlined, 'Unstop', student.unstop?.isNotEmpty == true ? student.unstop! : 'Not linked'),
+              _buildRow(
+                  context,
+                  Icons.emoji_events_outlined,
+                  'Unstop',
+                  student.unstop?.isNotEmpty == true
+                      ? student.unstop!
+                      : 'Not linked'),
               Divider(color: AppColors.borderOf(context), height: 1),
-              _buildRow(context, Icons.terminal_rounded, 'HackerRank', student.hackerrank?.isNotEmpty == true ? student.hackerrank! : 'Not linked'),
-              if (student.codingProfiles != null && student.codingProfiles!.isNotEmpty) ...[
+              _buildRow(
+                  context,
+                  Icons.terminal_rounded,
+                  'HackerRank',
+                  student.hackerrank?.isNotEmpty == true
+                      ? student.hackerrank!
+                      : 'Not linked'),
+              if (student.codingProfiles != null &&
+                  student.codingProfiles!.isNotEmpty) ...[
                 for (var profile in student.codingProfiles!) ...[
                   Divider(color: AppColors.borderOf(context), height: 1),
-                  _buildRow(context, Icons.laptop_chromebook_outlined, profile.platform, profile.username),
+                  _buildRow(context, Icons.laptop_chromebook_outlined,
+                      profile.platform, profile.username),
                 ]
               ],
             ],
           ),
         ),
         const SizedBox(height: 20),
-
         _buildSectionHeader(context, 'RECORD TIMESTAMPS'),
         const SizedBox(height: 8),
         BrlGlassCard(
@@ -545,14 +621,18 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                 context,
                 Icons.calendar_today_outlined,
                 'Joined Registry',
-                student.createdAt != null ? '${student.createdAt!.toLocal()}'.split(' ')[0] : 'N/A',
+                student.createdAt != null
+                    ? '${student.createdAt!.toLocal()}'.split(' ')[0]
+                    : 'N/A',
               ),
               Divider(color: AppColors.borderOf(context), height: 1),
               _buildRow(
                 context,
                 Icons.update_outlined,
                 'Last Updated',
-                student.updatedAt != null ? '${student.updatedAt!.toLocal()}'.split(' ')[0] : 'N/A',
+                student.updatedAt != null
+                    ? '${student.updatedAt!.toLocal()}'.split(' ')[0]
+                    : 'N/A',
               ),
             ],
           ),
@@ -598,7 +678,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
             const SizedBox(height: 18),
             Text(
               student.name,
-              style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+              style: AppTextStyles.headlineSm
+                  .copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
@@ -617,17 +698,20 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
                   SnackBar(
                     content: const Text('Roll number copied to clipboard'),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                 );
               },
               borderRadius: BorderRadius.circular(8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.copy, size: 14, color: AppColors.accentOf(context)),
+                    Icon(Icons.copy,
+                        size: 14, color: AppColors.accentOf(context)),
                     const SizedBox(width: 6),
                     Text(
                       'Copy Roll Number',
@@ -660,14 +744,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> with 
     );
   }
 
-  Widget _buildRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildRow(
+      BuildContext context, IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           Icon(icon, color: AppColors.accentOf(context), size: 18),
           const SizedBox(width: 12),
-          Text(label, style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context))),
+          Text(label,
+              style: AppTextStyles.bodySm
+                  .copyWith(color: AppColors.textSecondaryOf(context))),
           const Spacer(),
           Flexible(
             child: Text(

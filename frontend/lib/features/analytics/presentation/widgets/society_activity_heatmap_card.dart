@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/entities/activity_heatmap_entity.dart';
 import '../../providers/analytics_provider.dart';
 import 'heatmap_calendar_grid.dart';
@@ -18,10 +18,13 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textPrimary =
+        isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
-    final cardBorder = isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
+    final cardBorder =
+        isDark ? const Color(0x1AFFFFFF) : const Color(0x0F000000);
 
     final selectedYear = ref.watch(selectedHeatmapYearProvider);
     final selectedMetric = ref.watch(selectedHeatmapMetricProvider);
@@ -52,11 +55,13 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Section Header & Controls
-          _buildHeader(context, ref, selectedYear, selectedMetric, isDark, textPrimary, textSecondary, accent),
+          _buildHeader(context, ref, selectedYear, selectedMetric, isDark,
+              textPrimary, textSecondary, accent),
           const SizedBox(height: 12),
 
           // 2. Metric Selector Pill
-          _buildMetricSelector(ref, selectedMetric, isDark, textPrimary, textSecondary, accent),
+          _buildMetricSelector(
+              ref, selectedMetric, isDark, textPrimary, textSecondary, accent),
           const SizedBox(height: 14),
 
           // 3. Content: Async when
@@ -73,7 +78,16 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
               accent,
             ),
             loading: () => _buildLoadingSkeleton(isDark),
-            error: (err, _) => _buildErrorState(context, ref, selectedYear, selectedMetric, err.toString(), isDark, textPrimary, textSecondary, accent),
+            error: (err, _) => _buildErrorState(
+                context,
+                ref,
+                selectedYear,
+                selectedMetric,
+                err.toString(),
+                isDark,
+                textPrimary,
+                textSecondary,
+                accent),
           ),
         ],
       ),
@@ -105,7 +119,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
             children: [
               Text(
                 'Society Activity',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.cardTitle.copyWith(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: textPrimary,
@@ -115,9 +129,8 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                 'Your year in events and attendance',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.editorialSubtitle.copyWith(
                   fontSize: 12,
-                  fontWeight: FontWeight.w400,
                   color: textSecondary,
                 ),
               ),
@@ -139,8 +152,11 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
                 onTap: selectedYear > 2020
                     ? () {
                         HapticFeedback.lightImpact();
-                        ref.read(selectedHeatmapDateKeyProvider.notifier).state = null;
-                        ref.read(selectedHeatmapYearProvider.notifier).state = selectedYear - 1;
+                        ref
+                            .read(selectedHeatmapDateKeyProvider.notifier)
+                            .state = null;
+                        ref.read(selectedHeatmapYearProvider.notifier).state =
+                            selectedYear - 1;
                       }
                     : null,
                 borderRadius: BorderRadius.circular(6),
@@ -149,7 +165,9 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
                   child: Icon(
                     Icons.chevron_left_rounded,
                     size: 18,
-                    color: selectedYear > 2020 ? textPrimary : textSecondary.withValues(alpha: 0.4),
+                    color: selectedYear > 2020
+                        ? textPrimary
+                        : textSecondary.withValues(alpha: 0.4),
                   ),
                 ),
               ),
@@ -157,7 +175,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: Text(
                   selectedYear.toString(),
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.labelMd.copyWith(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     color: textPrimary,
@@ -168,8 +186,11 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
                 onTap: selectedYear < currentYear + 1
                     ? () {
                         HapticFeedback.lightImpact();
-                        ref.read(selectedHeatmapDateKeyProvider.notifier).state = null;
-                        ref.read(selectedHeatmapYearProvider.notifier).state = selectedYear + 1;
+                        ref
+                            .read(selectedHeatmapDateKeyProvider.notifier)
+                            .state = null;
+                        ref.read(selectedHeatmapYearProvider.notifier).state =
+                            selectedYear + 1;
                       }
                     : null,
                 borderRadius: BorderRadius.circular(6),
@@ -178,7 +199,9 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
                   child: Icon(
                     Icons.chevron_right_rounded,
                     size: 18,
-                    color: selectedYear < currentYear + 1 ? textPrimary : textSecondary.withValues(alpha: 0.4),
+                    color: selectedYear < currentYear + 1
+                        ? textPrimary
+                        : textSecondary.withValues(alpha: 0.4),
                   ),
                 ),
               ),
@@ -217,8 +240,10 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
               onTap: () {
                 if (selectedMetric != 'events') {
                   HapticFeedback.lightImpact();
-                  ref.read(selectedHeatmapDateKeyProvider.notifier).state = null;
-                  ref.read(selectedHeatmapMetricProvider.notifier).state = 'events';
+                  ref.read(selectedHeatmapDateKeyProvider.notifier).state =
+                      null;
+                  ref.read(selectedHeatmapMetricProvider.notifier).state =
+                      'events';
                 }
               },
               isDark: isDark,
@@ -236,8 +261,10 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
               onTap: () {
                 if (selectedMetric != 'attendance') {
                   HapticFeedback.lightImpact();
-                  ref.read(selectedHeatmapDateKeyProvider.notifier).state = null;
-                  ref.read(selectedHeatmapMetricProvider.notifier).state = 'attendance';
+                  ref.read(selectedHeatmapDateKeyProvider.notifier).state =
+                      null;
+                  ref.read(selectedHeatmapMetricProvider.notifier).state =
+                      'attendance';
                 }
               },
               isDark: isDark,
@@ -266,7 +293,9 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          color: isActive ? (isDark ? const Color(0xFF2B2B32) : Colors.white) : Colors.transparent,
+          color: isActive
+              ? (isDark ? const Color(0xFF2B2B32) : Colors.white)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(7),
           boxShadow: isActive
               ? [
@@ -290,7 +319,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
             const SizedBox(width: 5),
             Text(
               label,
-              style: GoogleFonts.inter(
+              style: AppTextStyles.labelMd.copyWith(
                 fontSize: 11.5,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 color: isActive ? textPrimary : textSecondary,
@@ -373,14 +402,14 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: textSecondary),
+                Icon(Icons.info_outline_rounded,
+                    size: 14, color: textSecondary),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'No recorded activity for this year yet.',
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.captionItalic.copyWith(
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
                       color: textSecondary,
                     ),
                   ),
@@ -396,7 +425,8 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
           heatmap: heatmap,
           selectedDateKey: selectedDateKey,
           onDaySelected: (day, dayData) async {
-            ref.read(selectedHeatmapDateKeyProvider.notifier).state = day.dateKey;
+            ref.read(selectedHeatmapDateKeyProvider.notifier).state =
+                day.dateKey;
             await HeatmapDayDetailsSheet.show(
               context,
               day: day,
@@ -414,8 +444,10 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                heatmap.timezone == 'Asia/Kolkata' ? 'IST (Asia/Kolkata)' : heatmap.timezone,
-                style: GoogleFonts.inter(
+                heatmap.timezone == 'Asia/Kolkata'
+                    ? 'IST (Asia/Kolkata)'
+                    : heatmap.timezone,
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w500,
                   color: textSecondary.withValues(alpha: 0.7),
@@ -450,7 +482,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
           children: [
             Text(
               title,
-              style: GoogleFonts.inter(
+              style: AppTextStyles.caption.copyWith(
                 fontSize: 9.5,
                 fontWeight: FontWeight.w500,
                 color: textSecondary,
@@ -461,7 +493,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
             const SizedBox(height: 2),
             Text(
               value,
-              style: GoogleFonts.inter(
+              style: AppTextStyles.labelMd.copyWith(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: textPrimary,
@@ -479,8 +511,10 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
   // 4. LOADING SKELETON
   // ---------------------------------------------------------------------------
   Widget _buildLoadingSkeleton(bool isDark) {
-    final baseColor = isDark ? const Color(0xFF1C1C22) : const Color(0xFFE5E5EA);
-    final highlightColor = isDark ? const Color(0xFF282830) : const Color(0xFFF2F2F7);
+    final baseColor =
+        isDark ? const Color(0xFF1C1C22) : const Color(0xFFE5E5EA);
+    final highlightColor =
+        isDark ? const Color(0xFF282830) : const Color(0xFFF2F2F7);
 
     return Shimmer.fromColors(
       baseColor: baseColor,
@@ -566,7 +600,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Unable to load activity heatmap',
-            style: GoogleFonts.inter(
+            style: AppTextStyles.cardTitle.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: textPrimary,
@@ -575,7 +609,7 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             error,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.captionItalic.copyWith(
               fontSize: 11,
               color: textSecondary,
             ),
@@ -594,14 +628,16 @@ class SocietyActivityHeatmapCard extends ConsumerWidget {
             icon: const Icon(Icons.refresh_rounded, size: 14),
             label: Text(
               'Retry',
-              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+              style: AppTextStyles.buttonSm
+                  .copyWith(fontSize: 12, fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: accent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               minimumSize: const Size(0, 32),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ],

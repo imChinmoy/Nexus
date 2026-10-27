@@ -60,14 +60,16 @@ class _AddStudentScreenState extends ConsumerState<AddStudentScreen> {
                         label: 'Full Name',
                         hintText: 'e.g., John Doe',
                         controller: _nameController,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 12),
                       BrlTextField(
                         label: 'Roll Number',
                         hintText: 'e.g., 2100290120001',
                         controller: _rollController,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 12),
                       BrlTextField(
@@ -87,7 +89,6 @@ class _AddStudentScreenState extends ConsumerState<AddStudentScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 _buildSectionHeader('ACADEMIC PROGRAM'),
                 const SizedBox(height: 8),
                 BrlGlassCard(
@@ -110,7 +111,6 @@ class _AddStudentScreenState extends ConsumerState<AddStudentScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
-
                 BrlButton(
                   label: 'Save Student Record',
                   icon: Icons.check,
@@ -118,10 +118,12 @@ class _AddStudentScreenState extends ConsumerState<AddStudentScreen> {
                     if (_formKey.currentState?.validate() ?? false) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('Student record saved successfully'),
+                          content:
+                              const Text('Student record saved successfully'),
                           backgroundColor: AppColors.successOf(context),
                           behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
                       );
                       Navigator.of(context).pop();

@@ -31,7 +31,11 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   final _searchController = TextEditingController();
   Timer? _searchDebounce;
 
-  static const List<String> _primaryAttendanceFilters = ['All', 'Present', 'Not Scanned'];
+  static const List<String> _primaryAttendanceFilters = [
+    'All',
+    'Present',
+    'Not Scanned'
+  ];
   static const List<String> _branchFilters = [
     'All',
     'CSE',
@@ -154,7 +158,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       BrlTextField(
                         label: 'Search name, roll no, student no...',
                         controller: _searchController,
-                        prefix: Icon(Icons.search, color: AppColors.textSecondaryOf(context), size: 18),
+                        prefix: Icon(Icons.search,
+                            color: AppColors.textSecondaryOf(context),
+                            size: 18),
                         suffix: _searchController.text.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.clear, size: 18),
@@ -169,7 +175,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       const SizedBox(height: 10),
 
                       // Segmented Primary Attendance & Secondary Filters Action
-                      _buildFilterRow(context, selectedAttendance, activeFilterCount),
+                      _buildFilterRow(
+                          context, selectedAttendance, activeFilterCount),
                     ],
                   ),
                 ),
@@ -185,9 +192,11 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         onRefresh: () async {
                           ref.invalidate(eventStudentsProvider);
                           ref.invalidate(eventsProvider);
-                          await Future.delayed(const Duration(milliseconds: 400));
+                          await Future.delayed(
+                              const Duration(milliseconds: 400));
                         },
-                        child: _buildEventStudentsContent(context, selectedEvent),
+                        child:
+                            _buildEventStudentsContent(context, selectedEvent),
                       ),
               ),
             ],
@@ -217,7 +226,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             icon: Icons.edit_note_rounded,
             tooltip: 'Manual Attendance Mode',
             onTap: () {
-              context.push('${RouteConstants.attendance}/manual?eventId=${selectedEvent.id}');
+              context.push(
+                  '${RouteConstants.attendance}/manual?eventId=${selectedEvent.id}');
             },
           ),
         BrlHeaderIconButton(
@@ -231,11 +241,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     color: accent,
                     shape: BoxShape.circle,
                   ),
-                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  constraints:
+                      const BoxConstraints(minWidth: 14, minHeight: 14),
                   child: Center(
                     child: Text(
                       '$activeFilterCount',
-                      style: const TextStyle(
+                      style: AppTextStyles.caption.copyWith(
                         color: Colors.white,
                         fontSize: 8.5,
                         fontWeight: FontWeight.w800,
@@ -261,10 +272,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   /// --------------------------------------------------------------------------
   /// 2. SELECTED-EVENT CARD: Wide card with subtle cover image background
   /// --------------------------------------------------------------------------
-  Widget _buildSelectedEventCard(BuildContext context, EventEntity? selectedEvent) {
+  Widget _buildSelectedEventCard(
+      BuildContext context, EventEntity? selectedEvent) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = AppColors.accentOf(context);
-    final hasValidBanner = selectedEvent?.banner != null && selectedEvent!.banner!.trim().isNotEmpty;
+    final hasValidBanner = selectedEvent?.banner != null &&
+        selectedEvent!.banner!.trim().isNotEmpty;
 
     return Semantics(
       label: selectedEvent != null
@@ -277,7 +290,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.08),
               width: 0.8,
             ),
             boxShadow: [
@@ -300,11 +315,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                           fit: BoxFit.cover,
                           memCacheWidth: 800,
                           memCacheHeight: 400,
-                          placeholder: (_, __) => _buildCoverFallback(context, selectedEvent.type, isDark),
-                          errorWidget: (_, __, ___) =>
-                              _buildCoverFallback(context, selectedEvent.type, isDark),
+                          placeholder: (_, __) => _buildCoverFallback(
+                              context, selectedEvent.type, isDark),
+                          errorWidget: (_, __, ___) => _buildCoverFallback(
+                              context, selectedEvent.type, isDark),
                         )
-                      : _buildCoverFallback(context, selectedEvent?.type, isDark),
+                      : _buildCoverFallback(
+                          context, selectedEvent?.type, isDark),
                 ),
 
                 // 2. Theme-aware Translucent Gradient Scrim
@@ -333,7 +350,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
                 // 3. Card Content Foreground
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -345,7 +363,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             width: 24,
                             height: 24,
                             decoration: BoxDecoration(
-                              color: accent.withValues(alpha: isDark ? 0.20 : 0.12),
+                              color: accent.withValues(
+                                  alpha: isDark ? 0.20 : 0.12),
                               borderRadius: BorderRadius.circular(7),
                             ),
                             child: Icon(
@@ -397,15 +416,19 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                               style: AppTextStyles.bodyMd.copyWith(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
-                                color: isDark ? Colors.white : AppColors.textPrimaryOf(context),
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimaryOf(context),
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                              color: (isDark ? Colors.white : Colors.black)
+                                  .withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Row(
@@ -446,7 +469,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             const SizedBox(width: 5),
                             Expanded(
                               child: Text(
-                                DateFormat('MMM d, y • h:mm a').format(selectedEvent.startDate),
+                                DateFormat('MMM d, y • h:mm a')
+                                    .format(selectedEvent.startDate),
                                 style: AppTextStyles.caption.copyWith(
                                   color: isDark
                                       ? Colors.white.withValues(alpha: 0.70)
@@ -521,7 +545,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               color: isDark ? const Color(0xFF18181C) : const Color(0xFFE5E5EA),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05),
                 width: 0.5,
               ),
             ),
@@ -532,7 +558,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
-                      ref.read(studentAttendanceFilterProvider.notifier).state = status;
+                      ref.read(studentAttendanceFilterProvider.notifier).state =
+                          status;
                       ref.read(studentPageProvider.notifier).state = 1;
                     },
                     child: AnimatedContainer(
@@ -546,7 +573,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                                  color: Colors.black
+                                      .withValues(alpha: isDark ? 0.35 : 0.08),
                                   blurRadius: 4,
                                   offset: const Offset(0, 1),
                                 ),
@@ -557,10 +585,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         child: Text(
                           status,
                           style: AppTextStyles.caption.copyWith(
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                             fontSize: 11.5,
                             color: isSelected
-                                ? (isDark ? Colors.white : AppColors.textPrimaryOf(context))
+                                ? (isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimaryOf(context))
                                 : AppColors.textSecondaryOf(context),
                           ),
                           maxLines: 1,
@@ -586,12 +617,16 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             decoration: BoxDecoration(
               color: activeFilterCount > 0
                   ? accent.withValues(alpha: isDark ? 0.22 : 0.12)
-                  : (isDark ? const Color(0xFF18181C) : const Color(0xFFE5E5EA)),
+                  : (isDark
+                      ? const Color(0xFF18181C)
+                      : const Color(0xFFE5E5EA)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: activeFilterCount > 0
                     ? accent.withValues(alpha: 0.5)
-                    : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.05)),
                 width: 0.6,
               ),
             ),
@@ -601,15 +636,21 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 Icon(
                   Icons.tune_rounded,
                   size: 15,
-                  color: activeFilterCount > 0 ? accent : AppColors.textSecondaryOf(context),
+                  color: activeFilterCount > 0
+                      ? accent
+                      : AppColors.textSecondaryOf(context),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'Filters',
                   style: AppTextStyles.caption.copyWith(
-                    fontWeight: activeFilterCount > 0 ? FontWeight.w700 : FontWeight.w600,
+                    fontWeight: activeFilterCount > 0
+                        ? FontWeight.w700
+                        : FontWeight.w600,
                     fontSize: 11.5,
-                    color: activeFilterCount > 0 ? accent : AppColors.textSecondaryOf(context),
+                    color: activeFilterCount > 0
+                        ? accent
+                        : AppColors.textSecondaryOf(context),
                   ),
                 ),
                 if (activeFilterCount > 0) ...[
@@ -649,7 +690,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
             return ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: Container(
@@ -658,9 +700,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   ),
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.96 : 0.98),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+                    color: AppColors.surfaceOf(context)
+                        .withValues(alpha: isDark ? 0.96 : 0.98),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border.all(
+                        color: AppColors.borderOf(context), width: 0.6),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -672,7 +717,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                           width: 38,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                            color: AppColors.textTertiaryOf(context)
+                                .withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -686,7 +732,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                           Flexible(
                             child: Text(
                               'Filter Students',
-                              style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+                              style: AppTextStyles.headlineSm
+                                  .copyWith(fontWeight: FontWeight.w700),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -700,7 +747,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             },
                             child: Text(
                               'Reset All',
-                              style: TextStyle(
+                              style: AppTextStyles.labelMedium.copyWith(
                                 color: accent,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
@@ -737,21 +784,29 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 160),
-                                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 13, vertical: 7),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? accent.withValues(alpha: isDark ? 0.25 : 0.15)
-                                          : (isDark ? const Color(0xFF1E1E22) : const Color(0xFFF2F2F7)),
+                                          ? accent.withValues(
+                                              alpha: isDark ? 0.25 : 0.15)
+                                          : (isDark
+                                              ? const Color(0xFF1E1E22)
+                                              : const Color(0xFFF2F2F7)),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: isSelected ? accent : AppColors.borderOf(context),
+                                        color: isSelected
+                                            ? accent
+                                            : AppColors.borderOf(context),
                                         width: isSelected ? 1.0 : 0.6,
                                       ),
                                     ),
                                     child: Text(
                                       branch,
                                       style: AppTextStyles.caption.copyWith(
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
                                         fontSize: 12,
                                         color: isSelected
                                             ? accent
@@ -779,30 +834,40 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              children: _secondaryAttendanceFilters.map((status) {
+                              children:
+                                  _secondaryAttendanceFilters.map((status) {
                                 final isSelected = status == tempAttendance;
                                 return GestureDetector(
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
-                                    setSheetState(() => tempAttendance = status);
+                                    setSheetState(
+                                        () => tempAttendance = status);
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 160),
-                                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 13, vertical: 7),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? accent.withValues(alpha: isDark ? 0.25 : 0.15)
-                                          : (isDark ? const Color(0xFF1E1E22) : const Color(0xFFF2F2F7)),
+                                          ? accent.withValues(
+                                              alpha: isDark ? 0.25 : 0.15)
+                                          : (isDark
+                                              ? const Color(0xFF1E1E22)
+                                              : const Color(0xFFF2F2F7)),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: isSelected ? accent : AppColors.borderOf(context),
+                                        color: isSelected
+                                            ? accent
+                                            : AppColors.borderOf(context),
                                         width: isSelected ? 1.0 : 0.6,
                                       ),
                                     ),
                                     child: Text(
                                       status,
                                       style: AppTextStyles.caption.copyWith(
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
                                         fontSize: 12,
                                         color: isSelected
                                             ? accent
@@ -825,9 +890,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                           Expanded(
                             child: OutlinedButton(
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 13),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                side: BorderSide(color: AppColors.borderOf(context)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 13),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
+                                side: BorderSide(
+                                    color: AppColors.borderOf(context)),
                               ),
                               onPressed: () => Navigator.pop(sheetContext),
                               child: Text(
@@ -846,19 +914,29 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: accent,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 13),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 13),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14)),
                                 elevation: 0,
                               ),
                               onPressed: () {
-                                ref.read(studentBranchFilterProvider.notifier).state = tempBranch;
-                                ref.read(studentAttendanceFilterProvider.notifier).state = tempAttendance;
-                                ref.read(studentPageProvider.notifier).state = 1;
+                                ref
+                                    .read(studentBranchFilterProvider.notifier)
+                                    .state = tempBranch;
+                                ref
+                                    .read(studentAttendanceFilterProvider
+                                        .notifier)
+                                    .state = tempAttendance;
+                                ref.read(studentPageProvider.notifier).state =
+                                    1;
                                 Navigator.pop(sheetContext);
                               },
-                              child: const Text(
+                              child: Text(
                                 'Apply Filters',
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                                style: AppTextStyles.button.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13.5),
                               ),
                             ),
                           ),
@@ -878,7 +956,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   /// --------------------------------------------------------------------------
   /// 5. ATTENDANCE STATS BAR: Balanced Apple-style cards with aligned baselines
   /// --------------------------------------------------------------------------
-  Widget _buildAttendanceStatsBar(BuildContext context, EventStudentCountsEntity counts) {
+  Widget _buildAttendanceStatsBar(
+      BuildContext context, EventStudentCountsEntity counts) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
       child: Row(
@@ -1005,7 +1084,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
     return studentsAsync.when(
       loading: () => Center(
-        child: CircularProgressIndicator(color: AppColors.accentOf(context), strokeWidth: 2.5),
+        child: CircularProgressIndicator(
+            color: AppColors.accentOf(context), strokeWidth: 2.5),
       ),
       error: (error, _) => Center(
         child: Padding(
@@ -1047,7 +1127,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               child: EmptyStateWidget(
                 icon: Icons.search_off_rounded,
                 title: 'No Matching Students',
-                message: 'No registered students matched your current search and filter criteria.',
+                message:
+                    'No registered students matched your current search and filter criteria.',
                 actionLabel: 'RESET FILTERS',
                 onAction: _resetAllFilters,
               ),
@@ -1068,7 +1149,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final st = students[i];
-                  final evId = event?.id ?? ref.read(selectedEventIdProvider) ?? '';
+                  final evId =
+                      event?.id ?? ref.read(selectedEventIdProvider) ?? '';
                   return _EventStudentListItem(
                     student: st,
                     onTap: () {
@@ -1097,14 +1179,16 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 
   /// Pagination Footer
-  Widget _buildPaginationFooter(BuildContext context, EventStudentsResultEntity result) {
+  Widget _buildPaginationFooter(
+      BuildContext context, EventStudentsResultEntity result) {
     final currentPage = ref.watch(studentPageProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surfaceOf(context).withValues(alpha: 0.8),
-        border: Border(top: BorderSide(color: AppColors.borderOf(context), width: 0.6)),
+        border: Border(
+            top: BorderSide(color: AppColors.borderOf(context), width: 0.6)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1112,7 +1196,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           IconButton(
             icon: const Icon(Icons.chevron_left_rounded, size: 22),
             onPressed: currentPage > 1
-                ? () => ref.read(studentPageProvider.notifier).state = currentPage - 1
+                ? () => ref.read(studentPageProvider.notifier).state =
+                    currentPage - 1
                 : null,
           ),
           Text(
@@ -1125,7 +1210,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           IconButton(
             icon: const Icon(Icons.chevron_right_rounded, size: 22),
             onPressed: currentPage < result.totalPages
-                ? () => ref.read(studentPageProvider.notifier).state = currentPage + 1
+                ? () => ref.read(studentPageProvider.notifier).state =
+                    currentPage + 1
                 : null,
           ),
         ],
@@ -1157,9 +1243,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               ),
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               decoration: BoxDecoration(
-                color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.95 : 0.98),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+                color: AppColors.surfaceOf(context)
+                    .withValues(alpha: isDark ? 0.95 : 0.98),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+                border:
+                    Border.all(color: AppColors.borderOf(context), width: 0.6),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1170,7 +1259,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       width: 38,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                        color: AppColors.textTertiaryOf(context)
+                            .withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1181,10 +1271,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     children: [
                       Text(
                         'Select Event',
-                        style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700),
+                        style: AppTextStyles.headlineSm
+                            .copyWith(fontWeight: FontWeight.w700),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondaryOf(context)),
+                        icon: Icon(Icons.close_rounded,
+                            size: 20,
+                            color: AppColors.textSecondaryOf(context)),
                         onPressed: () => Navigator.pop(sheetContext),
                       ),
                     ],
@@ -1193,12 +1286,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   Expanded(
                     child: eventsAsync.when(
                       loading: () => Center(
-                        child: CircularProgressIndicator(color: accent, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                            color: accent, strokeWidth: 2),
                       ),
                       error: (err, _) => Center(
                         child: Text(
                           'Failed to load events: $err',
-                          style: AppTextStyles.bodySm.copyWith(color: AppColors.errorOf(context)),
+                          style: AppTextStyles.bodySm
+                              .copyWith(color: AppColors.errorOf(context)),
                         ),
                       ),
                       data: (events) {
@@ -1207,16 +1302,19 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             child: Text('No events available'),
                           );
                         }
-                        final sortedEvents = EventEntity.sortChronologically(events);
+                        final sortedEvents =
+                            EventEntity.sortChronologically(events);
 
                         return ListView.separated(
                           shrinkWrap: true,
                           itemCount: sortedEvents.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, idx) {
                             final e = sortedEvents[idx];
                             final isSelected = e.id == selectedId;
-                            final hasBanner = e.banner != null && e.banner!.trim().isNotEmpty;
+                            final hasBanner =
+                                e.banner != null && e.banner!.trim().isNotEmpty;
 
                             return GestureDetector(
                               behavior: HitTestBehavior.opaque,
@@ -1231,8 +1329,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                     color: isSelected
                                         ? accent
                                         : (isDark
-                                            ? Colors.white.withValues(alpha: 0.10)
-                                            : Colors.black.withValues(alpha: 0.06)),
+                                            ? Colors.white
+                                                .withValues(alpha: 0.10)
+                                            : Colors.black
+                                                .withValues(alpha: 0.06)),
                                     width: isSelected ? 1.4 : 0.6,
                                   ),
                                 ),
@@ -1249,11 +1349,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                                 memCacheWidth: 600,
                                                 memCacheHeight: 300,
                                                 placeholder: (_, __) =>
-                                                    _buildCoverFallback(context, e.type, isDark),
+                                                    _buildCoverFallback(context,
+                                                        e.type, isDark),
                                                 errorWidget: (_, __, ___) =>
-                                                    _buildCoverFallback(context, e.type, isDark),
+                                                    _buildCoverFallback(context,
+                                                        e.type, isDark),
                                               )
-                                            : _buildCoverFallback(context, e.type, isDark),
+                                            : _buildCoverFallback(
+                                                context, e.type, isDark),
                                       ),
 
                                       // Scrim Overlay
@@ -1265,14 +1368,20 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                               end: Alignment.bottomRight,
                                               colors: isDark
                                                   ? [
-                                                      Colors.black.withValues(alpha: 0.88),
-                                                      Colors.black.withValues(alpha: 0.75),
-                                                      Colors.black.withValues(alpha: 0.90),
+                                                      Colors.black.withValues(
+                                                          alpha: 0.88),
+                                                      Colors.black.withValues(
+                                                          alpha: 0.75),
+                                                      Colors.black.withValues(
+                                                          alpha: 0.90),
                                                     ]
                                                   : [
-                                                      Colors.white.withValues(alpha: 0.92),
-                                                      Colors.white.withValues(alpha: 0.85),
-                                                      Colors.white.withValues(alpha: 0.94),
+                                                      Colors.white.withValues(
+                                                          alpha: 0.92),
+                                                      Colors.white.withValues(
+                                                          alpha: 0.85),
+                                                      Colors.white.withValues(
+                                                          alpha: 0.94),
                                                     ],
                                             ),
                                           ),
@@ -1281,7 +1390,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
                                       // Content Row
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 12),
                                         child: Row(
                                           children: [
                                             Container(
@@ -1291,41 +1401,63 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                                 color: isSelected
                                                     ? accent
                                                     : (isDark
-                                                        ? Colors.white.withValues(alpha: 0.12)
-                                                        : Colors.black.withValues(alpha: 0.08)),
+                                                        ? Colors.white
+                                                            .withValues(
+                                                                alpha: 0.12)
+                                                        : Colors.black
+                                                            .withValues(
+                                                                alpha: 0.08)),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Icon(
-                                                isSelected ? Icons.check_rounded : Icons.event_outlined,
+                                                isSelected
+                                                    ? Icons.check_rounded
+                                                    : Icons.event_outlined,
                                                 size: 17,
                                                 color: isSelected
                                                     ? Colors.white
-                                                    : (isDark ? Colors.white70 : Colors.black87),
+                                                    : (isDark
+                                                        ? Colors.white70
+                                                        : Colors.black87),
                                               ),
                                             ),
                                             const SizedBox(width: 12),
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     e.title,
-                                                    style: AppTextStyles.bodyMd.copyWith(
-                                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                                    style: AppTextStyles.bodyMd
+                                                        .copyWith(
+                                                      fontWeight: isSelected
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w600,
                                                       color: isDark
                                                           ? Colors.white
-                                                          : AppColors.textPrimaryOf(context),
+                                                          : AppColors
+                                                              .textPrimaryOf(
+                                                                  context),
                                                     ),
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                   const SizedBox(height: 3),
                                                   Text(
-                                                    DateFormat('MMM d, y • h:mm a').format(e.startDate),
-                                                    style: AppTextStyles.caption.copyWith(
+                                                    DateFormat(
+                                                            'MMM d, y • h:mm a')
+                                                        .format(e.startDate),
+                                                    style: AppTextStyles.caption
+                                                        .copyWith(
                                                       color: isDark
-                                                          ? Colors.white.withValues(alpha: 0.65)
-                                                          : AppColors.textSecondaryOf(context),
+                                                          ? Colors.white
+                                                              .withValues(
+                                                                  alpha: 0.65)
+                                                          : AppColors
+                                                              .textSecondaryOf(
+                                                                  context),
                                                       fontSize: 11.5,
                                                     ),
                                                   ),
@@ -1334,17 +1466,25 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                                             ),
                                             if (e.isAttendanceOpen)
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 3),
                                                 decoration: BoxDecoration(
-                                                  color: AppColors.successOf(context).withValues(alpha: 0.18),
-                                                  borderRadius: BorderRadius.circular(6),
+                                                  color: AppColors.successOf(
+                                                          context)
+                                                      .withValues(alpha: 0.18),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
                                                 ),
                                                 child: Text(
                                                   'OPEN',
-                                                  style: AppTextStyles.caption.copyWith(
+                                                  style: AppTextStyles.caption
+                                                      .copyWith(
                                                     fontSize: 9.5,
                                                     fontWeight: FontWeight.w700,
-                                                    color: AppColors.successOf(context),
+                                                    color: AppColors.successOf(
+                                                        context),
                                                   ),
                                                 ),
                                               ),
@@ -1373,11 +1513,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   /// --------------------------------------------------------------------------
   /// 8. ATTENDANCE OPTIONS SHEET: Manual marking modal for student attendance
   /// --------------------------------------------------------------------------
-  void _showAttendanceOptionsSheet(BuildContext context, StudentEntity student, String eventId) {
+  void _showAttendanceOptionsSheet(
+      BuildContext context, StudentEntity student, String eventId) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = AppColors.accentOf(context);
     final textSecondary = AppColors.textSecondaryOf(context);
-    final currentStatus = student.attendanceStatus?.toLowerCase() ?? 'not_scanned';
+    final currentStatus =
+        student.attendanceStatus?.toLowerCase() ?? 'not_scanned';
 
     showModalBottomSheet(
       context: context,
@@ -1391,9 +1533,12 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               decoration: BoxDecoration(
-                color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.96 : 0.98),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+                color: AppColors.surfaceOf(context)
+                    .withValues(alpha: isDark ? 0.96 : 0.98),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+                border:
+                    Border.all(color: AppColors.borderOf(context), width: 0.6),
               ),
               child: SafeArea(
                 top: false,
@@ -1406,7 +1551,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         width: 38,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                          color: AppColors.textTertiaryOf(context)
+                              .withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -1441,7 +1587,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.close_rounded, size: 20, color: textSecondary),
+                          icon: Icon(Icons.close_rounded,
+                              size: 20, color: textSecondary),
                           onPressed: () => Navigator.pop(sheetContext),
                         ),
                       ],
@@ -1480,13 +1627,18 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     _buildAttendanceActionTile(
                       context: sheetContext,
                       title: 'Not Scanned (Reset)',
-                      subtitle: 'Clear attendance record back to unverified / not scanned',
+                      subtitle:
+                          'Clear attendance record back to unverified / not scanned',
                       icon: Icons.radio_button_unchecked_rounded,
-                      color: isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70),
-                      isSelected: currentStatus == 'not_scanned' || student.attendanceStatus == null,
+                      color: isDark
+                          ? const Color(0xFF8E8E93)
+                          : const Color(0xFF6C6C70),
+                      isSelected: currentStatus == 'not_scanned' ||
+                          student.attendanceStatus == null,
                       onTap: () {
                         Navigator.pop(sheetContext);
-                        _updateStudentAttendance(student, eventId, 'not_scanned');
+                        _updateStudentAttendance(
+                            student, eventId, 'not_scanned');
                       },
                     ),
                     const SizedBox(height: 8),
@@ -1494,7 +1646,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     _buildAttendanceActionTile(
                       context: sheetContext,
                       title: 'Late',
-                      subtitle: 'Mark attendee as arrived late after grace period',
+                      subtitle:
+                          'Mark attendee as arrived late after grace period',
                       icon: Icons.access_time_filled_rounded,
                       color: Colors.orange,
                       isSelected: currentStatus == 'late',
@@ -1508,7 +1661,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     _buildAttendanceActionTile(
                       context: sheetContext,
                       title: 'Excused',
-                      subtitle: 'Mark attendee with official authorized absence',
+                      subtitle:
+                          'Mark attendee with official authorized absence',
                       icon: Icons.info_rounded,
                       color: Colors.blue,
                       isSelected: currentStatus == 'excused',
@@ -1530,15 +1684,17 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         context.push('/students/${student.rollNumber}');
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.person_outline_rounded, size: 18, color: accent),
+                            Icon(Icons.person_outline_rounded,
+                                size: 18, color: accent),
                             const SizedBox(width: 8),
                             Text(
                               'View Full Student Profile',
-                              style: TextStyle(
+                              style: AppTextStyles.labelMedium.copyWith(
                                 color: accent,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13.5,
@@ -1603,8 +1759,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   Text(
                     title,
                     style: AppTextStyles.bodyMd.copyWith(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected ? color : AppColors.textPrimaryOf(context),
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color:
+                          isSelected ? color : AppColors.textPrimaryOf(context),
                       fontSize: 14,
                     ),
                   ),
@@ -1621,15 +1779,15 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 ],
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_rounded, color: color, size: 20),
+            if (isSelected) Icon(Icons.check_rounded, color: color, size: 20),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _updateStudentAttendance(StudentEntity student, String eventId, String status) async {
+  Future<void> _updateStudentAttendance(
+      StudentEntity student, String eventId, String status) async {
     try {
       final attendanceRepo = ref.read(attendanceRepositoryProvider);
       final targetId = student.id.isNotEmpty ? student.id : student.rollNumber;
@@ -1651,7 +1809,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
           );
         },
         (_) {
-          final displayLabel = status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
+          final displayLabel =
+              status == 'not_scanned' ? 'Not Scanned' : status.toUpperCase();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${student.name} marked as $displayLabel'),
@@ -1668,7 +1827,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), behavior: SnackBarBehavior.floating),
+          SnackBar(
+              content: Text(e.toString()), behavior: SnackBarBehavior.floating),
         );
       }
     }
@@ -1695,7 +1855,13 @@ class _EventStudentListItem extends StatelessWidget {
     final accent = AppColors.accentOf(context);
 
     final initials = student.name.isNotEmpty
-        ? student.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? student.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : '?';
 
     // Attendance badge formatting
@@ -1798,7 +1964,7 @@ class _EventStudentListItem extends StatelessWidget {
                         const SizedBox(width: 5),
                         Text(
                           '•',
-                          style: TextStyle(
+                          style: AppTextStyles.caption.copyWith(
                             color: AppColors.textTertiaryOf(context),
                             fontSize: 10,
                           ),
@@ -1828,11 +1994,14 @@ class _EventStudentListItem extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: onStatusTap ?? onTap,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 0.6),
+                      border: Border.all(
+                          color: statusColor.withValues(alpha: 0.25),
+                          width: 0.6),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

@@ -4,11 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/animated_gradient_bg.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../providers/event_provider.dart';
@@ -178,7 +178,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.error_outline_rounded,
+                color: Colors.white, size: 18),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
@@ -268,9 +269,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               onPrimary: Colors.white,
               secondary: accent,
               onSecondary: Colors.white,
-              surface: isDark
-                  ? const Color(0xFF141720)
-                  : const Color(0xFFF3F4F7),
+              surface:
+                  isDark ? const Color(0xFF141720) : const Color(0xFFF3F4F7),
               onSurface: isDark
                   ? AppColors.darkTextPrimary
                   : AppColors.lightTextPrimary,
@@ -315,11 +315,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             : Colors.white,
         title: Text(
           'Discard Unsaved Changes?',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+          style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w700),
         ),
         content: Text(
           'You have unsaved changes in this event editor. Are you sure you want to discard them?',
-          style: GoogleFonts.inter(fontSize: 13),
+          style: AppTextStyles.bodyMedium,
         ),
         actions: [
           TextButton(
@@ -449,7 +449,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                     key: _formKey,
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
                       children: [
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 250),
@@ -596,16 +597,14 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         children: [
           Text(
             'Edit Event',
-            style: GoogleFonts.inter(
-              fontSize: 17,
+            style: AppTextStyles.titleLg.copyWith(
               fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
               color: textPrimary,
             ),
           ),
           Text(
             widget.event.title,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
               color: textSecondary,
@@ -656,9 +655,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           )
                         : Text(
                             'Save',
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.button.copyWith(
                               fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
@@ -735,7 +733,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           color: isCurrent
                               ? accent
                               : (isPast
-                                  ? accent.withValues(alpha: isDark ? 0.35 : 0.22)
+                                  ? accent.withValues(
+                                      alpha: isDark ? 0.35 : 0.22)
                                   : (isDark
                                       ? const Color(0xFF171A24)
                                       : const Color(0xFFEBEFF4))),
@@ -791,10 +790,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   const SizedBox(height: 6),
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 250),
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.labelSmall.copyWith(
                       fontSize: isCurrent ? 11.0 : 10.5,
-                      fontWeight:
-                          isCurrent ? FontWeight.w700 : (isPast ? FontWeight.w600 : FontWeight.w500),
+                      fontWeight: isCurrent
+                          ? FontWeight.w700
+                          : (isPast ? FontWeight.w600 : FontWeight.w500),
                       color: isCurrent
                           ? accent
                           : (isPast
@@ -893,7 +893,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 'Change Banner',
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.labelSmall.copyWith(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -947,7 +947,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           children: [
             Text(
               'Event Title',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.labelMedium.copyWith(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: textSecondary,
@@ -955,7 +955,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             ),
             Text(
               '$titleCount/200',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.caption.copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: titleCount > 190 ? Colors.red : textSecondary,
@@ -968,7 +968,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           key: const ValueKey('edit_event_title_field'),
           controller: _titleController,
           maxLength: 200,
-          style: GoogleFonts.inter(
+          style: AppTextStyles.bodyMedium.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: textPrimary,
@@ -976,7 +976,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           decoration: InputDecoration(
             counterText: '',
             hintText: 'Enter event title',
-            hintStyle: GoogleFonts.inter(fontSize: 13, color: textSecondary),
+            hintStyle: AppTextStyles.bodySmall
+                .copyWith(fontSize: 13, color: textSecondary),
             filled: true,
             fillColor: fieldBg,
             contentPadding:
@@ -992,8 +993,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           ),
           validator: (v) {
             if (v == null || v.trim().isEmpty) return 'Event title is required';
-            if (v.trim().length < 3) return 'Event title must be at least 3 characters';
-            if (v.trim().length > 200) return 'Event title cannot exceed 200 characters';
+            if (v.trim().length < 3)
+              return 'Event title must be at least 3 characters';
+            if (v.trim().length > 200)
+              return 'Event title cannot exceed 200 characters';
             return null;
           },
         ),
@@ -1005,7 +1008,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           children: [
             Text(
               'Description',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.labelMedium.copyWith(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: textSecondary,
@@ -1013,7 +1016,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             ),
             Text(
               '$descCount/2000',
-              style: GoogleFonts.inter(
+              style: AppTextStyles.caption.copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: descCount > 1950 ? Colors.red : textSecondary,
@@ -1027,7 +1030,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           controller: _descriptionController,
           maxLines: 4,
           maxLength: 2000,
-          style: GoogleFonts.inter(
+          style: AppTextStyles.bodyMedium.copyWith(
             fontSize: 13,
             fontWeight: FontWeight.w400,
             color: textPrimary,
@@ -1035,7 +1038,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           decoration: InputDecoration(
             counterText: '',
             hintText: 'Describe this event in detail...',
-            hintStyle: GoogleFonts.inter(fontSize: 12.5, color: textSecondary),
+            hintStyle: AppTextStyles.bodySmall
+                .copyWith(fontSize: 12.5, color: textSecondary),
             filled: true,
             fillColor: fieldBg,
             contentPadding:
@@ -1072,12 +1076,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             const SizedBox(width: 7),
             Text(
               'Event Details & Venue',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-                color: textPrimary,
-              ),
+              style: AppTextStyles.sectionTitle.copyWith(color: textPrimary),
             ),
           ],
         ),
@@ -1099,7 +1098,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   children: [
                     Text(
                       'Event Type',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,
@@ -1123,7 +1122,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                               dropdownColor: isDark
                                   ? const Color(0xFF181B26)
                                   : Colors.white,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.bodyMedium.copyWith(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: textPrimary,
@@ -1171,7 +1170,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   children: [
                     Text(
                       'Capacity',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: textSecondary,
@@ -1187,7 +1186,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             key: const ValueKey('edit_event_capacity_field'),
                             controller: _capacityController,
                             keyboardType: TextInputType.number,
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.bodyMedium.copyWith(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: textPrimary,
@@ -1198,7 +1197,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                               contentPadding: EdgeInsets.symmetric(vertical: 4),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Required';
+                              if (v == null || v.trim().isEmpty)
+                                return 'Required';
                               final n = int.tryParse(v.trim());
                               if (n == null || n <= 0) return '> 0';
                               return null;
@@ -1228,7 +1228,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             children: [
               Text(
                 'Venue / Location',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: textSecondary,
@@ -1243,7 +1243,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                     child: TextFormField(
                       key: const ValueKey('edit_event_venue_field'),
                       controller: _venueController,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodyMedium.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: textPrimary,
@@ -1251,11 +1251,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: 'e.g. CSIT Block or Auditorium',
-                        hintStyle: GoogleFonts.inter(
-                            fontSize: 12, color: textSecondary),
+                        hintStyle: AppTextStyles.bodySmall
+                            .copyWith(fontSize: 12, color: textSecondary),
                         border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
                       ),
                     ),
                   ),
@@ -1290,12 +1289,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             const SizedBox(width: 7),
             Text(
               'Event Schedule',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-                color: textPrimary,
-              ),
+              style: AppTextStyles.sectionTitle.copyWith(color: textPrimary),
             ),
           ],
         ),
@@ -1309,8 +1303,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                 onTap: () => _selectDate(context, true),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(14),
@@ -1334,7 +1328,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           children: [
                             Text(
                               'Start Date',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w500,
                                 color: textSecondary,
@@ -1343,7 +1337,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             const SizedBox(height: 2),
                             Text(
                               startFormatted,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.bodyMedium.copyWith(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: textPrimary,
@@ -1368,8 +1362,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                 onTap: () => _selectDate(context, false),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(14),
@@ -1393,7 +1387,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           children: [
                             Text(
                               'End Date',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w500,
                                 color: textSecondary,
@@ -1402,7 +1396,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             const SizedBox(height: 2),
                             Text(
                               endFormatted,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.bodyMedium.copyWith(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: textPrimary,
@@ -1442,7 +1436,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   _endDate.isBefore(_startDate)
                       ? 'Invalid Schedule: End date precedes start date'
                       : 'Schedule Duration: $durationDays ${durationDays == 1 ? 'Day' : 'Days'} ($startFormatted – $endFormatted)',
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.caption.copyWith(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: _endDate.isBefore(_startDate)
@@ -1479,12 +1473,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             const SizedBox(width: 7),
             Text(
               'Status & Attendance',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.2,
-                color: textPrimary,
-              ),
+              style: AppTextStyles.sectionTitle.copyWith(color: textPrimary),
             ),
           ],
         ),
@@ -1503,7 +1492,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             children: [
               Text(
                 'Lifecycle Status',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: textSecondary,
@@ -1553,11 +1542,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                         alignment: Alignment.center,
                         child: Text(
                           s[0].toUpperCase() + s.substring(1),
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.labelSmall.copyWith(
                             fontSize: 11,
-                            fontWeight: isSelected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                             color: isSelected ? Colors.white : textSecondary,
                           ),
                           maxLines: 1,
@@ -1570,9 +1558,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               ),
               const SizedBox(height: 14),
               Divider(
-                color: isDark
-                    ? const Color(0x18FFFFFF)
-                    : const Color(0x0C000000),
+                color:
+                    isDark ? const Color(0x18FFFFFF) : const Color(0x0C000000),
                 height: 1,
               ),
               const SizedBox(height: 12),
@@ -1596,7 +1583,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       children: [
                         Text(
                           'Enable Live Attendance',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.bodyMedium.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
@@ -1604,7 +1591,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                         ),
                         Text(
                           'Allow QR code check-in for this event',
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.caption.copyWith(
                             fontSize: 11,
                             fontWeight: FontWeight.w400,
                             color: textSecondary,
@@ -1664,9 +1651,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               const SizedBox(width: 8),
               Text(
                 'Configuration Review',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.sectionTitle.copyWith(
                   fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
                   color: textPrimary,
                 ),
               ),
@@ -1677,9 +1663,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             _titleController.text.trim().isEmpty
                 ? 'Untitled Event'
                 : _titleController.text.trim(),
-            style: GoogleFonts.inter(
+            style: AppTextStyles.cardTitle.copyWith(
               fontSize: 15.5,
-              fontWeight: FontWeight.w800,
               color: textPrimary,
             ),
           ),
@@ -1687,7 +1672,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             const SizedBox(height: 4),
             Text(
               _descriptionController.text.trim(),
-              style: GoogleFonts.inter(
+              style: AppTextStyles.bodySmall.copyWith(
                 fontSize: 12,
                 color: textSecondary,
               ),
@@ -1775,7 +1760,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
           const SizedBox(width: 5),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.labelSmall.copyWith(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: color,
@@ -1833,7 +1818,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               icon: const Icon(Icons.arrow_back_rounded, size: 16),
               label: Text(
                 'Back',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.button.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1841,10 +1826,13 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: textSecondary,
                 side: BorderSide(
-                  color: isDark ? const Color(0x33FFFFFF) : const Color(0x22000000),
+                  color: isDark
+                      ? const Color(0x33FFFFFF)
+                      : const Color(0x22000000),
                   width: 0.9,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -1909,7 +1897,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                                 _activeStep == 3
                                     ? 'Save Changes'
                                     : 'Next: ${_getStepTitle(_activeStep + 1)}',
-                                style: GoogleFonts.inter(
+                                style: AppTextStyles.button.copyWith(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,

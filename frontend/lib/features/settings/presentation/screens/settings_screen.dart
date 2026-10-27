@@ -416,7 +416,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   badge,
-                  style: TextStyle(
+                  style: AppTextStyles.labelSmall.copyWith(
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
@@ -509,7 +509,8 @@ class SettingsScreen extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.textSecondaryOf(context)),
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: AppColors.textSecondaryOf(context)),
               ),
             ),
             TextButton(
@@ -519,7 +520,7 @@ class SettingsScreen extends ConsumerWidget {
               },
               child: Text(
                 'Log Out',
-                style: TextStyle(
+                style: AppTextStyles.labelMedium.copyWith(
                   color: AppColors.errorOf(context),
                   fontWeight: FontWeight.w700,
                 ),

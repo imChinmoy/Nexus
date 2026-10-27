@@ -64,7 +64,8 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
     return DateFormat('h:mm a').format(date);
   }
 
-  Color _getNodeStatusColor(EventEntity event, BuildContext context, bool isDark) {
+  Color _getNodeStatusColor(
+      EventEntity event, BuildContext context, bool isDark) {
     final status = event.effectiveStatus.toLowerCase();
     switch (status) {
       case 'ongoing':
@@ -139,7 +140,8 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: isActive
                               ? accent.withValues(alpha: isDark ? 0.20 : 0.12)
@@ -147,7 +149,8 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
                           borderRadius: BorderRadius.circular(12),
                           border: isActive
                               ? Border.all(
-                                  color: accent.withValues(alpha: isDark ? 0.6 : 0.4),
+                                  color: accent.withValues(
+                                      alpha: isDark ? 0.6 : 0.4),
                                   width: 1.0,
                                 )
                               : null,
@@ -167,12 +170,15 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
                                     : (isPast
                                         ? statusColor.withValues(alpha: 0.6)
                                         : (isDark
-                                            ? Colors.white.withValues(alpha: 0.25)
-                                            : Colors.black.withValues(alpha: 0.22))),
+                                            ? Colors.white
+                                                .withValues(alpha: 0.25)
+                                            : Colors.black
+                                                .withValues(alpha: 0.22))),
                                 boxShadow: isActive
                                     ? [
                                         BoxShadow(
-                                          color: statusColor.withValues(alpha: 0.6),
+                                          color: statusColor.withValues(
+                                              alpha: 0.6),
                                           blurRadius: 8,
                                           spreadRadius: 2,
                                         ),
@@ -198,7 +204,9 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
                               _formatNodeDate(event.startDate),
                               style: AppTextStyles.caption.copyWith(
                                 fontSize: 9.5,
-                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
                                 color: isActive
                                     ? (isDark
                                         ? AppColors.darkTextPrimary
@@ -213,11 +221,14 @@ class _EventTimelineChainState extends State<EventTimelineChain> {
                               _formatNodeTime(event.startDate),
                               style: AppTextStyles.caption.copyWith(
                                 fontSize: 8.5,
-                                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                                fontWeight: isActive
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
                                 color: isActive
                                     ? (isDark ? accent : AppColors.lightAccent)
                                     : (isDark
-                                        ? AppColors.darkTextTertiary.withValues(alpha: 0.7)
+                                        ? AppColors.darkTextTertiary
+                                            .withValues(alpha: 0.7)
                                         : AppColors.lightTextTertiary),
                               ),
                             ),

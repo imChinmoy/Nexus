@@ -44,13 +44,15 @@ class ScanAttendanceResult {
       attendanceId = data['_id'] as String? ?? data['id'] as String?;
       status = data['status'] as String? ?? 'present';
       if (data['markedAt'] != null) {
-        timestamp = DateTime.tryParse(data['markedAt'] as String) ?? DateTime.now();
+        timestamp =
+            DateTime.tryParse(data['markedAt'] as String) ?? DateTime.now();
       }
 
       final student = data['student'];
       if (student is Map<String, dynamic>) {
         studentName = student['name'] as String?;
-        rollNumber = student['rollNo'] as String? ?? student['rollNumber'] as String?;
+        rollNumber =
+            student['rollNo'] as String? ?? student['rollNumber'] as String?;
         studentNo = student['studentNo'] as String?;
         branch = student['branch'] as String?;
       }

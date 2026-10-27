@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 /// Interactive draggable floating action button that morphs smoothly into the
 /// Nexus Org Network control deck (title, member count, search, domain filters).
@@ -115,7 +115,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
   @override
   void didUpdateWidget(covariant DraggableOrgNetworkFab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.searchQuery != _searchController.text && !_searchFocusNode.hasFocus) {
+    if (widget.searchQuery != _searchController.text &&
+        !_searchFocusNode.hasFocus) {
       _searchController.text = widget.searchQuery;
     }
   }
@@ -145,7 +146,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
       _isExpanded = true;
     });
 
-    final disableMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final disableMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (disableMotion) {
       _morphController.value = 1.0;
     } else {
@@ -161,7 +163,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
       _isExpanded = false;
     });
 
-    final disableMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final disableMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (disableMotion) {
       _morphController.value = 0.0;
     } else {
@@ -171,15 +174,19 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
 
   void _reconcilePosition(BoxConstraints constraints) {
     const minX = 14.0;
-    final maxX = (constraints.maxWidth - collapsedWidth - 14.0).clamp(minX, double.infinity);
+    final maxX = (constraints.maxWidth - collapsedWidth - 14.0)
+        .clamp(minX, double.infinity);
     const minY = 10.0;
-    final maxY = (constraints.maxHeight - collapsedHeight - 80.0).clamp(minY, double.infinity);
+    final maxY = (constraints.maxHeight - collapsedHeight - 80.0)
+        .clamp(minY, double.infinity);
 
     if (_position == null) {
       // Default to top-right corner with comfortable clearance
       _position = Offset(maxX, minY + 6.0);
-      _relativeX = (maxX - minX) > 0 ? (_position!.dx - minX) / (maxX - minX) : 1.0;
-      _relativeY = (maxY - minY) > 0 ? (_position!.dy - minY) / (maxY - minY) : 0.0;
+      _relativeX =
+          (maxX - minX) > 0 ? (_position!.dx - minX) / (maxX - minX) : 1.0;
+      _relativeY =
+          (maxY - minY) > 0 ? (_position!.dy - minY) / (maxY - minY) : 0.0;
     } else if (_lastConstraints != null &&
         (_lastConstraints!.maxWidth != constraints.maxWidth ||
             _lastConstraints!.maxHeight != constraints.maxHeight)) {
@@ -196,9 +203,11 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
 
   void _snapToEdge(BoxConstraints constraints) {
     const minX = 14.0;
-    final maxX = (constraints.maxWidth - collapsedWidth - 14.0).clamp(minX, double.infinity);
+    final maxX = (constraints.maxWidth - collapsedWidth - 14.0)
+        .clamp(minX, double.infinity);
     const minY = 10.0;
-    final maxY = (constraints.maxHeight - collapsedHeight - 80.0).clamp(minY, double.infinity);
+    final maxY = (constraints.maxHeight - collapsedHeight - 80.0)
+        .clamp(minY, double.infinity);
 
     final centerX = _position!.dx + (collapsedWidth / 2.0);
     final targetX = (centerX < constraints.maxWidth / 2.0) ? minX : maxX;
@@ -210,12 +219,15 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
     }
 
     final target = Offset(targetX, targetY);
-    final disableMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final disableMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (disableMotion) {
       setState(() {
         _position = target;
-        _relativeX = (maxX - minX) > 0 ? (target.dx - minX) / (maxX - minX) : 0.0;
-        _relativeY = (maxY - minY) > 0 ? (target.dy - minY) / (maxY - minY) : 0.0;
+        _relativeX =
+            (maxX - minX) > 0 ? (target.dx - minX) / (maxX - minX) : 0.0;
+        _relativeY =
+            (maxY - minY) > 0 ? (target.dy - minY) / (maxY - minY) : 0.0;
       });
       return;
     }
@@ -225,8 +237,10 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
     );
     _snapController.forward(from: 0.0).then((_) {
       if (mounted) {
-        _relativeX = (maxX - minX) > 0 ? (target.dx - minX) / (maxX - minX) : 0.0;
-        _relativeY = (maxY - minY) > 0 ? (target.dy - minY) / (maxY - minY) : 0.0;
+        _relativeX =
+            (maxX - minX) > 0 ? (target.dx - minX) / (maxX - minX) : 0.0;
+        _relativeY =
+            (maxY - minY) > 0 ? (target.dy - minY) / (maxY - minY) : 0.0;
       }
     });
   }
@@ -240,7 +254,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
         _reconcilePosition(constraints);
 
         final expandedWidth = (constraints.maxWidth - 28.0).clamp(320.0, 520.0);
-        final expandedHeight = (170.0).clamp(140.0, (constraints.maxHeight - 24.0).clamp(140.0, double.infinity));
+        final expandedHeight = (170.0).clamp(140.0,
+            (constraints.maxHeight - 24.0).clamp(140.0, double.infinity));
         const expandedRadius = 24.0;
 
         final collapsedRect = Rect.fromLTWH(
@@ -274,16 +289,21 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
               _pulseController,
             ]),
             builder: (context, _) {
-              final double t = Curves.easeInOutCubic.transform(_morphController.value);
+              final double t =
+                  Curves.easeInOutCubic.transform(_morphController.value);
               final currentRect = Rect.lerp(collapsedRect, expandedRect, t)!;
-              final currentRadius = ui.lerpDouble(collapsedRadius, expandedRadius, t)!;
+              final currentRadius =
+                  ui.lerpDouble(collapsedRadius, expandedRadius, t)!;
 
               // Scale feedback when pressed in collapsed mode
-              final pressScale = 1.0 - (0.06 * _pressScaleController.value * (1.0 - t));
+              final pressScale =
+                  1.0 - (0.06 * _pressScaleController.value * (1.0 - t));
 
               final surfaceColor = widget.isDark
-                  ? Color.lerp(const Color(0xE6141420), const Color(0xD912121B), t)!
-                  : Color.lerp(const Color(0xF7FFFFFF), const Color(0xF5FFFFFF), t)!;
+                  ? Color.lerp(
+                      const Color(0xE6141420), const Color(0xD912121B), t)!
+                  : Color.lerp(
+                      const Color(0xF7FFFFFF), const Color(0xF5FFFFFF), t)!;
 
               final borderColor = widget.isDark
                   ? const Color(0x38FFFFFF)
@@ -341,17 +361,27 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                           if (_isExpanded || _morphController.value > 0) return;
                           _dragTotalDistance += details.delta.distance;
                           const minX = 14.0;
-                          final maxX = (constraints.maxWidth - collapsedWidth - 14.0).clamp(minX, double.infinity);
+                          final maxX =
+                              (constraints.maxWidth - collapsedWidth - 14.0)
+                                  .clamp(minX, double.infinity);
                           const minY = 10.0;
-                          final maxY = (constraints.maxHeight - collapsedHeight - 80.0).clamp(minY, double.infinity);
+                          final maxY =
+                              (constraints.maxHeight - collapsedHeight - 80.0)
+                                  .clamp(minY, double.infinity);
 
                           setState(() {
                             _position = Offset(
-                              (_position!.dx + details.delta.dx).clamp(minX, maxX),
-                              (_position!.dy + details.delta.dy).clamp(minY, maxY),
+                              (_position!.dx + details.delta.dx)
+                                  .clamp(minX, maxX),
+                              (_position!.dy + details.delta.dy)
+                                  .clamp(minY, maxY),
                             );
-                            _relativeX = (maxX - minX) > 0 ? (_position!.dx - minX) / (maxX - minX) : 0.0;
-                            _relativeY = (maxY - minY) > 0 ? (_position!.dy - minY) / (maxY - minY) : 0.0;
+                            _relativeX = (maxX - minX) > 0
+                                ? (_position!.dx - minX) / (maxX - minX)
+                                : 0.0;
+                            _relativeY = (maxY - minY) > 0
+                                ? (_position!.dy - minY) / (maxY - minY)
+                                : 0.0;
                           });
                         },
                         onPanEnd: (details) {
@@ -377,19 +407,24 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                               height: currentRect.height,
                               decoration: BoxDecoration(
                                 color: surfaceColor,
-                                borderRadius: BorderRadius.circular(currentRadius),
-                                border: Border.all(color: borderColor, width: 1.0),
+                                borderRadius:
+                                    BorderRadius.circular(currentRadius),
+                                border:
+                                    Border.all(color: borderColor, width: 1.0),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(
-                                      alpha: widget.isDark ? (0.40 + 0.10 * t) : (0.10 + 0.05 * t),
+                                      alpha: widget.isDark
+                                          ? (0.40 + 0.10 * t)
+                                          : (0.10 + 0.05 * t),
                                     ),
                                     blurRadius: 20 + 8 * t,
                                     offset: Offset(0, 4 + 4 * t),
                                   ),
                                   if (widget.isDark)
                                     BoxShadow(
-                                      color: accent.withValues(alpha: 0.12 * (1.0 - 0.5 * t)),
+                                      color: accent.withValues(
+                                          alpha: 0.12 * (1.0 - 0.5 * t)),
                                       blurRadius: 14,
                                       offset: const Offset(0, 2),
                                     ),
@@ -403,8 +438,10 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                                   if (t < 0.38)
                                     Positioned.fill(
                                       child: Opacity(
-                                        opacity: ((0.38 - t) / 0.38).clamp(0.0, 1.0),
-                                        child: _buildCollapsedContent(accent, widget.isDark),
+                                        opacity:
+                                            ((0.38 - t) / 0.38).clamp(0.0, 1.0),
+                                        child: _buildCollapsedContent(
+                                            accent, widget.isDark),
                                       ),
                                     ),
 
@@ -416,13 +453,18 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                                       width: expandedWidth,
                                       height: expandedHeight,
                                       child: Opacity(
-                                        opacity: ((t - 0.12) / 0.88).clamp(0.0, 1.0),
+                                        opacity:
+                                            ((t - 0.12) / 0.88).clamp(0.0, 1.0),
                                         child: Transform.translate(
                                           offset: Offset(
                                             0,
-                                            (1.0 - ((t - 0.12) / 0.88).clamp(0.0, 1.0)) * 10.0,
+                                            (1.0 -
+                                                    ((t - 0.12) / 0.88)
+                                                        .clamp(0.0, 1.0)) *
+                                                10.0,
                                           ),
-                                          child: _buildExpandedContent(accent, widget.isDark),
+                                          child: _buildExpandedContent(
+                                              accent, widget.isDark),
                                         ),
                                       ),
                                     ),
@@ -449,7 +491,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
   Widget _buildCollapsedContent(Color accent, bool isDark) {
     return Semantics(
       key: const Key('draggable_org_fab'),
-      label: 'Open organization network controls. ${widget.memberCount} members.',
+      label:
+          'Open organization network controls. ${widget.memberCount} members.',
       button: true,
       child: Tooltip(
         message: 'Open Org Network Controls',
@@ -518,11 +561,15 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            widget.memberCount > 0 ? '${widget.memberCount} Members' : 'Org Network',
-                            style: GoogleFonts.inter(
+                            widget.memberCount > 0
+                                ? '${widget.memberCount} Members'
+                                : 'Org Network',
+                            style: AppTextStyles.labelSmall.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.lightTextPrimary,
                             ),
                           ),
                         ],
@@ -537,7 +584,7 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                         children: [
                           Text(
                             'ORG NETWORK',
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.cardTitle.copyWith(
                               fontSize: 8.5,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.8,
@@ -602,7 +649,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.hub_rounded, size: 17, color: Colors.white),
+                        child: const Icon(Icons.hub_rounded,
+                            size: 17, color: Colors.white),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -612,21 +660,25 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                             Text(
                               'NEXUS ORG NETWORK',
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.cardTitle.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.1,
-                                color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.lightTextPrimary,
                               ),
                             ),
                             const SizedBox(height: 1.5),
                             Text(
                               'Interactive Society Hierarchy Graph',
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
+                                color: isDark
+                                    ? Colors.white54
+                                    : AppColors.lightTextSecondary,
                               ),
                             ),
                           ],
@@ -636,18 +688,22 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                   ),
                 ),
                 const SizedBox(width: 8),
-
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Live Status Pill
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0x38222234) : const Color(0x1F000000),
+                        color: isDark
+                            ? const Color(0x38222234)
+                            : const Color(0x1F000000),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isDark ? const Color(0x2EFFFFFF) : const Color(0x14000000),
+                          color: isDark
+                              ? const Color(0x2EFFFFFF)
+                              : const Color(0x14000000),
                           width: 0.8,
                         ),
                       ),
@@ -661,17 +717,22 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                               color: Color(0xFF34C759),
                               shape: BoxShape.circle,
                               boxShadow: [
-                                BoxShadow(color: Color(0xFF34C759), blurRadius: 4, spreadRadius: 1),
+                                BoxShadow(
+                                    color: Color(0xFF34C759),
+                                    blurRadius: 4,
+                                    spreadRadius: 1),
                               ],
                             ),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             '${widget.memberCount} Members',
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.labelSmall.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppColors.lightTextPrimary,
                             ),
                           ),
                         ],
@@ -694,13 +755,17 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0x33FFFFFF) : const Color(0x14000000),
+                                color: isDark
+                                    ? const Color(0x33FFFFFF)
+                                    : const Color(0x14000000),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.close_rounded,
                                 size: 16,
-                                color: isDark ? Colors.white70 : AppColors.lightTextPrimary,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppColors.lightTextPrimary,
                               ),
                             ),
                           ),
@@ -717,10 +782,13 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
             Container(
               height: 38,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0x551E1E2C) : const Color(0x73F0F0F4),
+                color:
+                    isDark ? const Color(0x551E1E2C) : const Color(0x73F0F0F4),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? const Color(0x26FFFFFF) : const Color(0x1A000000),
+                  color: isDark
+                      ? const Color(0x26FFFFFF)
+                      : const Color(0x1A000000),
                   width: 0.8,
                 ),
               ),
@@ -736,14 +804,14 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                       onChanged: (val) {
                         widget.onSearchChanged(val.trim());
                       },
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search members, roles, or domains...',
-                        hintStyle: GoogleFonts.inter(
+                        hintStyle: AppTextStyles.bodySmall.copyWith(
                           fontSize: 11.5,
                           color: isDark ? Colors.white38 : Colors.black38,
                         ),
@@ -798,7 +866,8 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                     borderRadius: BorderRadius.circular(15),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 11, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: isSelected
                             ? LinearGradient(
@@ -809,12 +878,16 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                             : null,
                         color: isSelected
                             ? null
-                            : (isDark ? const Color(0x38222234) : const Color(0x1FEEEEF4)),
+                            : (isDark
+                                ? const Color(0x38222234)
+                                : const Color(0x1FEEEEF4)),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
                           color: isSelected
                               ? accent.withValues(alpha: 0.9)
-                              : (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000)),
+                              : (isDark
+                                  ? const Color(0x1FFFFFFF)
+                                  : const Color(0x14000000)),
                           width: 0.8,
                         ),
                         boxShadow: isSelected
@@ -835,14 +908,18 @@ class DraggableOrgNetworkFabState extends State<DraggableOrgNetworkFab>
                             size: 12,
                             color: isSelected
                                 ? Colors.white
-                                : (isDark ? Colors.white60 : AppColors.lightTextSecondary),
+                                : (isDark
+                                    ? Colors.white60
+                                    : AppColors.lightTextSecondary),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             d,
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.labelSmall.copyWith(
                               fontSize: 10.5,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               color: isSelected
                                   ? Colors.white
                                   : (isDark ? Colors.white70 : Colors.black87),

@@ -61,7 +61,8 @@ class BrlBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedIndex = _selectedIndex(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
 
     return PopScope(
       canPop: false,
@@ -81,8 +82,10 @@ class BrlBottomNav extends StatelessWidget {
                     onPressed: () => Navigator.of(ctx).pop(false),
                     child: Text(
                       'Cancel',
-                      style: TextStyle(
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      style: AppTextStyles.buttonSm.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                       ),
                     ),
                   ),
@@ -90,7 +93,7 @@ class BrlBottomNav extends StatelessWidget {
                     onPressed: () => Navigator.of(ctx).pop(true),
                     child: Text(
                       'Exit',
-                      style: TextStyle(
+                      style: AppTextStyles.buttonSm.copyWith(
                         color: isDark ? AppColors.errorDark : AppColors.error,
                         fontWeight: FontWeight.w600,
                       ),
@@ -183,8 +186,10 @@ class _ModernHomeBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Pill capsule styling matching @jsav.design mockup
-    final barBgColor = isDark ? const Color(0xFF16161A) : const Color(0xFF101012);
-    final borderColor = isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
+    final barBgColor =
+        isDark ? const Color(0xFF16161A) : const Color(0xFF101012);
+    final borderColor =
+        isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
 
     return Container(
       height: _barHeight,
@@ -210,7 +215,8 @@ class _ModernHomeBar extends StatelessWidget {
           final totalWidth = constraints.maxWidth;
           final itemWidth = totalWidth / items.length;
           final indicatorSize = constraints.maxHeight; // 52.0 (64 - 12)
-          final indicatorLeft = selectedIndex * itemWidth + (itemWidth - indicatorSize) / 2;
+          final indicatorLeft =
+              selectedIndex * itemWidth + (itemWidth - indicatorSize) / 2;
 
           return Stack(
             alignment: Alignment.centerLeft,
@@ -322,7 +328,9 @@ class _HomeBarItemWidget extends StatelessWidget {
 
     // When selected: pitch dark icon inside white circle
     // When unselected: clean white outline icon
-    final targetColor = isSelected ? const Color(0xFF101012) : Colors.white.withValues(alpha: 0.90);
+    final targetColor = isSelected
+        ? const Color(0xFF101012)
+        : Colors.white.withValues(alpha: 0.90);
 
     return Semantics(
       label: item.label,
@@ -363,4 +371,3 @@ class _HomeBarItemWidget extends StatelessWidget {
     );
   }
 }
-

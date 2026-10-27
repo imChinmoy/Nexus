@@ -19,7 +19,6 @@ class ServerFailure extends Failure {
   const ServerFailure(super.message, {super.statusCode, super.code});
 }
 
-
 class AuthFailure extends Failure {
   const AuthFailure(super.message, {super.statusCode});
 }

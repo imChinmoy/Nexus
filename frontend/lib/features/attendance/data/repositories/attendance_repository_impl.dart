@@ -22,7 +22,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       );
       return Right(result);
     } on AppException catch (e) {
-      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
+      return Left(
+          ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
     }
@@ -42,19 +43,22 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       );
       return const Right(null);
     } on AppException catch (e) {
-      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
+      return Left(
+          ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getAttendanceByEvent(String eventId) async {
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAttendanceByEvent(
+      String eventId) async {
     try {
       final result = await _remote.getAttendanceByEvent(eventId);
       return Right(result);
     } on AppException catch (e) {
-      return Left(ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
+      return Left(
+          ServerFailure(e.message, statusCode: e.statusCode, code: e.code));
     } catch (e) {
       return Left(UnknownFailure(e.toString()));
     }

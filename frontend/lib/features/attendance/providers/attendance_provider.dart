@@ -9,7 +9,8 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
   return AttendanceRepositoryImpl(AttendanceRemoteSourceImpl(dio));
 });
 
-final eventAttendanceProvider = FutureProvider.autoDispose.family<List<Map<String, dynamic>>, String>((ref, eventId) async {
+final eventAttendanceProvider = FutureProvider.autoDispose
+    .family<List<Map<String, dynamic>>, String>((ref, eventId) async {
   final repository = ref.watch(attendanceRepositoryProvider);
   final result = await repository.getAttendanceByEvent(eventId);
   return result.fold(

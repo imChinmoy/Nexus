@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../events/providers/event_provider.dart';
 
@@ -299,9 +298,8 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
         : restingOffsetX + (20.0 * progress);
 
     const double restingRotation = -0.105; // -6°
-    final double currentRotation = progress > 0
-        ? restingRotation + (0.105 * progress)
-        : restingRotation;
+    final double currentRotation =
+        progress > 0 ? restingRotation + (0.105 * progress) : restingRotation;
 
     const double restingScale = 0.90;
     final double currentScale = progress > 0
@@ -351,9 +349,8 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
         : restingOffsetX + (20.0 * progress);
 
     const double restingRotation = 0.105; // +6°
-    final double currentRotation = progress < 0
-        ? restingRotation + (0.105 * progress)
-        : restingRotation;
+    final double currentRotation =
+        progress < 0 ? restingRotation + (0.105 * progress) : restingRotation;
 
     const double restingScale = 0.90;
     final double currentScale = progress < 0
@@ -447,8 +444,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
               left: isLeft ? 14 : null,
               right: isLeft ? null : 14,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: isLeft
                       ? const Color(0xFF00E676).withValues(alpha: 0.25)
@@ -461,7 +457,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                 ),
                 child: Text(
                   isLeft ? timeBadge : event.type.toUpperCase(),
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.labelSm.copyWith(
                     fontSize: 8.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
@@ -480,9 +476,9 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                 constraints: const BoxConstraints(maxWidth: 150),
                 child: Text(
                   event.title.toUpperCase(),
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.cardTitle.copyWith(
                     fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 0.4,
                     color: Colors.white70,
                   ),
@@ -552,14 +548,16 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
           border: Border.all(
             color: (event.isAttendanceOpen && !event.isPast)
                 ? successColor.withValues(alpha: isDark ? 0.65 : 0.75)
-                : const Color(0xFF2997FF).withValues(alpha: isDark ? 0.45 : 0.35),
+                : const Color(0xFF2997FF)
+                    .withValues(alpha: isDark ? 0.45 : 0.35),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
               color: (event.isAttendanceOpen && !event.isPast)
                   ? successColor.withValues(alpha: isDark ? 0.25 : 0.14)
-                  : const Color(0xFF2997FF).withValues(alpha: isDark ? 0.22 : 0.10),
+                  : const Color(0xFF2997FF)
+                      .withValues(alpha: isDark ? 0.22 : 0.10),
               blurRadius: 26,
               spreadRadius: 1,
               offset: const Offset(0, 8),
@@ -652,8 +650,8 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                                       !event.isPast)
                                   ? [
                                       BoxShadow(
-                                        color: successColor
-                                            .withValues(alpha: 0.8),
+                                        color:
+                                            successColor.withValues(alpha: 0.8),
                                         blurRadius: 7,
                                         spreadRadius: 1.5,
                                       ),
@@ -664,7 +662,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                           const SizedBox(width: 6),
                           Text(
                             timeBadge,
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.labelSm.copyWith(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
@@ -696,7 +694,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                           ),
                           child: Text(
                             event.type.toUpperCase(),
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.labelSm.copyWith(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.6,
@@ -733,8 +731,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                                     .toggleAttendance(event.id, nextState);
                                 result.fold(
                                   (failure) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(failure.message),
                                         backgroundColor:
@@ -744,8 +741,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                                   },
                                   (_) {
                                     ref.invalidate(eventsProvider);
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           nextState
@@ -796,9 +792,9 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                     // Event Title
                     Text(
                       event.title,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.titleLg.copyWith(
                         fontSize: 18.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: -0.3,
                         color: Colors.white,
                       ),
@@ -810,10 +806,9 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                       const SizedBox(height: 2),
                       Text(
                         event.description!.trim().split('\n').first,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white70,
+                        style: AppTextStyles.editorialSubtitle.copyWith(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.85),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -833,7 +828,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                         Flexible(
                           child: Text(
                             dateFormatted,
-                            style: GoogleFonts.inter(
+                            style: AppTextStyles.bodySm.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: Colors.white70,
@@ -842,8 +837,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (event.venue != null &&
-                            event.venue!.isNotEmpty) ...[
+                        if (event.venue != null && event.venue!.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           const Text(
                             '•',
@@ -862,7 +856,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                           Flexible(
                             child: Text(
                               event.venue!,
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.bodySm.copyWith(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white70,
@@ -902,7 +896,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                               children: [
                                 Text(
                                   'View Event',
-                                  style: GoogleFonts.inter(
+                                  style: AppTextStyles.buttonSm.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: const Color(0xFF101012),
@@ -932,7 +926,7 @@ class _StackedEventDeckState extends ConsumerState<StackedEventDeck>
                                 size: 14),
                             label: Text(
                               'Scan QR Pass',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.buttonSm.copyWith(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
                               ),

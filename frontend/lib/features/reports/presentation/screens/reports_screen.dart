@@ -32,7 +32,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final events = eventsAsync.value ?? [];
     final members = membersAsync.value ?? [];
 
-    final isLoading = studentsAsync.isLoading || eventsAsync.isLoading || membersAsync.isLoading;
+    final isLoading = studentsAsync.isLoading ||
+        eventsAsync.isLoading ||
+        membersAsync.isLoading;
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -51,10 +53,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           },
           child: isLoading && students.isEmpty && events.isEmpty
               ? Center(
-                  child: CircularProgressIndicator(color: accent, strokeWidth: 2.5),
+                  child: CircularProgressIndicator(
+                      color: accent, strokeWidth: 2.5),
                 )
               : ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   children: [
                     // Summary Metric Grid
                     _buildOverviewMetrics(context, students, events, members),
@@ -107,8 +111,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final totalStudents = students.length;
     final avgAttendance = students.isEmpty
         ? 0.0
-        : students.map((s) => s.attendance).reduce((a, b) => a + b) / students.length;
-    final activeEvents = events.where((e) => e.status.toLowerCase() == 'ongoing' || e.isAttendanceOpen).length;
+        : students.map((s) => s.attendance).reduce((a, b) => a + b) /
+            students.length;
+    final activeEvents = events
+        .where((e) => e.status.toLowerCase() == 'ongoing' || e.isAttendanceOpen)
+        .length;
     final totalMembers = members.length;
 
     return Row(
@@ -199,14 +206,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildBranchAttendanceChart(BuildContext context, List<StudentEntity> students) {
+  Widget _buildBranchAttendanceChart(
+      BuildContext context, List<StudentEntity> students) {
     if (students.isEmpty) {
       return BrlGlassCard(
         padding: const EdgeInsets.all(24),
         child: Center(
           child: Text(
             'No student data available to chart',
-            style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context)),
+            style: AppTextStyles.bodySm
+                .copyWith(color: AppColors.textSecondaryOf(context)),
           ),
         ),
       );
@@ -217,7 +226,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final branchCounts = <String, int>{};
 
     for (final s in students) {
-      branchAverages[s.branch] = (branchAverages[s.branch] ?? 0.0) + s.attendance;
+      branchAverages[s.branch] =
+          (branchAverages[s.branch] ?? 0.0) + s.attendance;
       branchCounts[s.branch] = (branchCounts[s.branch] ?? 0) + 1;
     }
 
@@ -237,7 +247,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               toY: avg,
               color: AppColors.accentOf(context),
               width: 14,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(4)),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: 100,
@@ -259,11 +270,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             children: [
               Text(
                 'Average Attendance by Branch',
-                style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
+                style:
+                    AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
                 'Top Branches (%)',
-                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondaryOf(context)),
               ),
             ],
           ),
@@ -296,7 +309,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       showTitles: true,
                       getTitlesWidget: (val, meta) {
                         final idx = val.toInt();
-                        if (idx < 0 || idx >= topBranches.length) return const SizedBox.shrink();
+                        if (idx < 0 || idx >= topBranches.length)
+                          return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
@@ -329,8 +343,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       },
                     ),
                   ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: FlGridData(
                   show: true,
@@ -351,7 +367,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildEventStatusBreakdown(BuildContext context, List<EventEntity> events) {
+  Widget _buildEventStatusBreakdown(
+      BuildContext context, List<EventEntity> events) {
     int upcoming = 0;
     int ongoing = 0;
     int completed = 0;
@@ -384,7 +401,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Events Overview', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
+              Text('Events Overview',
+                  style: AppTextStyles.bodyMd
+                      .copyWith(fontWeight: FontWeight.w600)),
               Text(
                 '$total Total Events',
                 style: AppTextStyles.caption.copyWith(
@@ -395,21 +414,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildStatusRow(context, 'Ongoing & Open', ongoing, total, AppColors.successOf(context)),
+          _buildStatusRow(context, 'Ongoing & Open', ongoing, total,
+              AppColors.successOf(context)),
           const SizedBox(height: 10),
-          _buildStatusRow(context, 'Upcoming', upcoming, total, AppColors.warningOf(context)),
+          _buildStatusRow(context, 'Upcoming', upcoming, total,
+              AppColors.warningOf(context)),
           const SizedBox(height: 10),
-          _buildStatusRow(context, 'Completed', completed, total, AppColors.accentOf(context)),
+          _buildStatusRow(context, 'Completed', completed, total,
+              AppColors.accentOf(context)),
           if (cancelled > 0) ...[
             const SizedBox(height: 10),
-            _buildStatusRow(context, 'Cancelled', cancelled, total, AppColors.errorOf(context)),
+            _buildStatusRow(context, 'Cancelled', cancelled, total,
+                AppColors.errorOf(context)),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildStatusRow(BuildContext context, String label, int count, int total, Color color) {
+  Widget _buildStatusRow(
+      BuildContext context, String label, int count, int total, Color color) {
     final double fraction = total == 0 ? 0 : (count / total).clamp(0.0, 1.0);
 
     return Column(
@@ -423,7 +447,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+                  decoration:
+                      BoxDecoration(shape: BoxShape.circle, color: color),
                 ),
                 const SizedBox(width: 8),
                 Text(label, style: AppTextStyles.bodySm),
@@ -453,10 +478,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildTeamCompositionCard(BuildContext context, List<UserEntity> members) {
-    final superAdmins = members.where((m) => m.role == UserRole.superAdmin || m.role == UserRole.admin).length;
-    final coordinators = members.where((m) => m.role == UserRole.coordinator).length;
-    final volunteers = members.where((m) => m.role == UserRole.volunteer).length;
+  Widget _buildTeamCompositionCard(
+      BuildContext context, List<UserEntity> members) {
+    final superAdmins = members
+        .where((m) => m.role == UserRole.superAdmin || m.role == UserRole.admin)
+        .length;
+    final coordinators =
+        members.where((m) => m.role == UserRole.coordinator).length;
+    final volunteers =
+        members.where((m) => m.role == UserRole.volunteer).length;
     final total = members.length;
 
     return BrlGlassCard(
@@ -467,7 +497,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Staff & Volunteers', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w600)),
+              Text('Staff & Volunteers',
+                  style: AppTextStyles.bodyMd
+                      .copyWith(fontWeight: FontWeight.w600)),
               Text(
                 '$total Active Members',
                 style: AppTextStyles.caption.copyWith(
@@ -513,7 +545,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildRoleStatTile(BuildContext context, {required String role, required int count, required Color color}) {
+  Widget _buildRoleStatTile(BuildContext context,
+      {required String role, required int count, required Color color}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(

@@ -21,7 +21,8 @@ class MemberDetailsScreen extends ConsumerStatefulWidget {
   const MemberDetailsScreen({super.key, required this.member});
 
   @override
-  ConsumerState<MemberDetailsScreen> createState() => _MemberDetailsScreenState();
+  ConsumerState<MemberDetailsScreen> createState() =>
+      _MemberDetailsScreenState();
 }
 
 class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
@@ -101,7 +102,13 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final accent = AppColors.accentOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = _member.name.trim().isNotEmpty
-        ? _member.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? _member.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : 'M';
 
     return Container(
@@ -116,7 +123,8 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
         child: _member.avatar != null && _member.avatar!.isNotEmpty
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(45),
-                child: Image.network(_member.avatar!, width: 90, height: 90, fit: BoxFit.cover),
+                child: Image.network(_member.avatar!,
+                    width: 90, height: 90, fit: BoxFit.cover),
               )
             : Text(
                 initials,
@@ -146,24 +154,25 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
           ),
           const SizedBox(height: 20),
         ],
-
         _buildSectionHeader(context, 'CONTACT INFORMATION'),
         const SizedBox(height: 8),
         BrlGlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              _buildInfoRow(context, Icons.email_outlined, 'Email', _member.email),
+              _buildInfoRow(
+                  context, Icons.email_outlined, 'Email', _member.email),
               if (_member.phone?.isNotEmpty == true) ...[
                 Divider(color: AppColors.borderOf(context), height: 1),
-                _buildInfoRow(context, Icons.phone_outlined, 'Phone', _member.phone!),
+                _buildInfoRow(
+                    context, Icons.phone_outlined, 'Phone', _member.phone!),
               ],
             ],
           ),
         ),
         const SizedBox(height: 20),
-
-        if (_member.domain?.isNotEmpty == true || _member.year?.isNotEmpty == true) ...[
+        if (_member.domain?.isNotEmpty == true ||
+            _member.year?.isNotEmpty == true) ...[
           _buildSectionHeader(context, 'ACADEMIC PROFILE'),
           const SizedBox(height: 8),
           BrlGlassCard(
@@ -171,18 +180,21 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
             child: Column(
               children: [
                 if (_member.domain?.isNotEmpty == true)
-                  _buildInfoRow(context, Icons.domain_outlined, 'Domain', _member.domain!),
-                if (_member.domain?.isNotEmpty == true && _member.year?.isNotEmpty == true)
+                  _buildInfoRow(context, Icons.domain_outlined, 'Domain',
+                      _member.domain!),
+                if (_member.domain?.isNotEmpty == true &&
+                    _member.year?.isNotEmpty == true)
                   Divider(color: AppColors.borderOf(context), height: 1),
                 if (_member.year?.isNotEmpty == true)
-                  _buildInfoRow(context, Icons.school_outlined, 'Year', 'Year ${_member.year!}'),
+                  _buildInfoRow(context, Icons.school_outlined, 'Year',
+                      'Year ${_member.year!}'),
               ],
             ),
           ),
           const SizedBox(height: 20),
         ],
-
-        if (_member.github?.isNotEmpty == true || _member.linkedin?.isNotEmpty == true) ...[
+        if (_member.github?.isNotEmpty == true ||
+            _member.linkedin?.isNotEmpty == true) ...[
           _buildSectionHeader(context, 'SOCIAL LINKS'),
           const SizedBox(height: 8),
           BrlGlassCard(
@@ -190,11 +202,14 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
             child: Column(
               children: [
                 if (_member.github?.isNotEmpty == true)
-                  _buildInfoRow(context, Icons.code_rounded, 'GitHub', _member.github!),
-                if (_member.github?.isNotEmpty == true && _member.linkedin?.isNotEmpty == true)
+                  _buildInfoRow(
+                      context, Icons.code_rounded, 'GitHub', _member.github!),
+                if (_member.github?.isNotEmpty == true &&
+                    _member.linkedin?.isNotEmpty == true)
                   Divider(color: AppColors.borderOf(context), height: 1),
                 if (_member.linkedin?.isNotEmpty == true)
-                  _buildInfoRow(context, Icons.open_in_new_rounded, 'LinkedIn', _member.linkedin!),
+                  _buildInfoRow(context, Icons.open_in_new_rounded, 'LinkedIn',
+                      _member.linkedin!),
               ],
             ),
           ),
@@ -217,14 +232,17 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+      BuildContext context, IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
           Icon(icon, color: AppColors.accentOf(context), size: 18),
           const SizedBox(width: 12),
-          Text(label, style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context))),
+          Text(label,
+              style: AppTextStyles.bodySm
+                  .copyWith(color: AppColors.textSecondaryOf(context))),
           const Spacer(),
           Flexible(
             child: Text(
@@ -246,15 +264,23 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final nameController = TextEditingController(text: _member.name);
     final emailController = TextEditingController(text: _member.email);
     final phoneController = TextEditingController(text: _member.phone ?? '');
-    String? selectedDomain = _member.domain?.isNotEmpty == true ? _member.domain : null;
-    final List<String> domainOptions = ['App Development', 'Frontend', 'Backend', 'Design', 'ML'];
+    String? selectedDomain =
+        _member.domain?.isNotEmpty == true ? _member.domain : null;
+    final List<String> domainOptions = [
+      'App Development',
+      'Frontend',
+      'Backend',
+      'Design',
+      'ML'
+    ];
     if (selectedDomain != null && !domainOptions.contains(selectedDomain)) {
       domainOptions.add(selectedDomain);
     }
     final yearController = TextEditingController(text: _member.year ?? '');
     final bioController = TextEditingController(text: _member.bio ?? '');
     final githubController = TextEditingController(text: _member.github ?? '');
-    final linkedinController = TextEditingController(text: _member.linkedin ?? '');
+    final linkedinController =
+        TextEditingController(text: _member.linkedin ?? '');
     UserRole selectedRole = _member.role;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -276,9 +302,12 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                 top: 12,
               ),
               decoration: BoxDecoration(
-                color: AppColors.surfaceOf(context).withValues(alpha: isDark ? 0.95 : 0.98),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(color: AppColors.borderOf(context), width: 0.6),
+                color: AppColors.surfaceOf(context)
+                    .withValues(alpha: isDark ? 0.95 : 0.98),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+                border:
+                    Border.all(color: AppColors.borderOf(context), width: 0.6),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -289,7 +318,8 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                       width: 36,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.textTertiaryOf(context).withValues(alpha: 0.4),
+                        color: AppColors.textTertiaryOf(context)
+                            .withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -298,9 +328,13 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Edit Member Details', style: AppTextStyles.headlineSm.copyWith(fontWeight: FontWeight.w700)),
+                      Text('Edit Member Details',
+                          style: AppTextStyles.headlineSm
+                              .copyWith(fontWeight: FontWeight.w700)),
                       IconButton(
-                        icon: Icon(Icons.close, size: 20, color: AppColors.textSecondaryOf(context)),
+                        icon: Icon(Icons.close,
+                            size: 20,
+                            color: AppColors.textSecondaryOf(context)),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -311,9 +345,15 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                       children: [
                         BrlTextField(label: 'Name', controller: nameController),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'Email', controller: emailController, keyboardType: TextInputType.emailAddress),
+                        BrlTextField(
+                            label: 'Email',
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'Phone', controller: phoneController, keyboardType: TextInputType.phone),
+                        BrlTextField(
+                            label: 'Phone',
+                            controller: phoneController,
+                            keyboardType: TextInputType.phone),
                         const SizedBox(height: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,11 +368,14 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                             ),
                             const SizedBox(height: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 14),
                               decoration: BoxDecoration(
                                 color: AppColors.surfaceOf(context),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                                border: Border.all(
+                                    color: AppColors.borderOf(context),
+                                    width: 0.8),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
@@ -342,12 +385,22 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                                   items: [
                                     DropdownMenuItem<String>(
                                       value: null,
-                                      child: Text('None', style: TextStyle(color: AppColors.textSecondaryOf(context))),
+                                      child: Text('None',
+                                          style: AppTextStyles.bodyMedium
+                                              .copyWith(
+                                                  color:
+                                                      AppColors.textSecondaryOf(
+                                                          context))),
                                     ),
                                     ...domainOptions.map((domain) {
                                       return DropdownMenuItem<String>(
                                         value: domain,
-                                        child: Text(domain, style: TextStyle(color: AppColors.textPrimaryOf(context))),
+                                        child: Text(domain,
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
+                                                    color:
+                                                        AppColors.textPrimaryOf(
+                                                            context))),
                                       );
                                     }),
                                   ],
@@ -360,15 +413,23 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'Academic Year', controller: yearController),
+                        BrlTextField(
+                            label: 'Academic Year', controller: yearController),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'GitHub URL', controller: githubController),
+                        BrlTextField(
+                            label: 'GitHub URL', controller: githubController),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'LinkedIn URL', controller: linkedinController),
+                        BrlTextField(
+                            label: 'LinkedIn URL',
+                            controller: linkedinController),
                         const SizedBox(height: 12),
-                        BrlTextField(label: 'Bio', controller: bioController, maxLines: 3),
+                        BrlTextField(
+                            label: 'Bio',
+                            controller: bioController,
+                            maxLines: 3),
                         const SizedBox(height: 12),
-                        if (ref.read(currentUserProvider)?.isSuperAdmin == true) ...[
+                        if (ref.read(currentUserProvider)?.isSuperAdmin ==
+                            true) ...[
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -382,11 +443,14 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                               ),
                               const SizedBox(height: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceOf(context),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.borderOf(context), width: 0.8),
+                                  border: Border.all(
+                                      color: AppColors.borderOf(context),
+                                      width: 0.8),
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<UserRole>(
@@ -396,11 +460,17 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                                     items: UserRole.values.map((role) {
                                       return DropdownMenuItem(
                                         value: role,
-                                        child: Text(role.displayName, style: TextStyle(color: AppColors.textPrimaryOf(context))),
+                                        child: Text(role.displayName,
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
+                                                    color:
+                                                        AppColors.textPrimaryOf(
+                                                            context))),
                                       );
                                     }).toList(),
                                     onChanged: (val) {
-                                      if (val != null) setSheetState(() => selectedRole = val);
+                                      if (val != null)
+                                        setSheetState(() => selectedRole = val);
                                     },
                                   ),
                                 ),
@@ -417,36 +487,55 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                     label: 'Save Changes',
                     icon: Icons.check,
                     onPressed: () async {
-                      if (nameController.text.trim().isEmpty || emailController.text.trim().isEmpty) {
+                      if (nameController.text.trim().isEmpty ||
+                          emailController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: const Text('Name and email are required'),
                             backgroundColor: AppColors.errorOf(context),
                             behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
                           ),
                         );
                         return;
                       }
                       try {
                         final dio = ref.read(dioClientProvider);
-                        final response = await dio.put('/members/${_member.id}', data: {
-                          'name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
-                          'email': emailController.text.trim().isEmpty ? null : emailController.text.trim(),
-                          'phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+                        final response =
+                            await dio.put('/members/${_member.id}', data: {
+                          'name': nameController.text.trim().isEmpty
+                              ? null
+                              : nameController.text.trim(),
+                          'email': emailController.text.trim().isEmpty
+                              ? null
+                              : emailController.text.trim(),
+                          'phone': phoneController.text.trim().isEmpty
+                              ? null
+                              : phoneController.text.trim(),
                           'domain': selectedDomain,
-                          'year': yearController.text.trim().isEmpty ? null : yearController.text.trim(),
-                          'github': githubController.text.trim().isEmpty ? null : githubController.text.trim(),
-                          'linkedin': linkedinController.text.trim().isEmpty ? null : linkedinController.text.trim(),
-                          'bio': bioController.text.trim().isEmpty ? null : bioController.text.trim(),
+                          'year': yearController.text.trim().isEmpty
+                              ? null
+                              : yearController.text.trim(),
+                          'github': githubController.text.trim().isEmpty
+                              ? null
+                              : githubController.text.trim(),
+                          'linkedin': linkedinController.text.trim().isEmpty
+                              ? null
+                              : linkedinController.text.trim(),
+                          'bio': bioController.text.trim().isEmpty
+                              ? null
+                              : bioController.text.trim(),
                           'role': selectedRole.backendValue,
                         });
                         if (context.mounted) {
                           Navigator.pop(context);
                           ref.invalidate(membersProvider);
 
-                          if (response.data != null && response.data['data'] != null) {
-                            final updatedModel = UserModel.fromJson(response.data['data']);
+                          if (response.data != null &&
+                              response.data['data'] != null) {
+                            final updatedModel =
+                                UserModel.fromJson(response.data['data']);
                             setState(() {
                               _member = updatedModel.toEntity();
                             });
@@ -454,10 +543,12 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('Member updated successfully'),
+                              content:
+                                  const Text('Member updated successfully'),
                               backgroundColor: AppColors.successOf(context),
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
                           );
                         }
@@ -465,14 +556,16 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                         if (context.mounted) {
                           String errMsg = 'Failed to update member';
                           if (e.toString().contains('403')) {
-                            errMsg = 'Access Denied: You do not have permission to edit members';
+                            errMsg =
+                                'Access Denied: You do not have permission to edit members';
                           }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(errMsg),
                               backgroundColor: AppColors.errorOf(context),
                               behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
                           );
                         }

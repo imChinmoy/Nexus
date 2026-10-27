@@ -21,11 +21,16 @@ class HeatmapEventModel extends HeatmapEventEntity {
       type: json['type']?.toString(),
       status: json['status']?.toString(),
       venue: json['venue']?.toString(),
-      capacity: json['capacity'] is num ? (json['capacity'] as num).toInt() : null,
+      capacity:
+          json['capacity'] is num ? (json['capacity'] as num).toInt() : null,
       count: json['count'] is num ? (json['count'] as num).toInt() : null,
       isAttendanceOpen: json['isAttendanceOpen'] == true,
-      startDate: json['startDate'] != null ? DateTime.tryParse(json['startDate'].toString()) : null,
-      endDate: json['endDate'] != null ? DateTime.tryParse(json['endDate'].toString()) : null,
+      startDate: json['startDate'] != null
+          ? DateTime.tryParse(json['startDate'].toString())
+          : null,
+      endDate: json['endDate'] != null
+          ? DateTime.tryParse(json['endDate'].toString())
+          : null,
     );
   }
 }
@@ -79,16 +84,23 @@ class HeatmapStatsModel extends HeatmapStatsEntity {
   factory HeatmapStatsModel.fromJson(Map<String, dynamic> json) {
     HeatmapBusiestDayModel? busiestDay;
     if (json['busiestDay'] is Map<String, dynamic>) {
-      busiestDay = HeatmapBusiestDayModel.fromJson(json['busiestDay'] as Map<String, dynamic>);
+      busiestDay = HeatmapBusiestDayModel.fromJson(
+          json['busiestDay'] as Map<String, dynamic>);
     }
 
     return HeatmapStatsModel(
-      totalCount: json['totalCount'] is num ? (json['totalCount'] as num).toInt() : 0,
-      activeDays: json['activeDays'] is num ? (json['activeDays'] as num).toInt() : 0,
+      totalCount:
+          json['totalCount'] is num ? (json['totalCount'] as num).toInt() : 0,
+      activeDays:
+          json['activeDays'] is num ? (json['activeDays'] as num).toInt() : 0,
       busiestDay: busiestDay,
       busiestPeriod: json['busiestPeriod']?.toString() ?? 'None',
-      completedCount: json['completedCount'] is num ? (json['completedCount'] as num).toInt() : null,
-      upcomingCount: json['upcomingCount'] is num ? (json['upcomingCount'] as num).toInt() : null,
+      completedCount: json['completedCount'] is num
+          ? (json['completedCount'] as num).toInt()
+          : null,
+      upcomingCount: json['upcomingCount'] is num
+          ? (json['upcomingCount'] as num).toInt()
+          : null,
     );
   }
 }
@@ -103,7 +115,9 @@ class ActivityHeatmapModel extends ActivityHeatmapEntity {
   });
 
   factory ActivityHeatmapModel.fromJson(Map<String, dynamic> json) {
-    final year = json['year'] is num ? (json['year'] as num).toInt() : DateTime.now().year;
+    final year = json['year'] is num
+        ? (json['year'] as num).toInt()
+        : DateTime.now().year;
     final metric = json['metric']?.toString() ?? 'events';
     final timezone = json['timezone']?.toString() ?? 'Asia/Kolkata';
 

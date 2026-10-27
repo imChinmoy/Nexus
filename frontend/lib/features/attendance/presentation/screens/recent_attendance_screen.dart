@@ -15,7 +15,8 @@ class RecentAttendanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
     final accent = isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final studentsAsync = ref.watch(studentsProvider);
 
@@ -56,7 +57,8 @@ class RecentAttendanceScreen extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         'Students marked present at an event gate will appear here in chronological order.',
-                        style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                        style:
+                            AppTextStyles.bodyMd.copyWith(color: textSecondary),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -67,14 +69,17 @@ class RecentAttendanceScreen extends ConsumerWidget {
 
             return RefreshIndicator(
               color: accent,
-              backgroundColor: isDark ? AppColors.darkElevatedSurface : AppColors.lightSurface,
+              backgroundColor: isDark
+                  ? AppColors.darkElevatedSurface
+                  : AppColors.lightSurface,
               onRefresh: () async {
                 ref.invalidate(studentsProvider);
                 await Future.delayed(const Duration(milliseconds: 600));
               },
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
-                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics()),
                 itemCount: presentStudents.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
@@ -87,8 +92,10 @@ class RecentAttendanceScreen extends ConsumerWidget {
                   }
 
                   return BrlGlassCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    onTap: () => context.push('/students/${student.rollNumber}'),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    onTap: () =>
+                        context.push('/students/${student.rollNumber}'),
                     child: Row(
                       children: [
                         CircleAvatar(
@@ -98,7 +105,7 @@ class RecentAttendanceScreen extends ConsumerWidget {
                             student.name.isNotEmpty
                                 ? student.name.substring(0, 1).toUpperCase()
                                 : 'S',
-                            style: TextStyle(
+                            style: AppTextStyles.labelMedium.copyWith(
                               color: accent,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -121,7 +128,8 @@ class RecentAttendanceScreen extends ConsumerWidget {
                               const SizedBox(height: 2),
                               Text(
                                 '${student.rollNumber} • ${student.branch}',
-                                style: AppTextStyles.caption.copyWith(color: textSecondary),
+                                style: AppTextStyles.caption
+                                    .copyWith(color: textSecondary),
                               ),
                             ],
                           ),
@@ -152,7 +160,8 @@ class RecentAttendanceScreen extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          loading: () =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
           orElse: () => Center(
             child: Text(
               'Failed to load recent attendance',

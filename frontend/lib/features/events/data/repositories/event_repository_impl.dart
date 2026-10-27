@@ -89,7 +89,8 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Either<Failure, EventEntity>> toggleAttendance(String id, bool isOpen) async {
+  Future<Either<Failure, EventEntity>> toggleAttendance(
+      String id, bool isOpen) async {
     try {
       final model = await _remote.toggleAttendance(id, isOpen);
       return Right(model.toEntity());

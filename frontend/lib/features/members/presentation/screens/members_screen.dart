@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -36,7 +35,8 @@ class MembersScreen extends ConsumerStatefulWidget {
 class _MembersScreenState extends ConsumerState<MembersScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   MembersViewMode _viewMode = MembersViewMode.graph;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
   late final AnimationController _pulseController;
   late final AnimationController _reloadSpinController;
   Timer? _autoRefreshTimer;
@@ -143,11 +143,15 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent, size: 18),
+                  const Icon(Icons.check_circle_outline_rounded,
+                      color: Colors.greenAccent, size: 18),
                   const SizedBox(width: 8),
                   Text(
                     'Organization graph synced',
-                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: AppTextStyles.labelMedium.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                 ],
               ),
@@ -200,7 +204,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
-    final canAddMember = currentUser?.role == UserRole.admin || currentUser?.role == UserRole.superAdmin;
+    final canAddMember = currentUser?.role == UserRole.admin ||
+        currentUser?.role == UserRole.superAdmin;
     final accent = AppColors.accentOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final membersAsync = ref.watch(membersProvider);
@@ -232,12 +237,18 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
             ),
             // View Mode Toggle (Graph vs Tiers)
             BrlHeaderIconButton(
-              tooltip: _viewMode == MembersViewMode.graph ? 'Switch to Tier Cards' : 'Switch to Hierarchy Graph',
-              icon: _viewMode == MembersViewMode.graph ? Icons.view_agenda_outlined : Icons.account_tree_outlined,
+              tooltip: _viewMode == MembersViewMode.graph
+                  ? 'Switch to Tier Cards'
+                  : 'Switch to Hierarchy Graph',
+              icon: _viewMode == MembersViewMode.graph
+                  ? Icons.view_agenda_outlined
+                  : Icons.account_tree_outlined,
               onTap: () {
                 HapticFeedback.selectionClick();
                 setState(() {
-                  _viewMode = _viewMode == MembersViewMode.graph ? MembersViewMode.tiers : MembersViewMode.graph;
+                  _viewMode = _viewMode == MembersViewMode.graph
+                      ? MembersViewMode.tiers
+                      : MembersViewMode.graph;
                 });
               },
             ),
@@ -286,7 +297,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   return const EmptyStateWidget(
                     icon: Icons.hub_outlined,
                     title: 'No Society Members Yet',
-                    message: 'No users found in database. Invite coordinators or sync with organization directory.',
+                    message:
+                        'No users found in database. Invite coordinators or sync with organization directory.',
                   );
                 }
 
@@ -298,7 +310,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     if (_viewMode == MembersViewMode.graph)
                       _buildGraphView(context, members, filteredMembers, isDark)
                     else
-                      _buildTiersView(context, members, filteredMembers, isDark),
+                      _buildTiersView(
+                          context, members, filteredMembers, isDark),
 
                     // 2. Floating HUD Tools (Bottom Right)
                     if (_viewMode == MembersViewMode.graph)
@@ -313,9 +326,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       child: DraggableOrgNetworkFab(
                         memberCount: members.length,
                         searchQuery: _searchQuery,
-                        onSearchChanged: (val) => setState(() => _searchQuery = val),
+                        onSearchChanged: (val) =>
+                            setState(() => _searchQuery = val),
                         selectedDomain: _selectedDomain,
-                        onDomainChanged: (val) => setState(() => _selectedDomain = val),
+                        onDomainChanged: (val) =>
+                            setState(() => _selectedDomain = val),
                         domains: _domains,
                         getDomainIcon: _getDomainIcon,
                         isDark: isDark,
@@ -332,8 +347,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     const SizedBox(height: 16),
                     Text(
                       'Building Hierarchy Graph...',
-                      style: GoogleFonts.inter(
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -347,14 +364,17 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline_rounded, size: 44, color: AppColors.errorOf(context)),
+                      Icon(Icons.error_outline_rounded,
+                          size: 44, color: AppColors.errorOf(context)),
                       const SizedBox(height: 12),
-                      Text('Unable to load society network', style: AppTextStyles.headlineSm),
+                      Text('Unable to load society network',
+                          style: AppTextStyles.headlineSm),
                       const SizedBox(height: 6),
                       Text(
                         error.toString(),
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondaryOf(context)),
+                        style: AppTextStyles.bodySm.copyWith(
+                            color: AppColors.textSecondaryOf(context)),
                       ),
                       const SizedBox(height: 16),
                       BrlButton(
@@ -384,20 +404,22 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
           m.role.displayName.toLowerCase().contains(_searchQuery.toLowerCase());
 
       final matchesDomain = _selectedDomain == 'All' ||
-          (m.domain ?? '').toLowerCase().contains(_selectedDomain.toLowerCase());
+          (m.domain ?? '')
+              .toLowerCase()
+              .contains(_selectedDomain.toLowerCase());
 
       return matchesSearch && matchesDomain;
     }).toList();
   }
 
-
-
   // ---------------------------------------------------------------------------
   // 2. FLOATING HUD TOOLS (ZOOM, RECENTER, LEGEND)
   // ---------------------------------------------------------------------------
   Widget _buildFloatingHUD(bool isDark) {
-    final surfaceColor = isDark ? const Color(0xDE1C1C24) : const Color(0xF2FFFFFF);
-    final borderColor = isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
+    final surfaceColor =
+        isDark ? const Color(0xDE1C1C24) : const Color(0xF2FFFFFF);
+    final borderColor =
+        isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
     final iconColor = isDark ? Colors.white70 : AppColors.lightTextPrimary;
 
     return Container(
@@ -440,7 +462,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
             onPressed: _zoomOut,
           ),
           IconButton(
-            icon: Icon(Icons.center_focus_strong_rounded, size: 19, color: AppColors.accentOf(context)),
+            icon: Icon(Icons.center_focus_strong_rounded,
+                size: 19, color: AppColors.accentOf(context)),
             tooltip: 'Center Leadership',
             onPressed: () => _resetView(const Size(1200, 1100)),
           ),
@@ -500,7 +523,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   _buildMemberNodeWidget(
                     context,
                     node,
-                    isFiltered: filteredMembers.any((m) => m.id == node.member.id),
+                    isFiltered:
+                        filteredMembers.any((m) => m.id == node.member.id),
                     isSelected: _selectedMemberId == node.member.id,
                     isDark: isDark,
                   ),
@@ -521,12 +545,19 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
   }) {
     final member = node.member;
     final initials = member.name.trim().isNotEmpty
-        ? member.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? member.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : 'M';
 
     final diameter = node.radius * 2;
     final haloColor = node.tierColor;
-    final isSpotlight = isFiltered && (_searchQuery.isNotEmpty || _selectedDomain != 'All');
+    final isSpotlight =
+        isFiltered && (_searchQuery.isNotEmpty || _selectedDomain != 'All');
     final opacity = isFiltered ? 1.0 : 0.32;
     const nodeWidth = 140.0;
 
@@ -560,12 +591,15 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   border: Border.all(
                     color: isSelected
                         ? Colors.white
-                        : (isSpotlight ? Colors.amberAccent : haloColor.withValues(alpha: isDark ? 0.9 : 0.7)),
+                        : (isSpotlight
+                            ? Colors.amberAccent
+                            : haloColor.withValues(alpha: isDark ? 0.9 : 0.7)),
                     width: isSelected ? 3.0 : (node.tier <= 1 ? 2.5 : 1.8),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: haloColor.withValues(alpha: isSelected ? 0.6 : (isDark ? 0.35 : 0.18)),
+                      color: haloColor.withValues(
+                          alpha: isSelected ? 0.6 : (isDark ? 0.35 : 0.18)),
                       blurRadius: isSelected ? 22 : (node.tier <= 1 ? 16 : 10),
                       spreadRadius: isSelected ? 3 : 1,
                     ),
@@ -580,11 +614,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       child: SizedBox(
                         width: diameter - 6,
                         height: diameter - 6,
-                        child: member.avatar != null && member.avatar!.isNotEmpty
+                        child: member.avatar != null &&
+                                member.avatar!.isNotEmpty
                             ? Image.network(
                                 member.avatar!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildInitialsAvatar(initials, haloColor),
+                                errorBuilder: (_, __, ___) =>
+                                    _buildInitialsAvatar(initials, haloColor),
                               )
                             : _buildInitialsAvatar(initials, haloColor),
                       ),
@@ -599,9 +635,12 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                           decoration: const BoxDecoration(
                             color: Color(0xFFF59E0B),
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 4)],
+                            boxShadow: [
+                              BoxShadow(color: Colors.black45, blurRadius: 4)
+                            ],
                           ),
-                          child: const Icon(Icons.workspace_premium_rounded, size: 10, color: Colors.white),
+                          child: const Icon(Icons.workspace_premium_rounded,
+                              size: 10, color: Colors.white),
                         ),
                       )
                     else if (node.tier == 1)
@@ -612,9 +651,12 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                           decoration: const BoxDecoration(
                             color: Color(0xFF8B5CF6),
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 4)],
+                            boxShadow: [
+                              BoxShadow(color: Colors.black45, blurRadius: 4)
+                            ],
                           ),
-                          child: const Icon(Icons.shield_rounded, size: 9, color: Colors.white),
+                          child: const Icon(Icons.shield_rounded,
+                              size: 9, color: Colors.white),
                         ),
                       ),
 
@@ -643,17 +685,22 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                 constraints: const BoxConstraints(maxWidth: 130),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isDark ? const Color(0xE616161E) : const Color(0xF2FFFFFF)),
+                  color: (isDark
+                      ? const Color(0xE616161E)
+                      : const Color(0xF2FFFFFF)),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
                         ? haloColor
-                        : (isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000)),
+                        : (isDark
+                            ? const Color(0x2EFFFFFF)
+                            : const Color(0x1F000000)),
                     width: isSelected ? 1.0 : 0.6,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -664,10 +711,11 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   children: [
                     Text(
                       member.name,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodySmall.copyWith(
                         fontSize: node.tier <= 1 ? 11.0 : 10.0,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                        color:
+                            isDark ? Colors.white : AppColors.lightTextPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -680,27 +728,31 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                         Container(
                           width: 4,
                           height: 4,
-                          decoration: BoxDecoration(color: haloColor, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                              color: haloColor, shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           member.role.shortCode,
-                          style: GoogleFonts.inter(
+                          style: AppTextStyles.caption.copyWith(
                             fontSize: 8.5,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
                             color: haloColor,
                           ),
                         ),
-                        if (member.domain != null && member.domain!.isNotEmpty) ...[
+                        if (member.domain != null &&
+                            member.domain!.isNotEmpty) ...[
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               '• ${member.domain!.split(' ').first}',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.caption.copyWith(
                                 fontSize: 8.5,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
+                                color: isDark
+                                    ? Colors.white54
+                                    : AppColors.lightTextSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
@@ -734,7 +786,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
       alignment: Alignment.center,
       child: Text(
         initials,
-        style: GoogleFonts.inter(
+        style: AppTextStyles.labelMedium.copyWith(
           fontSize: 14,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
@@ -847,9 +899,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   const SizedBox(width: 8),
                   Text(
                     title,
-                    style: GoogleFonts.inter(
+                    style: AppTextStyles.cardTitle.copyWith(
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white : AppColors.lightTextPrimary,
                     ),
                   ),
@@ -863,7 +914,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                 ),
                 child: Text(
                   levelLabel,
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.labelSmall.copyWith(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
                     color: color,
@@ -881,7 +932,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
                 'No members in this tier',
-                style: GoogleFonts.inter(
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 12,
                   color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
                 ),
@@ -894,7 +945,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
               itemCount: members.length,
               separatorBuilder: (_, __) => Divider(
                 height: 12,
-                color: isDark ? const Color(0x14FFFFFF) : const Color(0x0A000000),
+                color:
+                    isDark ? const Color(0x14FFFFFF) : const Color(0x0A000000),
               ),
               itemBuilder: (context, i) {
                 final m = members[i];
@@ -917,32 +969,40 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
-                        border: Border.all(color: color.withValues(alpha: 0.35), width: 1),
+                        border: Border.all(
+                            color: color.withValues(alpha: 0.35), width: 1),
                       ),
                       child: ClipOval(
                         child: m.avatar != null && m.avatar!.isNotEmpty
                             ? Image.network(m.avatar!, fit: BoxFit.cover)
                             : Center(
                                 child: Text(
-                                  m.name.isNotEmpty ? m.name[0].toUpperCase() : 'M',
-                                  style: GoogleFonts.inter(color: color, fontWeight: FontWeight.bold),
+                                  m.name.isNotEmpty
+                                      ? m.name[0].toUpperCase()
+                                      : 'M',
+                                  style: AppTextStyles.labelMedium.copyWith(
+                                      color: color,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                       ),
                     ),
                     title: Text(
                       m.name,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.bodyMedium.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                        color:
+                            isDark ? Colors.white : AppColors.lightTextPrimary,
                       ),
                     ),
                     subtitle: Text(
                       '${m.role.displayName} • ${m.domain ?? m.year ?? 'Society Crew'}',
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 11,
-                        color: isDark ? Colors.white54 : AppColors.lightTextSecondary,
+                        color: isDark
+                            ? Colors.white54
+                            : AppColors.lightTextSecondary,
                       ),
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded, size: 18),
@@ -958,11 +1018,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
   // ---------------------------------------------------------------------------
   // 5. MEMBER DETAIL INSPECTION SHEET
   // ---------------------------------------------------------------------------
-  void _showMemberInspectionSheet(BuildContext context, UserEntity member, _HierarchyNode node) {
+  void _showMemberInspectionSheet(
+      BuildContext context, UserEntity member, _HierarchyNode node) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark ? const Color(0xFF16161D) : Colors.white;
     final textPrimary = isDark ? Colors.white : AppColors.lightTextPrimary;
-    final textSecondary = isDark ? Colors.white60 : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? Colors.white60 : AppColors.lightTextSecondary;
     final accent = AppColors.accentOf(context);
     final tierColor = node.tierColor;
 
@@ -1013,14 +1075,16 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                         ],
                       ),
                       child: ClipOval(
-                        child: member.avatar != null && member.avatar!.isNotEmpty
+                        child: member.avatar != null &&
+                                member.avatar!.isNotEmpty
                             ? Image.network(member.avatar!, fit: BoxFit.cover)
                             : Center(
                                 child: Text(
-                                  member.name.isNotEmpty ? member.name[0].toUpperCase() : 'M',
-                                  style: GoogleFonts.inter(
+                                  member.name.isNotEmpty
+                                      ? member.name[0].toUpperCase()
+                                      : 'M',
+                                  style: AppTextStyles.headlineMedium.copyWith(
                                     fontSize: 22,
-                                    fontWeight: FontWeight.w800,
                                     color: tierColor,
                                   ),
                                 ),
@@ -1037,7 +1101,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               Expanded(
                                 child: Text(
                                   member.name,
-                                  style: GoogleFonts.inter(
+                                  style: AppTextStyles.titleLg.copyWith(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                     color: textPrimary,
@@ -1048,15 +1112,17 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               ),
                               if (member.isActive)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF34C759).withValues(alpha: 0.15),
+                                    color: const Color(0xFF34C759)
+                                        .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Text(
+                                  child: Text(
                                     'ACTIVE',
-                                    style: TextStyle(
-                                      color: Color(0xFF34C759),
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: const Color(0xFF34C759),
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -1067,18 +1133,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                           const SizedBox(height: 2),
                           Text(
                             member.email,
-                            style: GoogleFonts.inter(fontSize: 12, color: textSecondary),
+                            style: AppTextStyles.caption
+                                .copyWith(fontSize: 12, color: textSecondary),
                           ),
                           const SizedBox(height: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: tierColor.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               'LEVEL ${member.role.hierarchyLevel} • ${member.role.tierTitle.toUpperCase()}',
-                              style: GoogleFonts.inter(
+                              style: AppTextStyles.labelSmall.copyWith(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
                                 color: tierColor,
@@ -1126,16 +1194,19 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E1E26) : const Color(0xFFF4F4F6),
+                      color: isDark
+                          ? const Color(0xFF1E1E26)
+                          : const Color(0xFFF4F4F6),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       member.bio!,
-                      style: GoogleFonts.inter(
+                      style: AppTextStyles.editorialQuote.copyWith(
                         fontSize: 12,
-                        fontStyle: FontStyle.italic,
                         height: 1.4,
-                        color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                        color: isDark
+                            ? Colors.white70
+                            : AppColors.lightTextSecondary,
                       ),
                     ),
                   ),
@@ -1153,7 +1224,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                           label: const Text('GitHub'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: textPrimary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ),
@@ -1167,7 +1239,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                           label: const Text('LinkedIn'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF0A66C2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ),
@@ -1184,7 +1257,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MemberDetailsScreen(member: member),
+                          builder: (context) =>
+                              MemberDetailsScreen(member: member),
                         ),
                       );
                     },
@@ -1193,7 +1267,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -1206,7 +1281,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
     );
   }
 
-  Widget _buildDetailPill({required String title, required String value, required bool isDark}) {
+  Widget _buildDetailPill(
+      {required String title, required String value, required bool isDark}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -1218,7 +1294,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
         children: [
           Text(
             title,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 9,
               fontWeight: FontWeight.w700,
               color: isDark ? Colors.white38 : AppColors.lightTextSecondary,
@@ -1228,7 +1304,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
           const SizedBox(height: 2),
           Text(
             value,
-            style: GoogleFonts.inter(
+            style: AppTextStyles.bodySmall.copyWith(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white : AppColors.lightTextPrimary,
@@ -1271,10 +1347,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                 color: isDark
                     ? const Color(0xFF11131C).withValues(alpha: 0.94)
                     : Colors.white.withValues(alpha: 0.96),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
                 border: Border(
                   top: BorderSide(
-                    color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.08),
                     width: 0.8,
                   ),
                 ),
@@ -1290,7 +1369,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       width: 38,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withValues(alpha: 0.22) : Colors.black.withValues(alpha: 0.16),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.22)
+                            : Colors.black.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1335,9 +1416,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               height: 30,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05),
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.05),
                                 border: Border.all(
-                                  color: isDark ? Colors.white.withValues(alpha: 0.10) : Colors.black.withValues(alpha: 0.08),
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.10)
+                                      : Colors.black.withValues(alpha: 0.08),
                                   width: 0.5,
                                 ),
                               ),
@@ -1358,10 +1443,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Role Hierarchy Legend',
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.headlineMedium.copyWith(
                           fontSize: 21,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF0F172A),
                           letterSpacing: -0.4,
                         ),
                       ),
@@ -1371,7 +1456,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Operational hierarchy governing graph node elevation, cryptographic privileges, and administration scopes across BRL Nexus.',
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.editorialSubtitle.copyWith(
                           fontSize: 12,
                           color: isDark ? Colors.white60 : Colors.black54,
                           height: 1.4,
@@ -1392,7 +1477,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               badgeLabel: 'EXECUTIVE',
                               title: 'Level 5: Super Admin',
                               subtitle: 'President, Founder & Chief Architect',
-                              permissions: 'Full System Control • Key Rotation • Node Elevation',
+                              permissions:
+                                  'Full System Control • Key Rotation • Node Elevation',
                               tierColor: const Color(0xFFF59E0B),
                               isDark: isDark,
                             ),
@@ -1403,7 +1489,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               badgeLabel: 'LEADERSHIP',
                               title: 'Level 4: Admin',
                               subtitle: 'Technical Lead & Operations Lead',
-                              permissions: 'Event Management • User Approvals • Attendance Control',
+                              permissions:
+                                  'Event Management • User Approvals • Attendance Control',
                               tierColor: const Color(0xFF8B5CF6),
                               isDark: isDark,
                             ),
@@ -1413,8 +1500,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               levelCode: 'L-3',
                               badgeLabel: 'COORDINATION',
                               title: 'Level 3: Coordinator',
-                              subtitle: 'Domain Leads (Dev, Design, Events, PR)',
-                              permissions: 'Domain Logistics • Session Registries • Student Check-In',
+                              subtitle:
+                                  'Domain Leads (Dev, Design, Events, PR)',
+                              permissions:
+                                  'Domain Logistics • Session Registries • Student Check-In',
                               tierColor: const Color(0xFF06B6D4),
                               isDark: isDark,
                             ),
@@ -1425,7 +1514,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               badgeLabel: 'OPERATIONS',
                               title: 'Level 2: Volunteer',
                               subtitle: 'Core Operational Crew & Associates',
-                              permissions: 'QR Scanner Verification • On-Ground Event Execution',
+                              permissions:
+                                  'QR Scanner Verification • On-Ground Event Execution',
                               tierColor: const Color(0xFF38BDF8),
                               isDark: isDark,
                             ),
@@ -1436,7 +1526,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                               badgeLabel: 'OBSERVER',
                               title: 'Level 1: Viewer',
                               subtitle: 'General Society Members & Freshers',
-                              permissions: 'Read-Only Network Graph • Event Catalog & Schedule',
+                              permissions:
+                                  'Read-Only Network Graph • Event Catalog & Schedule',
                               tierColor: const Color(0xFF94A3B8),
                               isDark: isDark,
                             ),
@@ -1444,25 +1535,33 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
 
                             // Cryptographic Security Tag
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 11),
                               decoration: BoxDecoration(
-                                color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.03)
+                                    : Colors.black.withValues(alpha: 0.02),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: isDark ? Colors.white.withValues(alpha: 0.07) : Colors.black.withValues(alpha: 0.05),
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.07)
+                                      : Colors.black.withValues(alpha: 0.05),
                                   width: 0.8,
                                 ),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.shield_outlined, size: 16, color: accent),
+                                  Icon(Icons.shield_outlined,
+                                      size: 16, color: accent),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
                                       'Permission scopes are cryptographically signed and validated via Bearer JWT tokens on every network payload.',
-                                      style: GoogleFonts.inter(
+                                      style: AppTextStyles.caption.copyWith(
                                         fontSize: 11,
-                                        color: isDark ? Colors.white54 : Colors.black45,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.black45,
                                         height: 1.35,
                                       ),
                                     ),
@@ -1541,7 +1640,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
             child: Center(
               child: Text(
                 levelCode,
-                style: GoogleFonts.inter(
+                style: AppTextStyles.labelSmall.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: tierColor,
@@ -1562,18 +1661,20 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     Expanded(
                       child: Text(
                         title,
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.cardTitle.copyWith(
                           fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF0F172A),
                           letterSpacing: -0.2,
                         ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: tierColor.withValues(alpha: isDark ? 0.16 : 0.10),
+                        color:
+                            tierColor.withValues(alpha: isDark ? 0.16 : 0.10),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: tierColor.withValues(alpha: 0.30),
@@ -1582,7 +1683,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       ),
                       child: Text(
                         badgeLabel,
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.labelSmall.copyWith(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w700,
                           color: tierColor,
@@ -1595,7 +1696,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: GoogleFonts.inter(
+                  style: AppTextStyles.caption.copyWith(
                     fontSize: 11.5,
                     color: isDark ? Colors.white70 : const Color(0xFF475569),
                     fontWeight: FontWeight.w500,
@@ -1613,7 +1714,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                     Expanded(
                       child: Text(
                         permissions,
-                        style: GoogleFonts.inter(
+                        style: AppTextStyles.caption.copyWith(
                           fontSize: 10,
                           color: isDark ? Colors.white38 : Colors.black45,
                           fontWeight: FontWeight.w500,
@@ -1645,37 +1746,53 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
           builder: (context, setModalState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF181822),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: Text('Invite Society Member', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              title: Text('Invite Society Member',
+                  style: AppTextStyles.titleLg.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    BrlTextField(label: 'Full Name', controller: nameController, hintText: 'e.g. Aryan Mehra'),
+                    BrlTextField(
+                        label: 'Full Name',
+                        controller: nameController,
+                        hintText: 'e.g. Aryan Mehra'),
                     const SizedBox(height: 12),
-                    BrlTextField(label: 'Email', controller: emailController, hintText: 'aryan@akgec.ac.in'),
+                    BrlTextField(
+                        label: 'Email',
+                        controller: emailController,
+                        hintText: 'aryan@akgec.ac.in'),
                     const SizedBox(height: 12),
-                    BrlTextField(label: 'Domain', controller: domainController, hintText: 'e.g. Flutter, UI/UX, Cloud'),
+                    BrlTextField(
+                        label: 'Domain',
+                        controller: domainController,
+                        hintText: 'e.g. Flutter, UI/UX, Cloud'),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<UserRole>(
                       initialValue: selectedRole,
                       dropdownColor: const Color(0xFF22222E),
                       decoration: InputDecoration(
                         labelText: 'Role Hierarchy',
-                        labelStyle: GoogleFonts.inter(color: Colors.white70),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        labelStyle: AppTextStyles.labelMedium
+                            .copyWith(color: Colors.white70),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       items: UserRole.values.map((r) {
                         return DropdownMenuItem(
                           value: r,
                           child: Text(
                             '${r.displayName} (Level ${r.hierarchyLevel})',
-                            style: GoogleFonts.inter(color: Colors.white),
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: Colors.white),
                           ),
                         );
                       }).toList(),
                       onChanged: (val) {
-                        if (val != null) setModalState(() => selectedRole = val);
+                        if (val != null)
+                          setModalState(() => selectedRole = val);
                       },
                     ),
                   ],
@@ -1684,11 +1801,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                  child: Text('Cancel',
+                      style: AppTextStyles.labelMedium
+                          .copyWith(color: Colors.white60)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (nameController.text.trim().isEmpty || emailController.text.trim().isEmpty) return;
+                    if (nameController.text.trim().isEmpty ||
+                        emailController.text.trim().isEmpty) return;
                     Navigator.pop(ctx);
                     try {
                       final dio = ref.read(dioClientProvider);
@@ -1701,7 +1821,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                       ref.invalidate(membersProvider);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Member added to hierarchy successfully')),
+                          const SnackBar(
+                              content: Text(
+                                  'Member added to hierarchy successfully')),
                         );
                       }
                     } catch (e) {
@@ -1715,7 +1837,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2997FF),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                   child: const Text('Add Member'),
                 ),
@@ -1771,20 +1894,23 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
     double maxTierWidth = 600.0;
     for (int t = 0; t < tiersList.length; t++) {
       final count = tiersList[t].length;
-      final spacing = horizontalSpacings[math.min(t, horizontalSpacings.length - 1)];
+      final spacing =
+          horizontalSpacings[math.min(t, horizontalSpacings.length - 1)];
       final w = count * spacing;
       if (w > maxTierWidth) maxTierWidth = w;
     }
 
     final canvasWidth = maxTierWidth + 400.0;
-    final canvasHeight = topMargin + (tiersList.length * verticalSpacing) + bottomMargin;
+    final canvasHeight =
+        topMargin + (tiersList.length * verticalSpacing) + bottomMargin;
 
     // Track tier nodes to establish connections
     final tierNodesMap = <int, List<_HierarchyNode>>{};
 
     for (int t = 0; t < tiersList.length; t++) {
       final currentTier = tiersList[t];
-      final spacing = horizontalSpacings[math.min(t, horizontalSpacings.length - 1)];
+      final spacing =
+          horizontalSpacings[math.min(t, horizontalSpacings.length - 1)];
       final radius = tierRadii[math.min(t, tierRadii.length - 1)];
       final color = tierColors[math.min(t, tierColors.length - 1)];
 
@@ -1813,7 +1939,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
         }
 
         // Establish connections to parent tier
-        if (t > 0 && tierNodesMap.containsKey(t - 1) && tierNodesMap[t - 1]!.isNotEmpty) {
+        if (t > 0 &&
+            tierNodesMap.containsKey(t - 1) &&
+            tierNodesMap[t - 1]!.isNotEmpty) {
           final parentTierNodes = tierNodesMap[t - 1]!;
 
           // First try to match by domain
@@ -1821,7 +1949,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen>
           if (member.domain != null && member.domain!.isNotEmpty) {
             matchedParent = parentTierNodes.where((p) {
               return p.member.domain != null &&
-                  p.member.domain!.toLowerCase().contains(member.domain!.toLowerCase().split(' ').first);
+                  p.member.domain!
+                      .toLowerCase()
+                      .contains(member.domain!.toLowerCase().split(' ').first);
             }).firstOrNull;
           }
 
@@ -1973,7 +2103,8 @@ class _HierarchyConnectorsPainter extends CustomPainter {
                 peer.tierColor.withValues(alpha: isDark ? 0.6 : 0.4),
               ],
             );
-            final shader = councilGradient.createShader(Rect.fromPoints(start, end));
+            final shader =
+                councilGradient.createShader(Rect.fromPoints(start, end));
 
             final councilGlow = Paint()
               ..shader = shader
@@ -2014,7 +2145,8 @@ class _HierarchyConnectorsPainter extends CustomPainter {
         final isPathSelected = selectedMemberId == node.member.id ||
             selectedMemberId == parent.member.id ||
             (selectedMemberId != null &&
-                (node.childIds.contains(selectedMemberId) || parent.parentIds.contains(selectedMemberId)));
+                (node.childIds.contains(selectedMemberId) ||
+                    parent.parentIds.contains(selectedMemberId)));
 
         // Edges connect directly to the center (middle) of the head of each node!
         final start = Offset(parent.position.dx, parent.position.dy);
@@ -2037,8 +2169,10 @@ class _HierarchyConnectorsPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            parent.tierColor.withValues(alpha: isPathSelected ? 0.95 : (isDark ? 0.6 : 0.45)),
-            node.tierColor.withValues(alpha: isPathSelected ? 0.95 : (isDark ? 0.6 : 0.45)),
+            parent.tierColor.withValues(
+                alpha: isPathSelected ? 0.95 : (isDark ? 0.6 : 0.45)),
+            node.tierColor.withValues(
+                alpha: isPathSelected ? 0.95 : (isDark ? 0.6 : 0.45)),
           ],
         );
 
@@ -2070,15 +2204,18 @@ class _HierarchyConnectorsPainter extends CustomPainter {
           final tangent = metric.getTangentForOffset(length * particleT);
 
           if (tangent != null) {
-            final particleColor = isPathSelected ? Colors.white : node.tierColor;
+            final particleColor =
+                isPathSelected ? Colors.white : node.tierColor;
             final particlePaint = Paint()
               ..color = particleColor.withValues(alpha: 0.9)
               ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
 
-            canvas.drawCircle(tangent.position, isPathSelected ? 3.5 : 2.2, particlePaint);
+            canvas.drawCircle(
+                tangent.position, isPathSelected ? 3.5 : 2.2, particlePaint);
 
             final corePaint = Paint()..color = Colors.white;
-            canvas.drawCircle(tangent.position, isPathSelected ? 1.8 : 1.1, corePaint);
+            canvas.drawCircle(
+                tangent.position, isPathSelected ? 1.8 : 1.1, corePaint);
           }
         }
       }
@@ -2092,4 +2229,3 @@ class _HierarchyConnectorsPainter extends CustomPainter {
         oldDelegate.isDark != isDark;
   }
 }
-

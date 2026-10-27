@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -99,18 +98,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _isLoading = true);
 
     final error = await ref.read(authNotifierProvider.notifier).updateProfile(
-      name: _nameController.text.trim(),
-      year: _selectedYear,
-      domain: _selectedDomain,
-      phone: _phoneController.text.trim(),
-      bio: _bioController.text.trim(),
-      github: _githubController.text.trim(),
-      linkedin: _linkedinController.text.trim(),
-    );
+          name: _nameController.text.trim(),
+          year: _selectedYear,
+          domain: _selectedDomain,
+          phone: _phoneController.text.trim(),
+          bio: _bioController.text.trim(),
+          github: _githubController.text.trim(),
+          linkedin: _linkedinController.text.trim(),
+        );
 
     String? avatarError;
     if (error == null && _imageFile != null) {
-      avatarError = await ref.read(authNotifierProvider.notifier).updateAvatar(_imageFile!);
+      avatarError = await ref
+          .read(authNotifierProvider.notifier)
+          .updateAvatar(_imageFile!);
     }
 
     if (mounted) {
@@ -122,7 +123,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             content: Text(finalError),
             backgroundColor: AppColors.errorOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       } else {
@@ -131,7 +133,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             content: const Text('Profile updated successfully'),
             backgroundColor: AppColors.successOf(context),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -144,11 +147,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final accent = AppColors.accentOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final initials = user?.name.isNotEmpty == true
-        ? user!.name.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+        ? user!.name
+            .trim()
+            .split(' ')
+            .map((w) => w.isNotEmpty ? w[0] : '')
+            .take(2)
+            .join()
+            .toUpperCase()
         : 'U';
 
     final dropdownBg = isDark ? const Color(0xFF1E212E) : Colors.white;
-    final dropdownBorder = isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
+    final dropdownBorder =
+        isDark ? const Color(0x2EFFFFFF) : const Color(0x1F000000);
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -175,28 +185,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: accent.withValues(alpha: isDark ? 0.2 : 0.12),
-                          border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
+                          border: Border.all(
+                              color: accent.withValues(alpha: 0.35),
+                              width: 1.5),
                         ),
                         child: ClipOval(
                           child: _imageFile != null
-                              ? Image.file(_imageFile!, width: 96, height: 96, fit: BoxFit.cover)
-                              : (user?.avatar != null && user!.avatar!.isNotEmpty)
+                              ? Image.file(_imageFile!,
+                                  width: 96, height: 96, fit: BoxFit.cover)
+                              : (user?.avatar != null &&
+                                      user!.avatar!.isNotEmpty)
                                   ? CachedNetworkImage(
                                       imageUrl: user.avatar!,
                                       width: 96,
                                       height: 96,
                                       fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) => Center(
+                                      errorWidget: (context, url, error) =>
+                                          Center(
                                         child: Text(
                                           initials,
-                                          style: AppTextStyles.headlineLg.copyWith(color: accent, fontSize: 32),
+                                          style: AppTextStyles.headlineLg
+                                              .copyWith(
+                                                  color: accent, fontSize: 32),
                                         ),
                                       ),
                                     )
                                   : Center(
                                       child: Text(
                                         initials,
-                                        style: AppTextStyles.headlineLg.copyWith(color: accent, fontSize: 32),
+                                        style: AppTextStyles.headlineLg
+                                            .copyWith(
+                                                color: accent, fontSize: 32),
                                       ),
                                     ),
                         ),
@@ -209,9 +228,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           decoration: BoxDecoration(
                             color: accent,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.surfaceOf(context), width: 2),
+                            border: Border.all(
+                                color: AppColors.surfaceOf(context), width: 2),
                           ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 15),
+                          child: const Icon(Icons.camera_alt,
+                              color: Colors.white, size: 15),
                         ),
                       ),
                     ],
@@ -222,7 +243,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Center(
                 child: Text(
                   'Tap to change photo',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.textSecondaryOf(context)),
+                  style: AppTextStyles.caption
+                      .copyWith(color: AppColors.textSecondaryOf(context)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -238,14 +260,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       controller: _nameController,
                       label: 'Full Name',
                       hintText: 'Enter your name',
-                      prefix: Icon(Icons.person_outline, size: 18, color: AppColors.textSecondaryOf(context)),
+                      prefix: Icon(Icons.person_outline,
+                          size: 18, color: AppColors.textSecondaryOf(context)),
                     ),
                     const SizedBox(height: 14),
                     BrlTextField(
                       controller: _emailController,
                       label: 'Email (Primary Identifier)',
                       hintText: 'Your registered email',
-                      prefix: Icon(Icons.email_outlined, size: 18, color: AppColors.textSecondaryOf(context)),
+                      prefix: Icon(Icons.email_outlined,
+                          size: 18, color: AppColors.textSecondaryOf(context)),
                       enabled: false,
                     ),
                   ],
@@ -261,25 +285,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   children: [
                     DropdownButtonFormField<String>(
-                      initialValue: _years.contains(_selectedYear) ? _selectedYear : null,
+                      initialValue:
+                          _years.contains(_selectedYear) ? _selectedYear : null,
                       dropdownColor: dropdownBg,
-                      style: GoogleFonts.inter(
-                        color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color:
+                            isDark ? Colors.white : AppColors.lightTextPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Academic Year',
-                        labelStyle: GoogleFonts.inter(
-                          color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                        labelStyle: AppTextStyles.labelMedium.copyWith(
+                          color: isDark
+                              ? Colors.white70
+                              : AppColors.lightTextSecondary,
                           fontSize: 13,
                         ),
-                        prefixIcon: Icon(Icons.school_outlined, size: 18, color: AppColors.textSecondaryOf(context)),
+                        prefixIcon: Icon(Icons.school_outlined,
+                            size: 18,
+                            color: AppColors.textSecondaryOf(context)),
                         filled: true,
-                        fillColor: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: dropdownBorder)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: dropdownBorder)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: accent, width: 1.5)),
+                        fillColor: isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.02),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: dropdownBorder)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: dropdownBorder)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: accent, width: 1.5)),
                       ),
                       items: _years.map((y) {
                         return DropdownMenuItem(
@@ -291,25 +329,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      initialValue: _domains.contains(_selectedDomain) ? _selectedDomain : null,
+                      initialValue: _domains.contains(_selectedDomain)
+                          ? _selectedDomain
+                          : null,
                       dropdownColor: dropdownBg,
-                      style: GoogleFonts.inter(
-                        color: isDark ? Colors.white : AppColors.lightTextPrimary,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color:
+                            isDark ? Colors.white : AppColors.lightTextPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         labelText: 'Society Domain',
-                        labelStyle: GoogleFonts.inter(
-                          color: isDark ? Colors.white70 : AppColors.lightTextSecondary,
+                        labelStyle: AppTextStyles.labelMedium.copyWith(
+                          color: isDark
+                              ? Colors.white70
+                              : AppColors.lightTextSecondary,
                           fontSize: 13,
                         ),
-                        prefixIcon: Icon(Icons.hub_outlined, size: 18, color: AppColors.textSecondaryOf(context)),
+                        prefixIcon: Icon(Icons.hub_outlined,
+                            size: 18,
+                            color: AppColors.textSecondaryOf(context)),
                         filled: true,
-                        fillColor: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.02),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: dropdownBorder)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: dropdownBorder)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: accent, width: 1.5)),
+                        fillColor: isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.02),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: dropdownBorder)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: dropdownBorder)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: accent, width: 1.5)),
                       ),
                       items: _domains.map((d) {
                         return DropdownMenuItem(
@@ -336,21 +389,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       label: 'Phone Number',
                       hintText: '+91 98765 43210',
                       keyboardType: TextInputType.phone,
-                      prefix: Icon(Icons.phone_outlined, size: 18, color: AppColors.textSecondaryOf(context)),
+                      prefix: Icon(Icons.phone_outlined,
+                          size: 18, color: AppColors.textSecondaryOf(context)),
                     ),
                     const SizedBox(height: 14),
                     BrlTextField(
                       controller: _githubController,
                       label: 'GitHub Profile',
                       hintText: 'https://github.com/username',
-                      prefix: Icon(Icons.code_rounded, size: 18, color: AppColors.textSecondaryOf(context)),
+                      prefix: Icon(Icons.code_rounded,
+                          size: 18, color: AppColors.textSecondaryOf(context)),
                     ),
                     const SizedBox(height: 14),
                     BrlTextField(
                       controller: _linkedinController,
                       label: 'LinkedIn Profile',
                       hintText: 'https://linkedin.com/in/username',
-                      prefix: Icon(Icons.link_rounded, size: 18, color: AppColors.textSecondaryOf(context)),
+                      prefix: Icon(Icons.link_rounded,
+                          size: 18, color: AppColors.textSecondaryOf(context)),
                     ),
                   ],
                 ),
@@ -365,9 +421,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: BrlTextField(
                   controller: _bioController,
                   label: 'Short Bio',
-                  hintText: 'Describe your background, technical interests, or role in BRL...',
+                  hintText:
+                      'Describe your background, technical interests, or role in BRL...',
                   maxLines: 3,
-                  prefix: Icon(Icons.notes_rounded, size: 18, color: AppColors.textSecondaryOf(context)),
+                  prefix: Icon(Icons.notes_rounded,
+                      size: 18, color: AppColors.textSecondaryOf(context)),
                 ),
               ),
               const SizedBox(height: 32),

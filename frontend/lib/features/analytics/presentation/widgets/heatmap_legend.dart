@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import 'heatmap_cell.dart';
 
 class HeatmapLegend extends StatelessWidget {
@@ -14,16 +14,18 @@ class HeatmapLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return Semantics(
-      label: 'Activity Intensity Legend: Level 0 (None) to Level 4 (Highest activity)',
+      label:
+          'Activity Intensity Legend: Level 0 (None) to Level 4 (Highest activity)',
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Less',
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 10.0,
               fontWeight: FontWeight.w500,
               color: textSecondary,
@@ -39,7 +41,7 @@ class HeatmapLegend extends StatelessWidget {
           const SizedBox(width: 6.0),
           Text(
             'More',
-            style: GoogleFonts.inter(
+            style: AppTextStyles.caption.copyWith(
               fontSize: 10.0,
               fontWeight: FontWeight.w500,
               color: textSecondary,

@@ -14,7 +14,8 @@ class QrDisplayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final textSecondary =
+        isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -41,7 +42,8 @@ class QrDisplayScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Display this QR code for volunteers or students to verify event check-in.',
-                      style: AppTextStyles.bodyMd.copyWith(color: textSecondary),
+                      style:
+                          AppTextStyles.bodyMd.copyWith(color: textSecondary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),

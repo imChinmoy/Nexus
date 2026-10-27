@@ -22,7 +22,8 @@ class EventsScreen extends ConsumerStatefulWidget {
 }
 
 class _EventsScreenState extends ConsumerState<EventsScreen> {
-  final GlobalKey<EventSwipeDeckState> _deckKey = GlobalKey<EventSwipeDeckState>();
+  final GlobalKey<EventSwipeDeckState> _deckKey =
+      GlobalKey<EventSwipeDeckState>();
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedFilter = 'All';
@@ -33,7 +34,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   String? _lastCalculatedFilter;
   String? _lastCalculatedSearch;
 
-  static const List<String> _filters = ['All', 'Upcoming', 'Ongoing', 'Ended', 'Archived'];
+  static const List<String> _filters = [
+    'All',
+    'Upcoming',
+    'Ongoing',
+    'Ended',
+    'Archived'
+  ];
 
   @override
   void dispose() {
@@ -115,8 +122,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     final user = ref.watch(currentUserProvider);
     final isSuperAdmin = user?.isSuperAdmin ?? false;
     final permissions = ref.watch(myPermissionsProvider).value ?? [];
-    final canAdd = isSuperAdmin || permissions.contains('event:add') || permissions.contains('all');
-    final canEdit = isSuperAdmin || permissions.contains('event:edit') || permissions.contains('all');
+    final canAdd = isSuperAdmin ||
+        permissions.contains('event:add') ||
+        permissions.contains('all');
+    final canEdit = isSuperAdmin ||
+        permissions.contains('event:edit') ||
+        permissions.contains('all');
 
     return AnimatedGradientBg(
       child: Scaffold(
@@ -126,7 +137,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           isSearching: _isSearching,
           onToggleSearch: _toggleSearch,
           onRefresh: () => ref.invalidate(eventsProvider),
-          onAddEvent: canAdd ? () => context.push(RouteConstants.createEvent) : null,
+          onAddEvent:
+              canAdd ? () => context.push(RouteConstants.createEvent) : null,
           searchController: _searchController,
           onSearchChanged: _onSearchChanged,
         ),
@@ -191,7 +203,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                 message: _searchQuery.isNotEmpty
                                     ? 'No events match "$_searchQuery". Try searching with different keywords.'
                                     : 'There are currently no events categorized under $_selectedFilter.',
-                                actionLabel: (_selectedFilter != 'All' || _searchQuery.isNotEmpty)
+                                actionLabel: (_selectedFilter != 'All' ||
+                                        _searchQuery.isNotEmpty)
                                     ? 'Reset Filters'
                                     : null,
                                 onAction: () {
@@ -217,12 +230,15 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       _lastCalculatedFilter = _selectedFilter;
                       _lastCalculatedSearch = _searchQuery;
                       _hasUserSwipedOrTapped = false;
-                      _currentIndex = EventEntity.findDefaultEventIndex(filteredEvents);
+                      _currentIndex =
+                          EventEntity.findDefaultEventIndex(filteredEvents);
                     }
 
                     // Reconcile index if filtered list shrunk
                     if (_currentIndex >= filteredEvents.length) {
-                      _currentIndex = filteredEvents.isNotEmpty ? filteredEvents.length - 1 : 0;
+                      _currentIndex = filteredEvents.isNotEmpty
+                          ? filteredEvents.length - 1
+                          : 0;
                     }
                     if (_currentIndex < 0) {
                       _currentIndex = 0;
@@ -238,8 +254,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               final availableHeight = constraints.maxHeight;
 
                               // Refined proportions: slightly smaller cards to let the tilted deck fan out beautifully
-                              final cardWidth = (availableWidth - 54).clamp(260.0, 390.0);
-                              final cardHeight = (availableHeight * 0.74).clamp(340.0, 520.0);
+                              final cardWidth =
+                                  (availableWidth - 54).clamp(260.0, 390.0);
+                              final cardHeight =
+                                  (availableHeight * 0.74).clamp(340.0, 520.0);
 
                               return Center(
                                 child: EventSwipeDeck(
@@ -255,14 +273,18 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                     });
                                   },
                                   onCardTap: (event) {
-                                    context.push('${RouteConstants.events}/${event.id}');
+                                    context.push(
+                                        '${RouteConstants.events}/${event.id}');
                                   },
                                   onScanAttendance: (event) {
-                                    context.push('${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
+                                    context.push(
+                                        '${RouteConstants.attendance}/qr-scan?eventId=${event.id}');
                                   },
                                   onEdit: canEdit
                                       ? (event) {
-                                          context.push('${RouteConstants.events}/${event.id}/edit', extra: event);
+                                          context.push(
+                                              '${RouteConstants.events}/${event.id}/edit',
+                                              extra: event);
                                         }
                                       : null,
                                 ),

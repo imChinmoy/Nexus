@@ -6,7 +6,8 @@ import '../models/auth_response_model.dart';
 import '../models/user_model.dart';
 
 abstract interface class AuthRemoteSource {
-  Future<AuthResponseModel> login({required String email, required String password});
+  Future<AuthResponseModel> login(
+      {required String email, required String password});
   Future<AuthResponseModel> register({
     required String name,
     required String email,
@@ -23,8 +24,10 @@ abstract interface class AuthRemoteSource {
   Future<UserModel> getCurrentUser();
   Future<String> refreshToken(String token);
   Future<void> forgotPassword(String email);
-  Future<void> resetPassword({required String token, required String newPassword});
-  Future<void> changePassword({required String currentPassword, required String newPassword});
+  Future<void> resetPassword(
+      {required String token, required String newPassword});
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword});
   Future<UserModel> updateProfile({
     String? name,
     String? year,
@@ -55,7 +58,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       return AuthResponseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       if (e.error is AppException) throw e.error as AppException;
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg =
+          e.response?.data is Map ? e.response?.data['message'] : null;
       throw ServerException(serverMsg ?? 'Login failed: ${e.message}');
     } on AppException {
       rethrow;
@@ -96,7 +100,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       return AuthResponseModel.fromJson(response.data['data']);
     } on DioException catch (e) {
       if (e.error is AppException) throw e.error as AppException;
-      final serverMsg = e.response?.data is Map ? e.response?.data['message'] : null;
+      final serverMsg =
+          e.response?.data is Map ? e.response?.data['message'] : null;
       throw ServerException(serverMsg ?? 'Registration failed: ${e.message}');
     } on AppException {
       rethrow;
@@ -248,7 +253,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     try {
       String fileName = imageFile.path.split('/').last;
       FormData formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(imageFile.path, filename: fileName),
+        'avatar':
+            await MultipartFile.fromFile(imageFile.path, filename: fileName),
       });
 
       final response = await _dio.put(
